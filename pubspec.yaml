@@ -1,0 +1,15 @@
+name: ecosystem
+# If intended for publishing, replace `publish_to: none` with `version: 0.0.1`
+publish_to: none
+description: A tool to calculate the API usage for a package.
+repository: https://github.com/dart-lang/ecosystem
+
+environment:
+  sdk: '>=2.18.0 <3.0.0'
+
+dependencies:
+  # lib_name: ^1.2.0
+
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
