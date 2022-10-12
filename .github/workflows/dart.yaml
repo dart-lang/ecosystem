@@ -10,8 +10,11 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  package-corpus:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/corpus
 
     steps:
       # These are the latest versions of the github actions; dependabot will
