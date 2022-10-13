@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-void main(List<String> args) {
-  print('hello world');
+import 'package:path/path.dart' as path;
+
+void main() {
+  print(path.join('one', 'two'));
 }
