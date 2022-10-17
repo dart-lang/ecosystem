@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:http/retry.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 typedef PackageFilter = bool Function(PackageInfo packageInfo);
 
@@ -23,13 +24,11 @@ class Pub {
   Stream<PackageInfo> popularDependenciesOf(
     String packageName, {
     int? limit,
-    PackageFilter? filter,
   }) {
     return _packagesForSearch(
       'dependency:$packageName',
       limit: limit,
       sort: 'top',
-      filter: filter,
     );
   }
 
@@ -67,7 +66,6 @@ class Pub {
     int page = 1,
     int? limit,
     String? sort,
-    PackageFilter? filter,
   }) async* {
     final uri = Uri.parse('https://pub.dev/api/search');
 
@@ -87,10 +85,8 @@ class Pub {
           .map((e) => e['package'] as String?)) {
         var packageInfo = await getPackageInfo(packageName!);
 
-        if (filter == null || filter(packageInfo)) {
-          count++;
-          yield packageInfo;
-        }
+        count++;
+        yield packageInfo;
 
         if (limit != null && count >= limit) {
           break;
@@ -211,20 +207,26 @@ class PackageInfo {
   @override
   String toString() => '$name: $version';
 
-  String? constraintFor(String name) {
+  VersionConstraint? constraintFor(String name) {
     if (_pubspec['dependencies'] is Map) {
-      var constraint = _pubspec['dependencies'][name];
-      if (constraint != null) {
-        if (constraint is String && constraint.isEmpty) return 'any';
-        return constraint;
+      var deps = _pubspec['dependencies'] as Map;
+      if (deps.containsKey(name)) {
+        String constraint = deps[name] ?? 'any';
+        if (constraint.isEmpty) {
+          constraint = 'any';
+        }
+        return VersionConstraint.parse(constraint);
       }
     }
 
     if (_pubspec['dev_dependencies'] is Map) {
-      var constraint = _pubspec['dev_dependencies'][name];
-      if (constraint != null) {
-        if (constraint is String && constraint.isEmpty) return 'any';
-        return constraint;
+      var deps = _pubspec['dev_dependencies'] as Map;
+      if (deps.containsKey(name)) {
+        String constraint = deps[name] ?? 'any';
+        if (constraint.isEmpty) {
+          constraint = 'any';
+        }
+        return VersionConstraint.parse(constraint);
       }
     }
 

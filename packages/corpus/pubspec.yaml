@@ -15,6 +15,7 @@ dependencies:
   collection: ^1.16.0
   http: ^0.13.0
   path: ^1.8.0
+  pub_semver: ^2.0.0
   surveyor:
     git:
       url: https://github.com/pq/surveyor
