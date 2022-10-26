@@ -1,0 +1,23 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This set of lints builds on top of `package:lints/recommended.yaml`; it's
+# used by the Dart and Flutter teams when analyzing their packages and 
+# repositories.
+#
+# This package is not meant to be a recommendation for analysis settings for
+# the wider ecosystem. For our community recommendations, see `package:lints`
+# and `package:flutter_lints`.
+#
+# For documentation about customizing static analysis for your project, see
+# https://dart.dev/guides/language/analysis-options.
+
+include: package:lints/recommended.yaml
+
+linter:
+  rules:
+    - avoid_dynamic_calls
+    - await_only_futures
+    - directives_ordering
+    - sort_pub_dependencies
