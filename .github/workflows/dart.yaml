@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  'package:corpus':
+  package-corpus:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: dart test
 
-  'package:dart_flutter_team_lints':
+  package-dart_flutter_team_lints:
     runs-on: ubuntu-latest
     defaults:
       run:
