@@ -10,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  package-corpus:
+  'package:corpus':
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,11 +34,11 @@ jobs:
       - name: Run tests
         run: dart test
 
-  package-dash_team_lints:
+  'package:dart_flutter_team_lints':
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/dash_team_lints
+        working-directory: packages/dart_flutter_team_lints
 
     steps:
       # These are the latest versions of the github actions; dependabot will
