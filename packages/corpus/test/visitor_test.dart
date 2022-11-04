@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/pub.dart';
-import 'package:surveyor/src/driver.dart';
+import 'package:corpus/surveyor_driver.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -27,11 +27,13 @@ void main() {
     });
 
     test('libraries references', () async {
-      var driver = Driver.forArgs(['test/data/library_references.dart']);
-      driver.forceSkipInstall = true;
+      var driver = SurveyorDriver.fromDirs(
+        directories: [Directory('test/data/library_references.dart')],
+        visitor: apiUsageCollector,
+      );
       driver.silent = true;
       driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
+
       await driver.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
@@ -41,11 +43,12 @@ void main() {
     });
 
     test('class references', () async {
-      var driver = Driver.forArgs(['test/data/class_references.dart']);
-      driver.forceSkipInstall = true;
+      var driver = SurveyorDriver.fromDirs(
+        directories: [Directory('test/data/class_references.dart')],
+        visitor: apiUsageCollector,
+      );
       driver.silent = true;
       driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
       await driver.analyze();
 
       // class constructor invocation
@@ -68,11 +71,12 @@ void main() {
         packageDir,
       );
 
-      var driver = Driver.forArgs(['test/data/extension_references.dart']);
-      driver.forceSkipInstall = true;
+      var driver = SurveyorDriver.fromDirs(
+        directories: [Directory('test/data/extension_references.dart')],
+        visitor: apiUsageCollector,
+      );
       driver.silent = true;
       driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
       await driver.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
@@ -82,12 +86,12 @@ void main() {
     });
 
     test('top-level symbol references', () async {
-      var driver =
-          Driver.forArgs(['test/data/top_level_symbol_references.dart']);
-      driver.forceSkipInstall = true;
+      var driver = SurveyorDriver.fromDirs(
+        directories: [Directory('test/data/top_level_symbol_references.dart')],
+        visitor: apiUsageCollector,
+      );
       driver.silent = true;
       driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
       await driver.analyze();
 
       // check for a top level function invokation

@@ -5,15 +5,15 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:pub_semver/pub_semver.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/cache.dart';
 import 'package:corpus/packages.dart';
 import 'package:corpus/pub.dart';
 import 'package:corpus/report.dart';
+import 'package:corpus/surveyor_driver.dart';
 import 'package:path/path.dart' as path;
-import 'package:surveyor/src/driver.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 void main(List<String> args) async {
   var argParser = createArgParser();
@@ -166,12 +166,13 @@ Future<ApiUsage> analyzePackage(
   var apiUsageCollector =
       ApiUseCollector(targetPackage, usingPackage, usingPackageDir);
 
-  var driver = Driver.forArgs([usingPackageDir.path]);
-  driver.forceSkipInstall = true;
+  var driver = SurveyorDriver.fromDirs(
+    directories: [usingPackageDir],
+    visitor: apiUsageCollector,
+    excludedPaths: ['example'],
+  );
   driver.silent = true;
   driver.showErrors = false;
-  driver.excludedPaths = ['example'];
-  driver.visitor = apiUsageCollector;
 
   await driver.analyze();
   var usage = apiUsageCollector.usage;

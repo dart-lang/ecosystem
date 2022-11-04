@@ -11,10 +11,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:path/path.dart' as path;
-// ignore: implementation_imports
-import 'package:surveyor/src/visitors.dart';
 
 import 'pub.dart';
+import 'surveyor_visitors.dart';
 import 'utils.dart';
 
 class ApiUsage {
@@ -95,6 +94,7 @@ class CollectedApiUsage {
   );
 }
 
+// todo: AstContext is used
 class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
   final PackageInfo targetPackage;
   final PackageInfo packageInfo;
@@ -127,7 +127,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var uri = node.uriContent;
+    var uri = node.uri.stringValue;
 
     if (uri != null && uri.startsWith('package:')) {
       if (uri.startsWith('package:$targetName/')) {
