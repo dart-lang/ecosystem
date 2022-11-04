@@ -21,13 +21,9 @@ class Pub {
     );
   }
 
-  Stream<PackageInfo> popularDependenciesOf(
-    String packageName, {
-    int? limit,
-  }) {
+  Stream<PackageInfo> popularDependenciesOf(String packageName) {
     return _packagesForSearch(
       'dependency:$packageName',
-      limit: limit,
       sort: 'top',
     );
   }
@@ -64,12 +60,9 @@ class Pub {
   Stream<PackageInfo> _packagesForSearch(
     String query, {
     int page = 1,
-    int? limit,
     String? sort,
   }) async* {
     final uri = Uri.parse('https://pub.dev/api/search');
-
-    int count = 0;
 
     for (;;) {
       final targetUri = uri.replace(queryParameters: {
@@ -85,21 +78,12 @@ class Pub {
           .map((e) => e['package'] as String?)) {
         var packageInfo = await getPackageInfo(packageName!);
 
-        count++;
         yield packageInfo;
-
-        if (limit != null && count >= limit) {
-          break;
-        }
       }
 
       if (map.containsKey('next')) {
         page = page + 1;
       } else {
-        break;
-      }
-
-      if (limit != null && count >= limit) {
         break;
       }
     }

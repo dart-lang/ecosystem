@@ -35,7 +35,7 @@ void main(List<String> args) async {
 
   final packageName = argResults.rest.first;
   final packageLimit =
-      int.tryParse(argResults['package-limit'] ?? '') ?? 0xffff;
+      int.tryParse(argResults['package-limit'] ?? '') ?? 0x7fffffff;
   bool showSrcReferences = argResults['show-src-references'] as bool;
 
   var log = Logger.standard();

@@ -32,6 +32,11 @@ Some available options are:
   public API), this option will include which package is using the `src/`
   library in the output
 
+Note that running this tool without a `--package-limit` means that it will
+process all the package dependencies from pub.dev; this could be a large
+number (you can always cancel the command at any time and re-run with a package
+limit).
+
 ```
 usage: dart bin/api_usage.dart [options] <package-name>
 
