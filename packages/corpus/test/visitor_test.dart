@@ -27,12 +27,12 @@ void main() {
     });
 
     test('libraries references', () async {
-      var driver = SurveyorDriver.fromDirs(
+      var surveyor = Surveyor.fromDirs(
         directories: [Directory('test/data/library_references.dart')],
         visitor: apiUsageCollector,
       );
 
-      await driver.analyze();
+      await surveyor.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
           .containsKey('package:path/path.dart');
@@ -41,7 +41,7 @@ void main() {
     });
 
     test('class references', () async {
-      var driver = SurveyorDriver.fromDirs(
+      var driver = Surveyor.fromDirs(
         directories: [Directory('test/data/class_references.dart')],
         visitor: apiUsageCollector,
       );
@@ -68,7 +68,7 @@ void main() {
         packageDir,
       );
 
-      var driver = SurveyorDriver.fromDirs(
+      var driver = Surveyor.fromDirs(
         directories: [Directory('test/data/extension_references.dart')],
         visitor: apiUsageCollector,
       );
@@ -82,12 +82,12 @@ void main() {
     });
 
     test('top-level symbol references', () async {
-      var driver = SurveyorDriver.fromDirs(
+      var surveyor = Surveyor.fromDirs(
         directories: [Directory('test/data/top_level_symbol_references.dart')],
         visitor: apiUsageCollector,
       );
 
-      await driver.analyze();
+      await surveyor.analyze();
 
       // check for a top level function invokation
       checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)

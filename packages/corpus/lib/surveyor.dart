@@ -13,23 +13,23 @@ import 'package:path/path.dart' as path;
 
 const bool _silent = true;
 
-class SurveyorDriver {
-  final List<String> sources;
+class Surveyor {
   final SurveyorVisitor visitor;
+  final List<String> sourcePaths;
   final List<String> excludedPaths;
 
-  SurveyorDriver.fromDirs({
-    required List<io.Directory> directories,
+  Surveyor.fromDirs({
     required this.visitor,
+    required List<io.Directory> directories,
     this.excludedPaths = const [],
-  }) : sources = directories
+  }) : sourcePaths = directories
             .map((directory) => path.normalize(directory.absolute.path))
             .toList() {
-    assert(sources.isNotEmpty);
+    assert(sourcePaths.isNotEmpty);
   }
 
   Future<void> analyze() async {
-    for (var directory in sources) {
+    for (var directory in sourcePaths) {
       await _analyzeDirectory(directory);
     }
   }
@@ -50,7 +50,7 @@ class SurveyorDriver {
       for (var filePath in analysisContext.contextRoot.analyzedFiles()) {
         if (!_isDartFileName(filePath)) continue;
 
-        surveyorContext._currentFilePath = filePath;
+        surveyorContext._updateCurrentFilePath(filePath);
 
         try {
           var resolvedUnitResult = await analysisContext.currentSession
@@ -62,7 +62,7 @@ class SurveyorDriver {
           }
         }
 
-        surveyorContext._currentFilePath = null;
+        surveyorContext._updateCurrentFilePath(null);
       }
 
       visitor.postAnalysis(surveyorContext);
@@ -77,12 +77,15 @@ abstract class SurveyorVisitor implements AstVisitor {
 
 class SurveyorContext {
   final AnalysisContext analysisContext;
-
   String? _currentFilePath;
 
   SurveyorContext(this.analysisContext);
 
   String get currentFilePath => _currentFilePath!;
+
+  void _updateCurrentFilePath(String? filePath) {
+    _currentFilePath = filePath;
+  }
 }
 
 bool _isDartFileName(String filePath) => filePath.endsWith('.dart');
