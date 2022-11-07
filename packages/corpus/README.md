@@ -31,8 +31,11 @@ Some available options are:
   directory (something that's generally not intended to be part of a package's
   public API), this option will include which package is using the `src/`
   library in the output
-- `--include-old`: Include packages that haven't been published in the last
-  year (these are normally excluded).
+
+Note that running this tool without a `--package-limit` means that it will
+process all the package dependencies from pub.dev; this could be a large
+number (you can always cancel the command at any time and re-run with a package
+limit).
 
 ```
 usage: dart bin/api_usage.dart [options] <package-name>
@@ -41,5 +44,4 @@ options:
 -h, --help                     Print this usage information.
     --package-limit=<count>    Limit the number of packages usage data is collected from.
     --show-src-references      Report specific references to src/ libraries.
-    --include-old              Include packages that haven't been published in the last year (these are normally excluded).
 ```

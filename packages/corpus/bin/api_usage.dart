@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/cache.dart';
@@ -33,9 +34,9 @@ void main(List<String> args) async {
   }
 
   final packageName = argResults.rest.first;
-  String? packageLimit = argResults['package-limit'];
+  final packageLimit =
+      int.tryParse(argResults['package-limit'] ?? '') ?? 0x7fffffff;
   bool showSrcReferences = argResults['show-src-references'] as bool;
-  bool includeOld = argResults['include-old'] as bool;
 
   var log = Logger.standard();
 
@@ -49,27 +50,30 @@ void main(List<String> args) async {
 
   var targetPackage = await pub.getPackageInfo(packageName);
 
-  final dateOneYearAgo = DateTime.now().subtract(Duration(days: 365));
-  bool packageAgeFilter(PackageInfo packageInfo) {
-    // TODO: print to stdout when filtered a package
-
-    // Only use packages which have been updated in the last year.
-    return packageInfo.publishedDate.isAfter(dateOneYearAgo);
-  }
-
-  var packageStream = pub.popularDependenciesOf(
-    packageName,
-    limit: packageLimit == null ? null : int.parse(packageLimit),
-    filter: includeOld ? null : packageAgeFilter,
-  );
+  var packageStream = pub.popularDependenciesOf(packageName);
 
   progress.finish(showTiming: true);
 
   List<ApiUsage> usageInfo = [];
 
+  var count = 0;
+
   await for (var package in packageStream) {
     log.stdout('');
     log.stdout('${package.name} v${package.version}');
+
+    // Skip a package when its constraints don't include the latest stable.
+    var constraint = package.constraintFor(targetPackage.name);
+    if (constraint == null) {
+      log.stdout('skipping - no constraint on ${targetPackage.name}');
+      continue;
+    }
+    if (!constraint.allows(Version.parse(targetPackage.version))) {
+      log.stdout(
+          "skipping - version dep ($constraint) doesn't support the current "
+          'stable (${targetPackage.version})');
+      continue;
+    }
 
     bool downloadSuccess =
         await packageManager.retrievePackageArchive(package, logger: log);
@@ -86,12 +90,18 @@ void main(List<String> args) async {
       continue;
     }
 
+    count++;
+
     progress = log.progress('analyzing package');
     var usage =
         await analyzePackage(targetPackage, package, localPackage.directory);
     progress.finish(message: usage.describeUsage());
 
     usageInfo.add(usage);
+
+    if (count >= packageLimit) {
+      break;
+    }
   }
 
   var report = Report(targetPackage);
@@ -125,12 +135,6 @@ ArgParser createArgParser() {
     'show-src-references',
     negatable: false,
     help: 'Report specific references to src/ libraries.',
-  );
-  parser.addFlag(
-    'include-old',
-    negatable: false,
-    help: 'Include packages that haven\'t been published in the last year '
-        '(these are normally excluded).',
   );
   return parser;
 }

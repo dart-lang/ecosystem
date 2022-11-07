@@ -5,7 +5,9 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
+import 'package:checks/src/checks.dart' show ContextExtension, Rejection;
 import 'package:corpus/pub.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/scaffolding.dart';
 
 void main() {
@@ -17,8 +19,21 @@ void main() {
       checkThat(packageInfo.version).equals('4.0.2');
       checkThat(packageInfo.archiveUrl).isNotNull();
       checkThat(packageInfo.publishedDate).isNotNull();
+
+      checkThat(packageInfo.constraintFor('path')).isNotNull().allows('1.8.0');
+      checkThat(packageInfo.constraintFor('test')).isNotNull().allows('1.16.0');
     });
   });
+}
+
+extension VersionConstraintChecks on Check<VersionConstraint> {
+  void allows(String version) {
+    context.expect(() => const ['allows'], (VersionConstraint actual) {
+      final ver = Version.parse(version);
+      if (!actual.allows(ver)) return Rejection(actual: '$actual');
+      return null;
+    });
+  }
 }
 
 final String _pubSampleData = '''
