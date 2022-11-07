@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/cache.dart';
