@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/pub.dart';
-import 'package:corpus/surveyor_driver.dart';
+import 'package:corpus/surveyor.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -31,8 +31,6 @@ void main() {
         directories: [Directory('test/data/library_references.dart')],
         visitor: apiUsageCollector,
       );
-      driver.silent = true;
-      driver.showErrors = false;
 
       await driver.analyze();
 
@@ -47,8 +45,7 @@ void main() {
         directories: [Directory('test/data/class_references.dart')],
         visitor: apiUsageCollector,
       );
-      driver.silent = true;
-      driver.showErrors = false;
+
       await driver.analyze();
 
       // class constructor invocation
@@ -75,8 +72,7 @@ void main() {
         directories: [Directory('test/data/extension_references.dart')],
         visitor: apiUsageCollector,
       );
-      driver.silent = true;
-      driver.showErrors = false;
+
       await driver.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
@@ -90,8 +86,7 @@ void main() {
         directories: [Directory('test/data/top_level_symbol_references.dart')],
         visitor: apiUsageCollector,
       );
-      driver.silent = true;
-      driver.showErrors = false;
+
       await driver.analyze();
 
       // check for a top level function invokation

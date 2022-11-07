@@ -11,7 +11,7 @@ import 'package:corpus/cache.dart';
 import 'package:corpus/packages.dart';
 import 'package:corpus/pub.dart';
 import 'package:corpus/report.dart';
-import 'package:corpus/surveyor_driver.dart';
+import 'package:corpus/surveyor.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -128,6 +128,7 @@ ArgParser createArgParser() {
   );
   parser.addOption(
     'package-limit',
+    aliases: ['limit'],
     help: 'Limit the number of packages usage data is collected from.',
     valueHelp: 'count',
   );
@@ -171,10 +172,9 @@ Future<ApiUsage> analyzePackage(
     visitor: apiUsageCollector,
     excludedPaths: ['example'],
   );
-  driver.silent = true;
-  driver.showErrors = false;
 
   await driver.analyze();
+
   var usage = apiUsageCollector.usage;
   file.parent.createSync();
   usage.toFile(file);
