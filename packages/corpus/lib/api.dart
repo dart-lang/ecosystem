@@ -9,12 +9,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:path/path.dart' as path;
-// ignore: implementation_imports
-import 'package:surveyor/src/visitors.dart';
 
 import 'pub.dart';
+import 'surveyor.dart';
 import 'utils.dart';
 
 class ApiUsage {
@@ -95,17 +93,17 @@ class CollectedApiUsage {
   );
 }
 
-class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
+class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
   final PackageInfo targetPackage;
   final PackageInfo packageInfo;
   final Directory packageDir;
 
   final PackageEntity packageEntity;
 
+  SurveyorContext? _context;
+
   References referringPackages = References();
   References referringLibraries = References();
-
-  String? _currentFilePath;
 
   ApiUseCollector(this.targetPackage, this.packageInfo, this.packageDir)
       : packageEntity = PackageEntity(packageInfo.name);
@@ -118,22 +116,26 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
   String get packageName => usage.package.name;
 
   @override
-  void setFilePath(String filePath) {
-    _currentFilePath = filePath;
+  void preAnalysis(SurveyorContext context, {required bool subDir}) {
+    _context = context;
+  }
+
+  String get currentFilePath => _context!.currentFilePath;
+
+  @override
+  void postAnalysis(SurveyorContext context) {
+    _context = null;
   }
 
   @override
-  void setLineInfo(LineInfo lineInfo) {}
-
-  @override
   void visitImportDirective(ImportDirective node) {
-    var uri = node.uriContent;
+    var uri = node.uri.stringValue;
 
     if (uri != null && uri.startsWith('package:')) {
       if (uri.startsWith('package:$targetName/')) {
         referringPackages.addLibraryReference(uri, packageEntity);
         var relativeLibraryPath =
-            path.relative(_currentFilePath!, from: packageDir.path);
+            path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addLibraryReference(
             uri, LibraryEntity(packageName, relativeLibraryPath));
       }
@@ -174,13 +176,13 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
     if (enclosingElement.kind == ElementKind.CLASS) {
       final name = enclosingElement.name!;
       referringPackages.addClassReference(name, packageEntity);
-      var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+      var relPath = path.relative(currentFilePath, from: packageDir.path);
       referringLibraries.addClassReference(
           name, LibraryEntity(packageName, relPath));
     } else if (enclosingElement.kind == ElementKind.EXTENSION) {
       final name = enclosingElement.name!;
       referringPackages.addExtensionReference(name, packageEntity);
-      var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+      var relPath = path.relative(currentFilePath, from: packageDir.path);
       referringLibraries.addExtensionReference(
           name, LibraryEntity(packageName, relPath));
     }
@@ -190,14 +192,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
         // Record top-level elements.
         final name = element.name!;
         referringPackages.addTopLevelReference(name, packageEntity);
-        var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addTopLevelReference(
             name, LibraryEntity(packageName, relPath));
       } else if (enclosingElement.kind == ElementKind.EXTENSION) {
         // Record extensions.
         final name = enclosingElement.name!;
         referringPackages.addExtensionReference(name, packageEntity);
-        var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addExtensionReference(
             name, LibraryEntity(packageName, relPath));
       }
@@ -206,14 +208,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
         // Record top-level elements.
         final name = element.name!;
         referringPackages.addTopLevelReference(name, packageEntity);
-        var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addTopLevelReference(
             name, LibraryEntity(packageName, relPath));
       } else if (enclosingElement.kind == ElementKind.EXTENSION) {
         // Record extensions.
         final name = enclosingElement.name!;
         referringPackages.addExtensionReference(name, packageEntity);
-        var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addExtensionReference(
             name, LibraryEntity(packageName, relPath));
       }
@@ -233,7 +235,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements AstContext {
           libraryUri.pathSegments.first == targetName) {
         final name = element.name!;
         referringPackages.addClassReference(name, packageEntity);
-        var relPath = path.relative(_currentFilePath!, from: packageDir.path);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addClassReference(
             name, LibraryEntity(packageName, relPath));
       }

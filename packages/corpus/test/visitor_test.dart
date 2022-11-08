@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/pub.dart';
-import 'package:surveyor/src/driver.dart';
+import 'package:corpus/surveyor.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -27,12 +27,12 @@ void main() {
     });
 
     test('libraries references', () async {
-      var driver = Driver.forArgs(['test/data/library_references.dart']);
-      driver.forceSkipInstall = true;
-      driver.silent = true;
-      driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
-      await driver.analyze();
+      var surveyor = Surveyor.fromDirs(
+        directories: [Directory('test/data/library_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
           .containsKey('package:path/path.dart');
@@ -41,11 +41,11 @@ void main() {
     });
 
     test('class references', () async {
-      var driver = Driver.forArgs(['test/data/class_references.dart']);
-      driver.forceSkipInstall = true;
-      driver.silent = true;
-      driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
+      var driver = Surveyor.fromDirs(
+        directories: [Directory('test/data/class_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
       await driver.analyze();
 
       // class constructor invocation
@@ -68,11 +68,11 @@ void main() {
         packageDir,
       );
 
-      var driver = Driver.forArgs(['test/data/extension_references.dart']);
-      driver.forceSkipInstall = true;
-      driver.silent = true;
-      driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
+      var driver = Surveyor.fromDirs(
+        directories: [Directory('test/data/extension_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
       await driver.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
@@ -82,13 +82,12 @@ void main() {
     });
 
     test('top-level symbol references', () async {
-      var driver =
-          Driver.forArgs(['test/data/top_level_symbol_references.dart']);
-      driver.forceSkipInstall = true;
-      driver.silent = true;
-      driver.showErrors = false;
-      driver.visitor = apiUsageCollector;
-      await driver.analyze();
+      var surveyor = Surveyor.fromDirs(
+        directories: [Directory('test/data/top_level_symbol_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
 
       // check for a top level function invokation
       checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
