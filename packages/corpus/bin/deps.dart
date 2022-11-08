@@ -17,7 +17,7 @@ import 'package:corpus/pub.dart';
 void main(List<String> args) async {
   var argParser = createArgParser();
 
-  late ArgResults argResults;
+  ArgResults argResults;
   try {
     argResults = argParser.parse(args);
   } on FormatException catch (e) {

@@ -10,18 +10,18 @@ import 'package:corpus/api_usage.dart';
 void main(List<String> args) async {
   var argParser = _createArgParser();
 
-  late ArgResults argResults;
+  ArgResults argResults;
   try {
     argResults = argParser.parse(args);
   } on FormatException catch (e) {
     print(e.message);
     print('');
-    printUsage(argParser);
+    _printUsage(argParser);
     exit(64);
   }
 
   if (argResults.rest.length != 1 || argResults['help']) {
-    printUsage(argParser);
+    _printUsage(argParser);
     exit(1);
   }
 
@@ -59,7 +59,7 @@ ArgParser _createArgParser() {
   return parser;
 }
 
-void printUsage(ArgParser argParser) {
+void _printUsage(ArgParser argParser) {
   print('usage: dart bin/api_usage.dart [options] <package-name>');
   print('');
   print('options:');
