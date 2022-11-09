@@ -22,34 +22,29 @@ Future analyzeUsage({
 }) async {
   var log = Logger.standard();
 
-  var dartLibStrategy = packageName.startsWith('dart:');
-  if (dartLibStrategy) {
-    packageName = packageName.substring('dart:'.length);
-
-    log.stdout('API usage analysis for dart:$packageName.');
-    log.stdout('');
-  } else {
-    log.stdout('API usage analysis for package:$packageName.');
-    log.stdout('');
-  }
-
   var pub = Pub();
   var packageManager = PackageManager();
-
-  var progress = log.progress('querying pub.dev');
 
   var sdkVersion = Platform.version;
   if (sdkVersion.contains('-')) {
     sdkVersion = sdkVersion.substring(0, sdkVersion.indexOf('-'));
   }
 
-  var reportTarget = dartLibStrategy
-      ? ReportTarget.fromDartLibrary(packageName, sdkVersion)
-      : ReportTarget.fromPackage(await pub.getPackageInfo(packageName));
+  ReportTarget reportTarget;
+  if (packageName.startsWith('dart:')) {
+    var nameWithoutPrefix = packageName.substring('dart:'.length);
+    reportTarget = DartLibrary(name: nameWithoutPrefix, version: sdkVersion);
+  } else {
+    var packageInfo = await pub.getPackageInfo(packageName);
+    reportTarget = PackageTarget.fromPackage(packageInfo);
+  }
 
-  var packageStream = dartLibStrategy
-      ? pub.allPubPackages()
-      : pub.popularDependenciesOf(packageName);
+  log.stdout('API usage analysis for $reportTarget.');
+  log.stdout('');
+
+  var progress = log.progress('querying pub.dev');
+
+  var packageStream = reportTarget.getPackages(pub);
 
   progress.finish(showTiming: true);
 
@@ -61,8 +56,8 @@ Future analyzeUsage({
     log.stdout('');
     log.stdout('${package.name} v${package.version}');
 
-    if (reportTarget.isPackage) {
-      var targetPackage = reportTarget.targetPackage!;
+    if (reportTarget is PackageTarget) {
+      var targetPackage = reportTarget.targetPackage;
       // Skip a package when its constraints don't include the latest stable.
       var constraint = package.constraintFor(targetPackage.name);
       if (constraint == null) {
@@ -109,7 +104,8 @@ Future analyzeUsage({
       localPackage.directory,
     );
     var message = usage.describeUsage();
-    if (reportTarget.isDartLibrary && !usage.hadAnyReferences) {
+    var hasNoUsage = reportTarget is DartLibrary && !usage.hadAnyReferences;
+    if (hasNoUsage) {
       message = 'skipping - no dart:${reportTarget.name} references';
     }
     progress.finish(message: message);
@@ -117,14 +113,13 @@ Future analyzeUsage({
     // If collecting usage data for a dart: library, we check if the package
     // we've just analyzed references the dart: lib. We do this after the fact
     // as we don't know ahead of time wrt dart: usage.
-    if (reportTarget.isDartLibrary && !usage.hadAnyReferences) {
+    if (hasNoUsage) {
       continue;
     }
 
-    count++;
-
     usageInfo.add(usage);
 
+    count++;
     if (count >= packageLimit) {
       break;
     }

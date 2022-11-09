@@ -134,7 +134,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
     if (uri != null && uri.startsWith('$targetType:')) {
       bool matches;
 
-      if (reportTarget.isDartLibrary) {
+      if (reportTarget is DartLibrary) {
         matches = uri == 'dart:$targetName';
       } else {
         matches = uri.startsWith('package:$targetName/');

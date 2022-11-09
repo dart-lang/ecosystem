@@ -20,7 +20,7 @@ void main() {
         'pubspec': <String, dynamic>{},
       }
     });
-    ReportTarget reportTarget = ReportTarget.fromPackage(targetPackage);
+    ReportTarget reportTarget = PackageTarget.fromPackage(targetPackage);
     PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
     Directory packageDir = Directory('test/data');
 
@@ -71,7 +71,7 @@ void main() {
 
     test('extension references', () async {
       apiUsageCollector = ApiUseCollector(
-        ReportTarget.fromPackage(PackageInfo.from({
+        PackageTarget.fromPackage(PackageInfo.from({
           'name': 'collection',
           'latest': {
             'version': '0.1.2',
@@ -118,8 +118,10 @@ void main() {
   });
 
   group('ApiUseCollector - dart:', () {
-    ReportTarget reportTarget =
-        ReportTarget.fromDartLibrary('collection', _sdkVersion);
+    ReportTarget reportTarget = DartLibrary(
+      name: 'collection',
+      version: _sdkVersion,
+    );
     PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
     Directory packageDir = Directory('test/data');
 
@@ -170,7 +172,7 @@ void main() {
 
     test('top-level symbol references', () async {
       apiUsageCollector = ApiUseCollector(
-        ReportTarget.fromDartLibrary('convert', _sdkVersion),
+        DartLibrary(name: 'convert', version: _sdkVersion),
         referencingPackage,
         packageDir,
       );
@@ -199,7 +201,7 @@ void main() {
 
     test('extension references', () async {
       apiUsageCollector = ApiUseCollector(
-        ReportTarget.fromDartLibrary('async', _sdkVersion),
+        DartLibrary(name: 'async', version: _sdkVersion),
         referencingPackage,
         packageDir,
       );
