@@ -7,12 +7,20 @@ import 'dart:io';
 import 'package:checks/checks.dart';
 import 'package:corpus/api.dart';
 import 'package:corpus/pub.dart';
+import 'package:corpus/report.dart';
 import 'package:corpus/surveyor.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('ApiUseCollector', () {
-    PackageInfo targetPackage = PackageInfo.from({'name': 'path'});
+  group('ApiUseCollector - packages', () {
+    PackageInfo targetPackage = PackageInfo.from({
+      'name': 'path',
+      'latest': {
+        'version': '0.1.2',
+        'pubspec': <String, dynamic>{},
+      }
+    });
+    ReportTarget reportTarget = ReportTarget.fromPackage(targetPackage);
     PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
     Directory packageDir = Directory('test/data');
 
@@ -20,7 +28,7 @@ void main() {
 
     setUp(() {
       apiUsageCollector = ApiUseCollector(
-        targetPackage,
+        reportTarget,
         referencingPackage,
         packageDir,
       );
@@ -41,12 +49,12 @@ void main() {
     });
 
     test('class references', () async {
-      var driver = Surveyor.fromDirs(
+      var surveyor = Surveyor.fromDirs(
         directories: [Directory('test/data/class_references.dart')],
         visitor: apiUsageCollector,
       );
 
-      await driver.analyze();
+      await surveyor.analyze();
 
       // class constructor invocation
       checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
@@ -63,17 +71,23 @@ void main() {
 
     test('extension references', () async {
       apiUsageCollector = ApiUseCollector(
-        PackageInfo.from({'name': 'collection'}),
+        ReportTarget.fromPackage(PackageInfo.from({
+          'name': 'collection',
+          'latest': {
+            'version': '0.1.2',
+            'pubspec': <String, dynamic>{},
+          }
+        })),
         referencingPackage,
         packageDir,
       );
 
-      var driver = Surveyor.fromDirs(
+      var surveyor = Surveyor.fromDirs(
         directories: [Directory('test/data/extension_references.dart')],
         visitor: apiUsageCollector,
       );
 
-      await driver.analyze();
+      await surveyor.analyze();
 
       checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
           .containsKey('IterableExtension');
@@ -102,4 +116,113 @@ void main() {
           .containsKey('basename');
     });
   });
+
+  group('ApiUseCollector - dart:', () {
+    ReportTarget reportTarget =
+        ReportTarget.fromDartLibrary('collection', _sdkVersion);
+    PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
+    Directory packageDir = Directory('test/data');
+
+    late ApiUseCollector apiUsageCollector;
+
+    setUp(() {
+      apiUsageCollector = ApiUseCollector(
+        reportTarget,
+        referencingPackage,
+        packageDir,
+      );
+    });
+
+    test('libraries references', () async {
+      var surveyor = Surveyor.fromDirs(
+        directories: [Directory('test/data/dart_library_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
+
+      checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
+          .containsKey('dart:collection');
+      checkThat(apiUsageCollector.referringLibraries.sortedLibraryReferences)
+          .containsKey('dart:collection');
+    });
+
+    test('class references', () async {
+      var surveyor = Surveyor.fromDirs(
+        directories: [Directory('test/data/dart_library_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
+
+      // class constructor invocation
+      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+          .containsKey('SplayTreeMap');
+      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+          .containsKey('SplayTreeMap');
+
+      // class static method reference
+      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+          .containsKey('Queue');
+      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+          .containsKey('Queue');
+    });
+
+    test('top-level symbol references', () async {
+      apiUsageCollector = ApiUseCollector(
+        ReportTarget.fromDartLibrary('convert', _sdkVersion),
+        referencingPackage,
+        packageDir,
+      );
+
+      var surveyor = Surveyor.fromDirs(
+        directories: [
+          Directory('test/data/dart_top_level_symbol_references.dart')
+        ],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
+
+      // check for a top level function invokation
+      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+          .containsKey('jsonDecode');
+      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+          .containsKey('jsonDecode');
+
+      // check for a top level getter reference
+      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+          .containsKey('base64');
+      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+          .containsKey('base64');
+    });
+
+    test('extension references', () async {
+      apiUsageCollector = ApiUseCollector(
+        ReportTarget.fromDartLibrary('async', _sdkVersion),
+        referencingPackage,
+        packageDir,
+      );
+
+      var surveyor = Surveyor.fromDirs(
+        directories: [Directory('test/data/dart_extension_references.dart')],
+        visitor: apiUsageCollector,
+      );
+
+      await surveyor.analyze();
+
+      checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
+          .containsKey('FutureExtensions');
+      checkThat(apiUsageCollector.referringLibraries.sortedExtensionReferences)
+          .containsKey('FutureExtensions');
+    });
+  });
+}
+
+String get _sdkVersion {
+  var version = Platform.version;
+  if (version.contains('-')) {
+    version = version.substring(0, version.indexOf('-'));
+  }
+  return version;
 }

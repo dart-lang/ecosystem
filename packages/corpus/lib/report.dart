@@ -4,36 +4,78 @@
 
 import 'dart:io';
 
+import 'package:corpus/pub.dart';
+
 import 'api.dart';
-import 'pub.dart';
 import 'utils.dart';
 
-class Report {
-  final PackageInfo packageInfo;
+class ReportTarget {
+  final bool isDartLibrary;
+  final String name;
+  final String version;
+  final String? description;
+  final PackageInfo? targetPackage;
 
-  Report(this.packageInfo);
+  ReportTarget({
+    required this.name,
+    required this.version,
+    this.isDartLibrary = false,
+    this.description,
+    this.targetPackage,
+  });
+
+  factory ReportTarget.fromDartLibrary(String name, String sdkVersion) {
+    return ReportTarget(name: name, version: sdkVersion, isDartLibrary: true);
+  }
+
+  factory ReportTarget.fromPackage(PackageInfo package) {
+    return ReportTarget(
+      name: package.name,
+      version: package.version,
+      description: package.description,
+      targetPackage: package,
+    );
+  }
+
+  String get type => isDartLibrary ? 'dart' : 'package';
+
+  bool get isPackage => !isDartLibrary;
+}
+
+class Report {
+  final ReportTarget reportTarget;
+
+  Report(this.reportTarget);
 
   File generateReport(List<ApiUsage> usages, {bool showSrcReferences = false}) {
-    var usage = ApiUsage.combine(packageInfo, usages);
+    var usage = ApiUsage.combine(usages);
 
-    var file = File('reports/${packageInfo.name}.md');
+    var file = File('reports/${reportTarget.type}_${reportTarget.name}.md');
     file.parent.createSync();
     var buf = StringBuffer();
 
-    buf.writeln('# Report for package:${packageInfo.name}');
+    buf.writeln('# Report for ${reportTarget.type}:${reportTarget.name}');
     buf.writeln();
     buf.writeln('## General info');
     buf.writeln();
-    buf.writeln(packageInfo.description);
+    if (reportTarget.isDartLibrary) {
+      buf.writeln('https://api.dart.dev/dart-${reportTarget.name}/'
+          'dart-${reportTarget.name}-library.html');
+    } else {
+      buf.writeln(reportTarget.description);
+      buf.writeln();
+      buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
+      buf.writeln(
+          '- docs: https://pub.dev/documentation/${reportTarget.name}/latest/');
+      buf.writeln('- dependent packages: '
+          'https://pub.dev/packages?q=dependency%3A${reportTarget.name}&sort=top');
+    }
     buf.writeln();
-    buf.writeln('- pub page: https://pub.dev/packages/${packageInfo.name}');
     buf.writeln(
-        '- docs: https://pub.dev/documentation/${packageInfo.name}/latest/');
-    buf.writeln('- dependent packages: '
-        'https://pub.dev/packages?q=dependency%3A${packageInfo.name}&sort=top');
-    buf.writeln();
-    buf.writeln('Stats for ${packageInfo.name} v${packageInfo.version} pulled '
-        'from ${usage.corpusPackages.length} packages.');
+      'Stats for ${reportTarget.type}:${reportTarget.name} '
+      'v${reportTarget.version} pulled from ${usage.corpusPackages.length} '
+      'packages.',
+    );
 
     var packagesReferences = usage.referringPackages;
     var libraryReferences = usage.referringLibraries;

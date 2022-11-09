@@ -26,8 +26,7 @@ void main(List<String> args) async {
   }
 
   final packageName = argResults.rest.first;
-  final packageLimit =
-      int.tryParse(argResults['package-limit'] ?? '') ?? 0x7FFFFFFF;
+  final packageLimit = int.tryParse(argResults['package-limit'])!;
   bool showSrcReferences = argResults['show-src-references'] as bool;
 
   await analyzeUsage(
@@ -47,6 +46,7 @@ ArgParser _createArgParser() {
   );
   parser.addOption(
     'package-limit',
+    defaultsTo: '100',
     aliases: ['limit'],
     help: 'Limit the number of packages usage data is collected from.',
     valueHelp: 'count',

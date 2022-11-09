@@ -21,9 +21,22 @@ class Pub {
     );
   }
 
+  /// Return all the packages that depend on [packageName], sorted by package
+  /// popularity.
   Stream<PackageInfo> popularDependenciesOf(String packageName) {
     return _packagesForSearch(
-      'dependency:$packageName',
+      query: 'dependency:$packageName',
+      sort: 'top',
+    );
+  }
+
+  /// Return all the pub.dev hosted packages sorted by package popularity.
+  ///
+  /// Note that this will be tens of thousands of packages, so the caller should
+  /// plan to limit the number of packages they iterate through.
+  Stream<PackageInfo> allPubPackages() {
+    return _packagesForSearch(
+      query: '',
       sort: 'top',
     );
   }
@@ -57,8 +70,8 @@ class Pub {
     return PackageScore.from(json);
   }
 
-  Stream<PackageInfo> _packagesForSearch(
-    String query, {
+  Stream<PackageInfo> _packagesForSearch({
+    required String query,
     int page = 1,
     String? sort,
   }) async* {
@@ -101,7 +114,7 @@ class Pub {
 
     for (;;) {
       final targetUri = uri.replace(queryParameters: {
-        'q': query,
+        if (query.isNotEmpty) 'q': query,
         'page': page.toString(),
         if (sort != null) 'sort': sort,
       });
@@ -171,7 +184,7 @@ class PackageInfo {
   PackageInfo.from(this.json);
 
   String get name => json['name'];
-  String get description => _pubspec['description'];
+  String? get description => _pubspec['description'];
 
   String? get repository => _pubspec['repository'];
   String? get homepage => _pubspec['homepage'];
@@ -215,6 +228,16 @@ class PackageInfo {
     }
 
     return null;
+  }
+
+  VersionConstraint? get sdkContraint {
+    var environment = _pubspec['environment'] as Map?;
+    if (environment == null) return null;
+
+    var sdk = environment['sdk'] as String?;
+    if (sdk == null) return null;
+
+    return VersionConstraint.parse(sdk);
   }
 
   String? constraintType(String name) {

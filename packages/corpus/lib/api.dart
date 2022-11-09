@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:path/path.dart' as path;
 
 import 'pub.dart';
+import 'report.dart';
 import 'surveyor.dart';
 import 'utils.dart';
 
@@ -23,10 +24,7 @@ class ApiUsage {
 
   ApiUsage(this.package, this.fromPackages, this.fromLibraries);
 
-  static CollectedApiUsage combine(
-    PackageInfo targetPackage,
-    List<ApiUsage> usages,
-  ) {
+  static CollectedApiUsage combine(List<ApiUsage> usages) {
     var corpusPackages = <PackageInfo>[];
 
     var referringPackages = References();
@@ -40,7 +38,6 @@ class ApiUsage {
     }
 
     return CollectedApiUsage(
-      targetPackage,
       corpusPackages,
       referringPackages,
       referringLibraries,
@@ -53,6 +50,11 @@ class ApiUsage {
       'libraries': fromLibraries.toJson(),
     };
     file.writeAsStringSync(JsonEncoder.withIndent('  ').convert(json));
+  }
+
+  /// Returns whether we found any references to the target package.
+  bool get hadAnyReferences {
+    return fromPackages.sortedLibraryReferences.isNotEmpty;
   }
 
   String describeUsage() {
@@ -78,15 +80,12 @@ class ApiUsage {
 }
 
 class CollectedApiUsage {
-  final PackageInfo targetPackage;
-
   final List<PackageInfo> corpusPackages;
 
   final References referringPackages;
   final References referringLibraries;
 
   CollectedApiUsage(
-    this.targetPackage,
     this.corpusPackages,
     this.referringPackages,
     this.referringLibraries,
@@ -94,7 +93,7 @@ class CollectedApiUsage {
 }
 
 class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
-  final PackageInfo targetPackage;
+  final ReportTarget reportTarget;
   final PackageInfo packageInfo;
   final Directory packageDir;
 
@@ -105,10 +104,11 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
   References referringPackages = References();
   References referringLibraries = References();
 
-  ApiUseCollector(this.targetPackage, this.packageInfo, this.packageDir)
+  ApiUseCollector(this.reportTarget, this.packageInfo, this.packageDir)
       : packageEntity = PackageEntity(packageInfo.name);
 
-  String get targetName => targetPackage.name;
+  String get targetName => reportTarget.name;
+  String get targetType => reportTarget.type;
 
   ApiUsage get usage =>
       ApiUsage(packageInfo, referringPackages, referringLibraries);
@@ -131,8 +131,16 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
   void visitImportDirective(ImportDirective node) {
     var uri = node.uri.stringValue;
 
-    if (uri != null && uri.startsWith('package:')) {
-      if (uri.startsWith('package:$targetName/')) {
+    if (uri != null && uri.startsWith('$targetType:')) {
+      bool matches;
+
+      if (reportTarget.isDartLibrary) {
+        matches = uri == 'dart:$targetName';
+      } else {
+        matches = uri.startsWith('package:$targetName/');
+      }
+
+      if (matches) {
         referringPackages.addLibraryReference(uri, packageEntity);
         var relativeLibraryPath =
             path.relative(currentFilePath, from: packageDir.path);
@@ -161,12 +169,12 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
     }
 
     var library = element.library;
-    if (library == null || library.isInSdk) {
+    if (library == null) {
       return;
     }
 
     var libraryUri = library.librarySource.uri;
-    if (libraryUri.scheme != 'package' ||
+    if (libraryUri.scheme != targetType ||
         libraryUri.pathSegments.first != targetName) {
       return;
     }
@@ -226,12 +234,12 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
     var element = type?.element;
     if (element != null) {
       var library = element.library;
-      if (library == null || library.isInSdk) {
+      if (library == null) {
         return;
       }
 
       var libraryUri = library.librarySource.uri;
-      if (libraryUri.scheme == 'package' &&
+      if (libraryUri.scheme == targetType &&
           libraryUri.pathSegments.first == targetName) {
         final name = element.name!;
         referringPackages.addClassReference(name, packageEntity);
