@@ -26,16 +26,10 @@ dart bin/api_usage.dart <package-name>
 Some available options are:
 
 - `--package-limit`: limit the number of packages that are used for analysis
-  (this defaults to all referencing packages on pub.dev), 
 - `--show-src-references`: when there are references into a package's `lib/src/`
   directory (something that's generally not intended to be part of a package's
   public API), this option will include which package is using the `src/`
   library in the output
-
-Note that running this tool without a `--package-limit` means that it will
-process all the package dependencies from pub.dev; this could be a large
-number (you can always cancel the command at any time and re-run with a package
-limit).
 
 ```
 usage: dart bin/api_usage.dart [options] <package-name>
@@ -43,5 +37,6 @@ usage: dart bin/api_usage.dart [options] <package-name>
 options:
 -h, --help                     Print this usage information.
     --package-limit=<count>    Limit the number of packages usage data is collected from.
+                               (defaults to "100")
     --show-src-references      Report specific references to src/ libraries.
 ```

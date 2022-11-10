@@ -4,36 +4,96 @@
 
 import 'dart:io';
 
+import 'package:corpus/pub.dart';
+
 import 'api.dart';
-import 'pub.dart';
 import 'utils.dart';
 
-class Report {
-  final PackageInfo packageInfo;
+abstract class ReportTarget {
+  final String name;
+  final String version;
 
-  Report(this.packageInfo);
+  ReportTarget({required this.name, required this.version});
+
+  String get type;
+
+  Stream<PackageInfo> getPackages(Pub pub);
+
+  @override
+  String toString() => '$type:$name';
+}
+
+class PackageTarget extends ReportTarget {
+  final PackageInfo targetPackage;
+  final String? description;
+
+  PackageTarget({
+    required super.name,
+    required super.version,
+    required this.targetPackage,
+    this.description,
+  });
+
+  factory PackageTarget.fromPackage(PackageInfo package) {
+    return PackageTarget(
+      name: package.name,
+      version: package.version,
+      targetPackage: package,
+      description: package.description,
+    );
+  }
+
+  @override
+  String get type => 'package';
+
+  @override
+  Stream<PackageInfo> getPackages(Pub pub) => pub.popularDependenciesOf(name);
+}
+
+class DartLibraryTarget extends ReportTarget {
+  DartLibraryTarget({required super.name, required super.version});
+
+  @override
+  String get type => 'dart';
+
+  @override
+  Stream<PackageInfo> getPackages(Pub pub) => pub.allPubPackages();
+}
+
+class Report {
+  final ReportTarget reportTarget;
+
+  Report(this.reportTarget);
 
   File generateReport(List<ApiUsage> usages, {bool showSrcReferences = false}) {
-    var usage = ApiUsage.combine(packageInfo, usages);
+    var usage = ApiUsage.combine(usages);
 
-    var file = File('reports/${packageInfo.name}.md');
+    var file = File('reports/${reportTarget.type}_${reportTarget.name}.md');
     file.parent.createSync();
     var buf = StringBuffer();
 
-    buf.writeln('# Report for package:${packageInfo.name}');
+    buf.writeln('# Report for ${reportTarget.type}:${reportTarget.name}');
     buf.writeln();
     buf.writeln('## General info');
     buf.writeln();
-    buf.writeln(packageInfo.description);
+    if (reportTarget is DartLibraryTarget) {
+      buf.writeln('https://api.dart.dev/dart-${reportTarget.name}/'
+          'dart-${reportTarget.name}-library.html');
+    } else if (reportTarget is PackageTarget) {
+      buf.writeln((reportTarget as PackageTarget).description);
+      buf.writeln();
+      buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
+      buf.writeln(
+          '- docs: https://pub.dev/documentation/${reportTarget.name}/latest/');
+      buf.writeln('- dependent packages: '
+          'https://pub.dev/packages?q=dependency%3A${reportTarget.name}&sort=top');
+    }
     buf.writeln();
-    buf.writeln('- pub page: https://pub.dev/packages/${packageInfo.name}');
     buf.writeln(
-        '- docs: https://pub.dev/documentation/${packageInfo.name}/latest/');
-    buf.writeln('- dependent packages: '
-        'https://pub.dev/packages?q=dependency%3A${packageInfo.name}&sort=top');
-    buf.writeln();
-    buf.writeln('Stats for ${packageInfo.name} v${packageInfo.version} pulled '
-        'from ${usage.corpusPackages.length} packages.');
+      'Stats for ${reportTarget.type}:${reportTarget.name} '
+      'v${reportTarget.version} pulled from ${usage.corpusPackages.length} '
+      'packages.',
+    );
 
     var packagesReferences = usage.referringPackages;
     var libraryReferences = usage.referringLibraries;
