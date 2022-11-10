@@ -9,37 +9,55 @@ import 'package:corpus/pub.dart';
 import 'api.dart';
 import 'utils.dart';
 
-class ReportTarget {
-  final bool isDartLibrary;
+abstract class ReportTarget {
   final String name;
   final String version;
-  final String? description;
-  final PackageInfo? targetPackage;
 
-  ReportTarget({
-    required this.name,
-    required this.version,
-    this.isDartLibrary = false,
+  ReportTarget({required this.name, required this.version});
+
+  String get type;
+
+  Stream<PackageInfo> getPackages(Pub pub);
+
+  @override
+  String toString() => '$type:$name';
+}
+
+class PackageTarget extends ReportTarget {
+  final PackageInfo targetPackage;
+  final String? description;
+
+  PackageTarget({
+    required super.name,
+    required super.version,
+    required this.targetPackage,
     this.description,
-    this.targetPackage,
   });
 
-  factory ReportTarget.fromDartLibrary(String name, String sdkVersion) {
-    return ReportTarget(name: name, version: sdkVersion, isDartLibrary: true);
-  }
-
-  factory ReportTarget.fromPackage(PackageInfo package) {
-    return ReportTarget(
+  factory PackageTarget.fromPackage(PackageInfo package) {
+    return PackageTarget(
       name: package.name,
       version: package.version,
-      description: package.description,
       targetPackage: package,
+      description: package.description,
     );
   }
 
-  String get type => isDartLibrary ? 'dart' : 'package';
+  @override
+  String get type => 'package';
 
-  bool get isPackage => !isDartLibrary;
+  @override
+  Stream<PackageInfo> getPackages(Pub pub) => pub.popularDependenciesOf(name);
+}
+
+class DartLibraryTarget extends ReportTarget {
+  DartLibraryTarget({required super.name, required super.version});
+
+  @override
+  String get type => 'dart';
+
+  @override
+  Stream<PackageInfo> getPackages(Pub pub) => pub.allPubPackages();
 }
 
 class Report {
@@ -58,11 +76,11 @@ class Report {
     buf.writeln();
     buf.writeln('## General info');
     buf.writeln();
-    if (reportTarget.isDartLibrary) {
+    if (reportTarget is DartLibraryTarget) {
       buf.writeln('https://api.dart.dev/dart-${reportTarget.name}/'
           'dart-${reportTarget.name}-library.html');
-    } else {
-      buf.writeln(reportTarget.description);
+    } else if (reportTarget is PackageTarget) {
+      buf.writeln((reportTarget as PackageTarget).description);
       buf.writeln();
       buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
       buf.writeln(

@@ -231,12 +231,9 @@ class PackageInfo {
   }
 
   VersionConstraint? get sdkContraint {
-    var environment = _pubspec['environment'] as Map?;
-    if (environment == null) return null;
-
-    var sdk = environment['sdk'] as String?;
+    var environment = (_pubspec['environment'] as Map?);
+    var sdk = environment?['sdk'] as String?;
     if (sdk == null) return null;
-
     return VersionConstraint.parse(sdk);
   }
 
