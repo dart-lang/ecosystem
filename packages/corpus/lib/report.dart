@@ -80,8 +80,7 @@ class Report {
       buf.writeln('https://api.dart.dev/dart-${reportTarget.name}/'
           'dart-${reportTarget.name}-library.html');
     } else if (reportTarget is PackageTarget) {
-      var packageTarget = reportTarget as PackageTarget;
-      buf.writeln(packageTarget.description);
+      buf.writeln((reportTarget as PackageTarget).description);
       buf.writeln();
       buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
       buf.writeln(
