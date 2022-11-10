@@ -33,7 +33,8 @@ Future analyzeUsage({
   ReportTarget reportTarget;
   if (packageName.startsWith('dart:')) {
     var nameWithoutPrefix = packageName.substring('dart:'.length);
-    reportTarget = DartLibrary(name: nameWithoutPrefix, version: sdkVersion);
+    reportTarget =
+        DartLibraryTarget(name: nameWithoutPrefix, version: sdkVersion);
   } else {
     var packageInfo = await pub.getPackageInfo(packageName);
     reportTarget = PackageTarget.fromPackage(packageInfo);
@@ -104,7 +105,8 @@ Future analyzeUsage({
       localPackage.directory,
     );
     var message = usage.describeUsage();
-    var hasNoUsage = reportTarget is DartLibrary && !usage.hadAnyReferences;
+    var hasNoUsage =
+        reportTarget is DartLibraryTarget && !usage.hadAnyReferences;
     if (hasNoUsage) {
       message = 'skipping - no dart:${reportTarget.name} references';
     }
@@ -125,8 +127,7 @@ Future analyzeUsage({
     }
   }
 
-  var report = Report(reportTarget);
-  var file = report.generateReport(
+  var file = Report(reportTarget).generateReport(
     usageInfo,
     showSrcReferences: showSrcReferences,
   );

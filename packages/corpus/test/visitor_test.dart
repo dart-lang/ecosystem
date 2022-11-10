@@ -118,7 +118,7 @@ void main() {
   });
 
   group('ApiUseCollector - dart:', () {
-    ReportTarget reportTarget = DartLibrary(
+    ReportTarget reportTarget = DartLibraryTarget(
       name: 'collection',
       version: _sdkVersion,
     );
@@ -172,7 +172,7 @@ void main() {
 
     test('top-level symbol references', () async {
       apiUsageCollector = ApiUseCollector(
-        DartLibrary(name: 'convert', version: _sdkVersion),
+        DartLibraryTarget(name: 'convert', version: _sdkVersion),
         referencingPackage,
         packageDir,
       );
@@ -201,7 +201,7 @@ void main() {
 
     test('extension references', () async {
       apiUsageCollector = ApiUseCollector(
-        DartLibrary(name: 'async', version: _sdkVersion),
+        DartLibraryTarget(name: 'async', version: _sdkVersion),
         referencingPackage,
         packageDir,
       );

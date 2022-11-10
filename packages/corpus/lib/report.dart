@@ -50,8 +50,8 @@ class PackageTarget extends ReportTarget {
   Stream<PackageInfo> getPackages(Pub pub) => pub.popularDependenciesOf(name);
 }
 
-class DartLibrary extends ReportTarget {
-  DartLibrary({required super.name, required super.version});
+class DartLibraryTarget extends ReportTarget {
+  DartLibraryTarget({required super.name, required super.version});
 
   @override
   String get type => 'dart';
@@ -76,11 +76,12 @@ class Report {
     buf.writeln();
     buf.writeln('## General info');
     buf.writeln();
-    if (reportTarget is DartLibrary) {
+    if (reportTarget is DartLibraryTarget) {
       buf.writeln('https://api.dart.dev/dart-${reportTarget.name}/'
           'dart-${reportTarget.name}-library.html');
-    } else {
-      buf.writeln((reportTarget as PackageTarget).description);
+    } else if (reportTarget is PackageTarget) {
+      var packageTarget = reportTarget as PackageTarget;
+      buf.writeln(packageTarget.description);
       buf.writeln();
       buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
       buf.writeln(
