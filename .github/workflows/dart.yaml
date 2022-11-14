@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/corpus
+        working-directory: pkgs/corpus
 
     steps:
       # These are the latest versions of the github actions; dependabot will
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/dart_flutter_team_lints
+        working-directory: pkgs/dart_flutter_team_lints
 
     steps:
       # These are the latest versions of the github actions; dependabot will
