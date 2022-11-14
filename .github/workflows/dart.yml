@@ -192,7 +192,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints;commands:test"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints
             os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
@@ -228,7 +228,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus;commands:test"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus;commands:test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus
             os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
@@ -264,7 +264,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus;commands:test"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus;commands:test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -300,7 +300,7 @@ jobs:
         uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/dart_flutter_team_lints;commands:test"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/dart_flutter_team_lints;commands:test_1"
           restore-keys: |
             os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/dart_flutter_team_lints
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
@@ -328,3 +328,88 @@ jobs:
       - job_003
       - job_004
       - job_005
+  job_010:
+    name: "analyze_format; Dart dev; PKG: pkgs/blast_repo; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo;commands:format-analyze"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: pkgs_blast_repo_pub_upgrade
+        name: pkgs/blast_repo; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/blast_repo
+      - name: "pkgs/blast_repo; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.pkgs_blast_repo_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/blast_repo
+      - name: "pkgs/blast_repo; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_blast_repo_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/blast_repo
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+  job_011:
+    name: "test; Dart dev; PKG: pkgs/blast_repo; `dart test --test-randomize-ordering-seed=random`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo;commands:test_0"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - id: pkgs_blast_repo_pub_upgrade
+        name: pkgs/blast_repo; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/blast_repo
+      - name: "pkgs/blast_repo; dart test --test-randomize-ordering-seed=random"
+        run: "dart test --test-randomize-ordering-seed=random"
+        if: "always() && steps.pkgs_blast_repo_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/blast_repo
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+      - job_007
+      - job_008
+      - job_009
+      - job_010
