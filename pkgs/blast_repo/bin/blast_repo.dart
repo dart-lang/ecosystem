@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:blast_repo/src/top_level.dart';
 import 'package:blast_repo/src/utils.dart';
+import 'package:io/io.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 Future<void> main(List<String> args) async {
@@ -31,11 +32,23 @@ Future<void> main(List<String> args) async {
       help: 'Prints out usage and exits',
     );
 
-  final argResults = parser.parse(args);
-
-  if (argResults['help'] as bool) {
+  void printUsage() {
     print('Usage: $packageName <options> [org/repo]\n');
     print(parser.usage);
+  }
+
+  final ArgResults argResults;
+  try {
+    argResults = parser.parse(args);
+  } on FormatException catch (e) {
+    printError(e.message);
+    printUsage();
+    exitCode = ExitCode.usage.code;
+    return;
+  }
+
+  if (argResults['help'] as bool) {
+    printUsage();
     return;
   }
 
