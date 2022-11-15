@@ -57,30 +57,26 @@ updates:
 ''');
   });
 
-  test('updates weird value', () {
-    final result = doDependabotFix(r'''
-# Dependabot configuration file.
-# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+  group('allow more frequent updates', () {
+    for (var frequency in dependabotAllowedFrequencies) {
+      test(frequency, () {
+        final input = '''
+# Random header is cool!
 version: 2
+
+# Random comment is cool
 
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: daily
-''');
+      interval: "$frequency"
+''';
+        final result = doDependabotFix(input);
 
-    expect(result, r'''
-# Dependabot configuration file.
-# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
-version: 2
-
-updates:
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: monthly
-''');
+        expect(result, input);
+      });
+    }
   });
 
   test('default content should be a no-op', () {
