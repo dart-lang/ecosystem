@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart' as yaml;
 import 'package:yaml_edit/yaml_edit.dart';
@@ -71,7 +72,7 @@ String doDependabotFix(String input, {Uri? sourceUrl}) {
 
   final editor = YamlEditor(input);
 
-  final updates = contentYaml['updates'];
+  final updates = contentYaml[_updatesKey];
   if (updates is! List) {
     throw Exception(
       'Not sure what to do. There is no "updates" value as a List',
@@ -85,10 +86,10 @@ String doDependabotFix(String input, {Uri? sourceUrl}) {
       continue;
     }
 
-    final packageEcosystem = value['package-ecosystem'];
+    final packageEcosystem = value[_packageEcosystemKey];
     if (packageEcosystem is! String) {
       throw Exception(
-        'Not sure what to do with a package-ecosystem that is not String',
+        'Not sure what to do with a $_packageEcosystemKey that is not String',
       );
     }
 
@@ -98,20 +99,17 @@ String doDependabotFix(String input, {Uri? sourceUrl}) {
 
     found = true;
 
-    final directory = value['directory'];
-    final schedule = value['schedule'];
-
-    if (directory == '/' &&
-        schedule is Map &&
-        schedule['interval'] == 'monthly') {
+    if (_allowedActionValues().any(
+      (element) => const DeepCollectionEquality().equals(element, value),
+    )) {
       break;
     }
 
-    editor.update(['updates', i], _githubActionValue);
+    editor.update([_updatesKey, i], _githubActionValue(_monthlyFrequency));
   }
 
   if (!found) {
-    editor.appendToList(['updates'], _githubActionValue);
+    editor.appendToList([_updatesKey], _githubActionValue(_monthlyFrequency));
   }
 
   return editor.toString();
@@ -124,20 +122,37 @@ const _options = [
   '.github/dependabot.yaml',
 ];
 
-const dependabotDefaultContent = r'''
+final dependabotDefaultContent = _correctOutput();
+
+String _correctOutput() {
+  final editor = YamlEditor('''
 # Dependabot configuration file.
 # See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
 version: 2
+updates: null
+''')
+    ..update([
+      _updatesKey
+    ], [
+      _githubActionValue(_monthlyFrequency),
+    ]);
 
-updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
-''';
+  return editor.toString();
+}
 
-const _githubActionValue = {
-  'package-ecosystem': 'github-actions',
-  'directory': '/',
-  'schedule': {'interval': 'monthly'}
-};
+const _updatesKey = 'updates';
+
+const _monthlyFrequency = 'monthly';
+const dependabotAllowedFrequencies = {'daily', 'weekly', _monthlyFrequency};
+
+Iterable<Object> _allowedActionValues() =>
+    dependabotAllowedFrequencies.map(_githubActionValue);
+
+const _packageEcosystemKey = 'package-ecosystem';
+
+Map<String, Object> _githubActionValue(String frequency) => {
+      _packageEcosystemKey: 'github-actions',
+      'directory': '/',
+      'schedule': {'interval': frequency}
+    };
