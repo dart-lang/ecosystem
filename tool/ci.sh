@@ -75,7 +75,11 @@ for PKG in ${PKGS}; do
         echo 'dart format --output=none --set-exit-if-changed .'
         dart format --output=none --set-exit-if-changed . || EXIT_CODE=$?
         ;;
-      test)
+      test_0)
+        echo 'dart test --test-randomize-ordering-seed=random'
+        dart test --test-randomize-ordering-seed=random || EXIT_CODE=$?
+        ;;
+      test_1)
         echo 'dart test'
         dart test || EXIT_CODE=$?
         ;;
