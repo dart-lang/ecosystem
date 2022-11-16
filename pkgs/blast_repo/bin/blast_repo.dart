@@ -23,6 +23,7 @@ Future<void> main(List<String> args) async {
     )
     ..addOption(
       'pr-reviewer',
+      valueHelp: 'github-id',
       help: 'The GitHub handle for the desired reviewer.',
     )
     ..addFlag(
@@ -47,7 +48,7 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  if (argResults['help'] as bool) {
+  if (argResults['help'] as bool || argResults.rest.isEmpty) {
     printUsage();
     return;
   }
