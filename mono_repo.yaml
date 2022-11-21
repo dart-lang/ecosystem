@@ -8,7 +8,7 @@ github:
   on:
     push:
       branches:
-      - master
+      - main
     pull_request:
     schedule:
     # Setting just `cron` keeps the defaults for `push` and `pull_request`
