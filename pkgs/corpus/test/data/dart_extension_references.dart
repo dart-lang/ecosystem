@@ -6,5 +6,6 @@ import 'dart:async';
 
 void main() {
   Future? future;
+  // ignore: dead_code
   print(future?..ignore());
 }
