@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() {
   group('action check', () {
     const actions = {
-      'actions/checkout@v2': '2.6.0::e2f20e631ae6d7dd3b768f56a5d2af784dd54791',
+      'actions/checkout@v2': '2.6.0::dc323e67f16fb5f7663d20ff7941f27f5809e9b6',
       'actions/checkout@v2.3.4':
           '2.3.4::5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f',
       'actions/setup-java@de1bb2b0c5634f0fc4438d7aa9944e68f9bf86cc':
