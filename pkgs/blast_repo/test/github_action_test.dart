@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() {
   group('action check', () {
     const actions = {
-      'actions/checkout@v2': '2.5.0::e2f20e631ae6d7dd3b768f56a5d2af784dd54791',
+      'actions/checkout@v2': '2.6.0::dc323e67f16fb5f7663d20ff7941f27f5809e9b6',
       'actions/checkout@v2.3.4':
           '2.3.4::5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f',
       'actions/setup-java@de1bb2b0c5634f0fc4438d7aa9944e68f9bf86cc':
@@ -18,7 +18,7 @@ void main() {
       'actions/setup-node@v2':
           '2.5.1::1f8c6b94b26d0feae1e387ca63ccbdc44d27b561',
       'actions/setup-node@v3':
-          '3.5.1::8c91899e586c5b171469028077307d293428b516',
+          '3.6.0::64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c',
       'android-actions/setup-android@v2.0.2':
           '2.0.2::72fdd2e74f58fb338a2743720c0847b8becf1589',
       'dart-lang/setup-dart@v1':
