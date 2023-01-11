@@ -17,7 +17,53 @@ include: package:lints/recommended.yaml
 
 linter:
   rules:
+    # consistency
+    - avoid_empty_else
+    - avoid_shadowing_type_parameters
+    - avoid_types_as_parameter_names
+    - camel_case_extensions
+    - curly_braces_in_flow_control_structures
+    - directives_ordering
+    - empty_catches
+    - file_names
+    - lines_longer_than_80_chars
+    - omit_local_variable_types
+    - prefer_asserts_in_initializer_lists
+    - prefer_generic_function_type_aliases
+    - prefer_is_empty
+    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables
+    - sort_pub_dependencies
+    - unnecessary_lambdas
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - use_is_even_rather_than_modulo
+
+    # correctness
+    - always_declare_return_types
+    - avoid_catching_errors
     - avoid_dynamic_calls
     - await_only_futures
-    - directives_ordering
-    - sort_pub_dependencies
+    - hash_and_equals
+    - no_duplicate_case_values
+    - only_throw_errors
+    - throw_in_finally
+    - type_annotate_public_apis
+    - unawaited_futures
+    - unrelated_type_equality_checks
+
+    # optional?
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_relative_lib_imports
+    - cascade_invocations
+    - iterable_contains_unrelated_type
+    - join_return_with_assignment
+    - list_remove_unrelated_type
+    - literal_only_boolean_expressions
+    - no_runtimeType_toString
+    - prefer_is_not_empty
+    - prefer_iterable_whereType
+    - prefer_relative_imports
+    - provide_deprecation_message
+    - void_checks
