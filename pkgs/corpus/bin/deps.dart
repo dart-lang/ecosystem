@@ -27,13 +27,13 @@ void main(List<String> args) async {
     exit(64);
   }
 
-  if (argResults.rest.length != 1 || argResults['help']) {
+  if (argResults.rest.length != 1 || argResults['help'] as bool) {
     printUsage(argParser);
     exit(1);
   }
 
   final packageName = argResults.rest.first;
-  String? packageLimit = argResults['package-limit'];
+  var packageLimit = argResults['package-limit'] as String?;
   var excludeOld = argResults['exclude-old'] as bool;
 
   var log = Logger.standard();

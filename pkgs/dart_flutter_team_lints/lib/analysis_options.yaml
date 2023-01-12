@@ -15,6 +15,10 @@
 
 include: package:lints/recommended.yaml
 
+analyzer:
+  language:
+    strict-casts: true
+
 linter:
   rules:
     # consistency

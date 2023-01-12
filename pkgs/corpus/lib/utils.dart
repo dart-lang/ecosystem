@@ -31,11 +31,11 @@ Future<ProcessResult> runProcess(
     workingDirectory: workingDirectory,
   );
   if (result.exitCode != 0) {
-    String out = result.stdout;
+    var out = result.stdout as String;
     if (out.isNotEmpty) {
       logger == null ? print(out.trimRight()) : logger.stdout(out.trimRight());
     }
-    out = result.stderr;
+    out = result.stderr as String;
     if (out.isNotEmpty) {
       logger == null ? print(out.trimRight()) : logger.stderr(out.trimRight());
     }

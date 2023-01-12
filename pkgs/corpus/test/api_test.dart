@@ -20,9 +20,10 @@ void main() {
       var json =
           JsonDecoder().convert(_sampleUsageJson) as Map<String, dynamic>;
       sampleUsage = ApiUsage(
-        PackageInfo.from(JsonDecoder().convert(_packageInfoJson)),
-        References.fromJson(json['packages']),
-        References.fromJson(json['libraries']),
+        PackageInfo.from(
+            JsonDecoder().convert(_packageInfoJson) as Map<String, dynamic>),
+        References.fromJson(json['packages'] as Map<String, dynamic>),
+        References.fromJson(json['libraries'] as Map<String, dynamic>),
       );
     });
 
@@ -41,7 +42,10 @@ void main() {
       sampleUsage.toFile(tempFile);
 
       var result = ApiUsage.fromFile(
-          PackageInfo.from(JsonDecoder().convert(_packageInfoJson)), tempFile);
+        PackageInfo.from(
+            JsonDecoder().convert(_packageInfoJson) as Map<String, dynamic>),
+        tempFile,
+      );
 
       checkThat(result).isNotNull();
 
