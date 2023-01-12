@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('ApiUseCollector - packages', () {
-    PackageInfo targetPackage = PackageInfo.from({
+    var targetPackage = PackageInfo.from({
       'name': 'path',
       'latest': {
         'version': '0.1.2',
@@ -21,8 +21,8 @@ void main() {
       }
     });
     ReportTarget reportTarget = PackageTarget.fromPackage(targetPackage);
-    PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
-    Directory packageDir = Directory('test/data');
+    var referencingPackage = PackageInfo.from({'name': 'foo'});
+    var packageDir = Directory('test/data');
 
     late ApiUseCollector apiUsageCollector;
 
@@ -122,8 +122,8 @@ void main() {
       name: 'collection',
       version: _sdkVersion,
     );
-    PackageInfo referencingPackage = PackageInfo.from({'name': 'foo'});
-    Directory packageDir = Directory('test/data');
+    var referencingPackage = PackageInfo.from({'name': 'foo'});
+    var packageDir = Directory('test/data');
 
     late ApiUseCollector apiUsageCollector;
 

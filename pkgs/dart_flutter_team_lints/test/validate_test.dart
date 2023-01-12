@@ -20,12 +20,12 @@ void main() {
   });
 
   test('references recommended', () {
-    var result = yaml.loadYaml(content);
+    var result = yaml.loadYaml(content) as yaml.YamlMap;
     expect(result['include'], equals('package:lints/recommended.yaml'));
   });
 
   test('defines linter rules', () {
-    var result = yaml.loadYaml(content);
-    expect(result['linter']['rules'], isNotEmpty);
+    var result = yaml.loadYaml(content) as yaml.YamlMap;
+    expect((result['linter'] as Map)['rules'], isNotEmpty);
   });
 }

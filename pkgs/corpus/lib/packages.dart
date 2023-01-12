@@ -42,14 +42,14 @@ class PackageManager {
     var progress =
         logger?.progress('downloading ${path.basename(archiveFile.path)}');
     try {
-      Uint8List data = await _getPackageTarGzArchive(package);
+      var data = await _getPackageTarGzArchive(package);
       archiveFile.writeAsBytesSync(data);
       return true;
     } finally {
       progress?.finish(showTiming: true);
     }
 
-    // This is live as _getPackageTarGzArchive can throw.
+    // This is live as _getPackageTarGzArchive() can throw.
     // ignore: dead_code
     return false;
   }

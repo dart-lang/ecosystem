@@ -123,7 +123,8 @@ Future<List<String>> _fixFile(
           );
 
           items.add(
-            'Updated ${path.join('/')} from $currentVersion to $targetActionVersion',
+            'Updated ${path.join('/')} from $currentVersion to '
+            '$targetActionVersion',
           );
         }
       }
