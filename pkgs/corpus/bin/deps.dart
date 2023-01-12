@@ -34,7 +34,7 @@ void main(List<String> args) async {
 
   final packageName = argResults.rest.first;
   String? packageLimit = argResults['package-limit'];
-  bool excludeOld = argResults['exclude-old'] as bool;
+  var excludeOld = argResults['exclude-old'] as bool;
 
   var log = Logger.standard();
 
@@ -61,7 +61,7 @@ void main(List<String> args) async {
 
   var usageInfos = <PackageUsageInfo>[];
 
-  int count = 0;
+  var count = 0;
 
   for (var package in packages) {
     progress = log.progress('  $package');

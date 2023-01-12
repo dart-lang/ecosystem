@@ -17,7 +17,8 @@ void main() {
     late ApiUsage sampleUsage;
 
     setUp(() {
-      var json = JsonDecoder().convert(_sampleUsageJson);
+      var json =
+          JsonDecoder().convert(_sampleUsageJson) as Map<String, dynamic>;
       sampleUsage = ApiUsage(
         PackageInfo.from(JsonDecoder().convert(_packageInfoJson)),
         References.fromJson(json['packages']),

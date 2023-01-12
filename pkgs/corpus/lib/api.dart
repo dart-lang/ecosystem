@@ -45,7 +45,7 @@ class ApiUsage {
   }
 
   void toFile(File file) {
-    Map json = {
+    var json = {
       'packages': fromPackages.toJson(),
       'libraries': fromLibraries.toJson(),
     };
@@ -58,11 +58,12 @@ class ApiUsage {
   }
 
   String describeUsage() {
-    int libraryCount = fromPackages.sortedLibraryReferences.length;
-    int classCount = fromPackages.sortedClassReferences.length;
-    int extensionCount = fromPackages.sortedExtensionReferences.length;
-    int symbolCount = fromPackages.sortedTopLevelReferences.length;
-    return 'referenced $libraryCount ${pluralize(libraryCount, 'library', plural: 'libraries')}, '
+    var libraryCount = fromPackages.sortedLibraryReferences.length;
+    var classCount = fromPackages.sortedClassReferences.length;
+    var extensionCount = fromPackages.sortedExtensionReferences.length;
+    var symbolCount = fromPackages.sortedTopLevelReferences.length;
+    var librariesStr = pluralize(libraryCount, 'library', plural: 'libraries');
+    return 'referenced $libraryCount $librariesStr, '
         '$classCount ${pluralize(classCount, 'class', plural: 'classes')}, '
         '$extensionCount ${pluralize(extensionCount, 'extension')}, '
         'and $symbolCount top-level ${pluralize(symbolCount, 'symbol')}';
@@ -415,7 +416,7 @@ class EntityReferences {
   Map<String, int> get sortedReferences => _sortByCount(_references);
 
   Map<String, int> _sortByCount(Map<String, Set<Entity>> refs) {
-    List<String> keys = refs.keys.toList();
+    var keys = refs.keys.toList();
     keys.sort((a, b) => refs[b]!.length - refs[a]!.length);
     return Map.fromIterable(keys, value: (key) => refs[key]!.length);
   }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:convert';
 
 import 'package:http/http.dart';
@@ -110,7 +112,7 @@ class Pub {
   }) async* {
     final uri = Uri.parse('https://pub.dev/api/search');
 
-    int count = 0;
+    var count = 0;
 
     for (;;) {
       final targetUri = uri.replace(queryParameters: {
@@ -190,7 +192,8 @@ class PackageInfo {
   String? get homepage => _pubspec['homepage'];
 
   String? get repo => repository ?? homepage;
-  String? get sdkConstraint => (_pubspec['environment'] ?? {})['sdk'];
+  Map<String, dynamic>? get environment => _pubspec['environment'];
+  String? get sdkConstraint => (environment ?? {})['sdk'];
 
   String get version => _latest['version'];
   String get archiveUrl => _latest['archive_url'];
@@ -231,7 +234,7 @@ class PackageInfo {
   }
 
   VersionConstraint? get sdkContraint {
-    var environment = (_pubspec['environment'] as Map?);
+    var environment = _pubspec['environment'] as Map?;
     var sdk = environment?['sdk'] as String?;
     if (sdk == null) return null;
     return VersionConstraint.parse(sdk);

@@ -27,7 +27,7 @@ void main(List<String> args) async {
 
   final packageName = argResults.rest.first;
   final packageLimit = int.tryParse(argResults['package-limit'])!;
-  bool showSrcReferences = argResults['show-src-references'] as bool;
+  var showSrcReferences = argResults['show-src-references'] as bool;
 
   await analyzeUsage(
     packageName: packageName,

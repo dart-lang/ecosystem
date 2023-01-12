@@ -49,7 +49,7 @@ Future analyzeUsage({
 
   progress.finish(showTiming: true);
 
-  List<ApiUsage> usageInfo = [];
+  var usageInfo = <ApiUsage>[];
 
   var count = 0;
 
@@ -83,7 +83,7 @@ Future analyzeUsage({
       }
     }
 
-    bool downloadSuccess =
+    var downloadSuccess =
         await packageManager.retrievePackageArchive(package, logger: log);
     if (!downloadSuccess) {
       log.stdout('error downloading ${package.archiveUrl}');
@@ -153,7 +153,7 @@ Future<ApiUsage> _analyzePackage(
   ));
 
   if (file.existsSync()) {
-    ApiUsage usage = ApiUsage.fromFile(analyzingPackage, file);
+    var usage = ApiUsage.fromFile(analyzingPackage, file);
     return usage;
   }
 
