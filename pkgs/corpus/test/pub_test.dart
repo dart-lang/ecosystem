@@ -13,7 +13,8 @@ import 'package:test/scaffolding.dart';
 void main() {
   group('PackageInfo', () {
     test('parse pub.dev results', () {
-      var packageInfo = PackageInfo.from(jsonDecode(_pubSampleData));
+      var packageInfo =
+          PackageInfo.from(jsonDecode(_pubSampleData) as Map<String, dynamic>);
 
       checkThat(packageInfo.name).equals('usage');
       checkThat(packageInfo.version).equals('4.0.2');

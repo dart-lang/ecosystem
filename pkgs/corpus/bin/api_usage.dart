@@ -20,13 +20,13 @@ void main(List<String> args) async {
     exit(64);
   }
 
-  if (argResults.rest.length != 1 || argResults['help']) {
+  if (argResults.rest.length != 1 || argResults['help'] as bool) {
     _printUsage(argParser);
     exit(1);
   }
 
   final packageName = argResults.rest.first;
-  final packageLimit = int.tryParse(argResults['package-limit'])!;
+  final packageLimit = int.parse(argResults['package-limit'] as String);
   var showSrcReferences = argResults['show-src-references'] as bool;
 
   await analyzeUsage(

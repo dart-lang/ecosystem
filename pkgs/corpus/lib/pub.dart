@@ -185,24 +185,27 @@ class PackageInfo {
 
   PackageInfo.from(this.json);
 
-  String get name => json['name'];
-  String? get description => _pubspec['description'];
+  String get name => json['name'] as String;
+  String? get description => _pubspec['description'] as String?;
 
-  String? get repository => _pubspec['repository'];
-  String? get homepage => _pubspec['homepage'];
+  String? get repository => _pubspec['repository'] as String?;
+  String? get homepage => _pubspec['homepage'] as String?;
 
   String? get repo => repository ?? homepage;
-  Map<String, dynamic>? get environment => _pubspec['environment'];
-  String? get sdkConstraint => (environment ?? {})['sdk'];
+  Map<String, dynamic>? get environment =>
+      _pubspec['environment'] as Map<String, dynamic>?;
+  String? get sdkConstraint => (environment ?? {})['sdk'] as String?;
 
-  String get version => _latest['version'];
-  String get archiveUrl => _latest['archive_url'];
+  String get version => _latest['version'] as String;
+  String get archiveUrl => _latest['archive_url'] as String;
   DateTime get publishedDate => DateTime.parse(_published);
 
-  String get _published => _latest['published'];
+  String get _published => _latest['published'] as String;
 
-  late final Map<String, dynamic> _latest = json['latest'];
-  late final Map<String, dynamic> _pubspec = _latest['pubspec'];
+  late final Map<String, dynamic> _latest =
+      json['latest'] as Map<String, dynamic>;
+  late final Map<String, dynamic> _pubspec =
+      _latest['pubspec'] as Map<String, dynamic>;
 
   @override
   String toString() => '$name: $version';
@@ -211,7 +214,7 @@ class PackageInfo {
     if (_pubspec['dependencies'] is Map) {
       var deps = _pubspec['dependencies'] as Map;
       if (deps.containsKey(name)) {
-        String constraint = deps[name] ?? 'any';
+        var constraint = (deps[name] as String?) ?? 'any';
         if (constraint.isEmpty) {
           constraint = 'any';
         }
@@ -222,7 +225,7 @@ class PackageInfo {
     if (_pubspec['dev_dependencies'] is Map) {
       var deps = _pubspec['dev_dependencies'] as Map;
       if (deps.containsKey(name)) {
-        String constraint = deps[name] ?? 'any';
+        var constraint = (deps[name] as String?) ?? 'any';
         if (constraint.isEmpty) {
           constraint = 'any';
         }
@@ -266,9 +269,9 @@ class PackageOptions {
 
   PackageOptions.from(this.json);
 
-  bool get isDiscontinued => json['isDiscontinued'];
-  String? get replacedBy => json['replacedBy'];
-  bool get isUnlisted => json['isUnlisted'];
+  bool get isDiscontinued => json['isDiscontinued'] as bool;
+  String? get replacedBy => json['replacedBy'] as String?;
+  bool get isUnlisted => json['isUnlisted'] as bool;
 }
 
 class PackageScore {
@@ -282,8 +285,8 @@ class PackageScore {
 
   PackageScore.from(this.json);
 
-  int get grantedPoints => json['grantedPoints'];
-  int get maxPoints => json['maxPoints'];
-  int get likeCount => json['likeCount'];
-  double get popularityScore => json['popularityScore'];
+  int get grantedPoints => json['grantedPoints'] as int;
+  int get maxPoints => json['maxPoints'] as int;
+  int get likeCount => json['likeCount'] as int;
+  double get popularityScore => json['popularityScore'] as double;
 }

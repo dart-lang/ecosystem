@@ -11,6 +11,6 @@ void main() {
   map['three'] = 3;
   print(map);
 
-  dynamic local;
+  var local = Queue();
   Queue.castFrom(local);
 }

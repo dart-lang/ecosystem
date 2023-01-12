@@ -74,8 +74,8 @@ class ApiUsage {
         JsonDecoder().convert(file.readAsStringSync()) as Map<String, dynamic>;
     return ApiUsage(
       packageInfo,
-      References.fromJson(json['packages']),
-      References.fromJson(json['libraries']),
+      References.fromJson(json['packages'] as Map<String, dynamic>),
+      References.fromJson(json['libraries'] as Map<String, dynamic>),
     );
   }
 }
@@ -257,7 +257,7 @@ abstract class Entity {
   String toJson();
 
   static Entity fromJson(String json) {
-    List l = json.split(':');
+    var l = json.split(':');
     if (l.first == 'package') {
       return PackageEntity(l[1]);
     } else {
@@ -320,10 +320,11 @@ class References {
   factory References.fromJson(Map<String, dynamic> json) {
     var refs = References();
 
-    refs._libraryReferences.fromJson(json['library']);
-    refs._classReferences.fromJson(json['class']);
-    refs._extensionReferences.fromJson(json['extension']);
-    refs._topLevelReferences.fromJson(json['topLevel']);
+    refs._libraryReferences.fromJson(json['library'] as Map<String, dynamic>);
+    refs._classReferences.fromJson(json['class'] as Map<String, dynamic>);
+    refs._extensionReferences
+        .fromJson(json['extension'] as Map<String, dynamic>);
+    refs._topLevelReferences.fromJson(json['topLevel'] as Map<String, dynamic>);
 
     return refs;
   }
@@ -433,16 +434,16 @@ class EntityReferences {
     }
   }
 
-  void fromJson(Map json) {
+  void fromJson(Map<String, dynamic> json) {
     for (var key in json.keys) {
-      List entities = json[key];
+      var entities = (json[key] as List).cast<String>();
       for (var entity in entities) {
         add(key, Entity.fromJson(entity));
       }
     }
   }
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       for (var entry in _references.entries)
         entry.key: entry.value.map((entity) => entity.toJson()).toList()
