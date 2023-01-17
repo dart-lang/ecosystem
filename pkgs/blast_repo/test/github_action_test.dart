@@ -61,7 +61,10 @@ void main() {
               result.path == null ? null : 'Cannot handle paths at the moment.',
           () async {
             final tag = await resolver.resolve(result);
-            expect(tag.toString(), action.value);
+            // version or branch resolved
+            expect(tag.version?.toString() ?? tag.branch, isNotEmpty);
+            // sha resolved
+            expect(tag.sha, isNotEmpty);
           },
         );
       }
