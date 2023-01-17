@@ -22,11 +22,11 @@ void main() {
       'android-actions/setup-android@v2.0.2':
           '2.0.2::72fdd2e74f58fb338a2743720c0847b8becf1589',
       'dart-lang/setup-dart@v1':
-          '1.3.0::6a218f2413a3e78e9087f638a238f6b40893203d',
+          '1.4.0::a57a6c04cf7d4840e88432aad6281d1e125f0d46',
       'dart-lang/setup-dart@v1.0':
           '1.0.0::9a04e6d73cca37bd455e0608d7e5092f881fd603',
       'dart-lang/setup-dart@v1.3':
-          '1.3.0::6a218f2413a3e78e9087f638a238f6b40893203d',
+          '1.4.0::a57a6c04cf7d4840e88432aad6281d1e125f0d46',
       'github/codeql-action/upload-sarif@807578363a7869ca324a79039e6db9c843e0e100':
           '2.1.27::807578363a7869ca324a79039e6db9c843e0e100',
       // Some folks just point to a branch!
@@ -55,13 +55,15 @@ void main() {
 
       for (var action in actions.entries) {
         final result = ActionVersion.parse(action.key);
-        test('"${action.key}"',
-            skip: result.path == null
-                ? null
-                : 'Cannot handle paths at the moment.', () async {
-          final tag = await resolver.resolve(result);
-          expect(tag.toString(), action.value);
-        });
+        test(
+          '"${action.key}"',
+          skip:
+              result.path == null ? null : 'Cannot handle paths at the moment.',
+          () async {
+            final tag = await resolver.resolve(result);
+            expect(tag.toString(), action.value);
+          },
+        );
       }
     });
 
