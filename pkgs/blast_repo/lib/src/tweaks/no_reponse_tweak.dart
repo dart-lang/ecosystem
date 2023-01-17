@@ -17,26 +17,27 @@ class NoResponseTweak extends ExactFileTweak {
 
   NoResponseTweak._()
       : super(
-          name: 'No Response',
+          id: 'no-response',
           description:
-              "Configure a 'no response' bot to handle needs-info labels.",
+              "configure a 'no response' bot to handle needs-info labels",
           filePath: _filePath,
-          expectedContent: _noResponseContent,
         );
 
-  // TODO(devoncarew): Remove this after some iteration.
   @override
   bool get stable => false;
 
   @override
-  FutureOr<FixResult> fix(Directory checkout) {
+  String expectedContent(String repoSlug) => _noResponseContent;
+
+  @override
+  FutureOr<FixResult> fix(Directory checkout, {required String repoSlug}) {
     // Check for and fail if this fix is not being run for a dart-lang repo.
     if (!_isDartLangOrgRepo(checkout)) {
       print('  repo is not in the dart-lang/ org');
       return FixResult.noFixesMade;
     }
 
-    return super.fix(checkout);
+    return super.fix(checkout, repoSlug: repoSlug);
   }
 }
 

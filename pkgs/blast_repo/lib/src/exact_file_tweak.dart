@@ -12,8 +12,7 @@ import 'repo_tweak.dart';
 abstract class ExactFileTweak extends RepoTweak {
   ExactFileTweak({
     required this.filePath,
-    required this.expectedContent,
-    required super.name,
+    required super.id,
     required super.description,
     this.alternateFilePaths = const {},
   }) : assert(p.isRelative(filePath)) {
@@ -45,18 +44,16 @@ abstract class ExactFileTweak extends RepoTweak {
 
   final String filePath;
   final Set<String> alternateFilePaths;
-  final String expectedContent;
+
+  String expectedContent(String repoSlug);
 
   @override
-  FutureOr<FixResult> fix(Directory checkout) {
+  FutureOr<FixResult> fix(Directory checkout, {required String repoSlug}) {
     final file = _targetFile(checkout);
 
     final exists = file.existsSync();
-    if (exists) {
-      final existingContent = file.readAsStringSync();
-      assert(existingContent != expectedContent);
-    }
-    file.writeAsStringSync(expectedContent);
+    final newContent = expectedContent(repoSlug);
+    file.writeAsStringSync(newContent);
 
     return FixResult(
       fixes: ['$filePath has been ${exists ? 'updated' : 'created'}.'],
