@@ -1,7 +1,7 @@
 name: dart_flutter_team_lints
 description: An analysis rule set used by the Dart and Flutter teams.
-version: 0.1.0-dev.1
-repository: https://github.com/dart-lang/ecosystem/tree/main/packages/dart_flutter_team_lints
+version: 0.1.0
+repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/dart_flutter_team_lints
 
 environment:
   sdk: '>=2.17.0 <3.0.0'

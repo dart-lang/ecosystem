@@ -1,7 +1,5 @@
 name: corpus
 description: A tool to calculate the API usage for a package.
-repository: https://github.com/dart-lang/ecosystem
-
 publish_to: none
 
 environment:
