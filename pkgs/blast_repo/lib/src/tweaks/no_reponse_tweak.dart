@@ -30,18 +30,18 @@ class NoResponseTweak extends ExactFileTweak {
   String expectedContent(String repoSlug) => _noResponseContent;
 
   @override
-  FutureOr<FixResult> fix(Directory checkout, {required String repoSlug}) {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
     // Check for and fail if this fix is not being run for a dart-lang repo.
-    if (!_isDartLangOrgRepo(checkout)) {
+    if (!isDartLangOrgRepo(checkout)) {
       print('  repo is not in the dart-lang/ org');
       return FixResult.noFixesMade;
     }
 
-    return super.fix(checkout, repoSlug: repoSlug);
+    return super.fix(checkout, repoSlug);
   }
 }
 
-bool _isDartLangOrgRepo(Directory checkout) {
+bool isDartLangOrgRepo(Directory checkout) {
   final gitConfigFile = File(path.join(checkout.path, '.git', 'config'));
   final contents = gitConfigFile.readAsStringSync();
 

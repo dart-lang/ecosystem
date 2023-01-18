@@ -28,8 +28,7 @@ class GitHubActionTweak extends RepoTweak {
         );
 
   @override
-  FutureOr<FixResult> fix(Directory checkout,
-      {required String repoSlug}) async {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) async {
     final files = _workflowFiles(checkout);
 
     if (files.isEmpty) {

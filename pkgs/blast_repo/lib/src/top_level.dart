@@ -118,11 +118,11 @@ Future<T> _safeRun<T>(
   String repoSlug,
   Directory checkout,
   String id,
-  FutureOr<T> Function(Directory, {required String repoSlug}) action,
+  FutureOr<T> Function(Directory, String repoSlug) action,
 ) async {
   printHeader('Running "$id"');
   try {
-    return await action(checkout, repoSlug: repoSlug);
+    return await action(checkout, repoSlug);
   } catch (_) {
     printError('  Error running $id');
     rethrow;

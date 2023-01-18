@@ -16,6 +16,11 @@ Future<void> main(List<String> args) async {
       'keep-temp',
       negatable: false,
     )
+    ..addMultiOption('tweaks',
+        help: 'Optionally list the specific tweaks to run (defaults to all '
+            'stable tweaks)',
+        allowed: allTweaks.map((t) => t.id),
+        valueHelp: 'tweak1,tweak2')
     ..addFlag(
       'include-unstable',
       help: 'To run tweaks that are not stable.',
@@ -36,6 +41,11 @@ Future<void> main(List<String> args) async {
   void printUsage() {
     print('Usage: $packageName <options> [org/repo]\n');
     print(parser.usage);
+    print('\navailable tweaks:');
+    for (var tweak in allTweaks) {
+      var unstable = tweak.stable ? '' : ' (unstable)';
+      print('  ${tweak.id}: ${tweak.description}$unstable');
+    }
   }
 
   final ArgResults argResults;
@@ -59,11 +69,18 @@ Future<void> main(List<String> args) async {
 
   final includeUnstable = argResults['include-unstable'] as bool;
   final prReviewer = argResults['pr-reviewer'] as String?;
+  final explicitTweakIds = argResults['tweaks'] as List<String>;
+  final explicitTweaks = explicitTweakIds.isEmpty
+      ? null
+      : explicitTweakIds
+          .map((id) => allTweaks.firstWhere((t) => t.id == id))
+          .toList();
 
   try {
     await runFix(
       slug: slug,
       deleteTemp: !keepTemp,
+      tweaks: explicitTweaks,
       onlyStable: !includeUnstable,
       prReviewer: prReviewer,
     );

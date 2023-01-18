@@ -24,7 +24,7 @@ abstract class RepoTweak {
   ///
   /// If the repo cannot be checked or if a required fix cannot be applied,
   /// an error is thrown.
-  FutureOr<FixResult> fix(Directory checkout, {required String repoSlug});
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug);
 
   @override
   String toString() => id;

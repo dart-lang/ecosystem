@@ -48,17 +48,29 @@ abstract class ExactFileTweak extends RepoTweak {
   String expectedContent(String repoSlug);
 
   @override
-  FutureOr<FixResult> fix(Directory checkout, {required String repoSlug}) {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
     final file = _targetFile(checkout);
 
-    final exists = file.existsSync();
-    final newContent = expectedContent(repoSlug);
-    file.writeAsStringSync(newContent);
+    var fixResults = <String>[];
 
-    return FixResult(
-      fixes: ['$filePath has been ${exists ? 'updated' : 'created'}.'],
-    );
+    final newContent = expectedContent(repoSlug);
+    if (!file.existsSync()) {
+      file.writeAsStringSync(newContent);
+      fixResults.add('$filePath has been created.');
+    } else if (file.readAsStringSync() != newContent) {
+      file.writeAsStringSync(newContent);
+      fixResults.add('$filePath has been updated.');
+    }
+
+    fixResults.addAll(performAdditionalFixes(checkout, repoSlug));
+
+    return fixResults.isEmpty
+        ? FixResult.noFixesMade
+        : FixResult(fixes: fixResults);
   }
+
+  List<String> performAdditionalFixes(Directory checkout, String repoSlug) =>
+      [];
 
   File _targetFile(Directory checkout) {
     assert(checkout.existsSync());
