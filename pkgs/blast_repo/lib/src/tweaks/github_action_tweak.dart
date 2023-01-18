@@ -21,14 +21,14 @@ class GitHubActionTweak extends RepoTweak {
 
   GitHubActionTweak._()
       : super(
-          name: 'GitHub Action',
+          id: 'github-actions',
           description:
-              'Ensure GitHub actions use the latest versions and are keyed by '
-              'SHA.',
+              'ensure GitHub actions use the latest versions and are keyed '
+              'by SHA',
         );
 
   @override
-  FutureOr<FixResult> fix(Directory checkout) async {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) async {
     final files = _workflowFiles(checkout);
 
     if (files.isEmpty) {

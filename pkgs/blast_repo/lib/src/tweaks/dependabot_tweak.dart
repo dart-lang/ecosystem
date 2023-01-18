@@ -19,13 +19,12 @@ class DependabotTweak extends RepoTweak {
 
   DependabotTweak._()
       : super(
-          name: 'Dependabot',
-          description:
-              'Ensure "$_filePath" exists and has the correct content.',
+          id: 'dependabot',
+          description: 'ensure "$_filePath" exists and has the correct content',
         );
 
   @override
-  FutureOr<FixResult> fix(Directory checkout) {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
     final file = _dependabotFile(checkout);
 
     if (file == null) {

@@ -7,11 +7,11 @@ import 'dart:io';
 
 abstract class RepoTweak {
   const RepoTweak({
-    required this.name,
+    required this.id,
     required this.description,
   });
 
-  final String name;
+  final String id;
   final String description;
 
   bool get stable => true;
@@ -24,10 +24,10 @@ abstract class RepoTweak {
   ///
   /// If the repo cannot be checked or if a required fix cannot be applied,
   /// an error is thrown.
-  FutureOr<FixResult> fix(Directory checkout);
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug);
 
   @override
-  String toString() => name;
+  String toString() => id;
 }
 
 class CheckResult {

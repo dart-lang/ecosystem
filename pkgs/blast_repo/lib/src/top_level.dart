@@ -9,12 +9,14 @@ import 'dart:io';
 import 'package:git/git.dart';
 
 import 'repo_tweak.dart';
+import 'tweaks/auto_publish_tweak.dart';
 import 'tweaks/dependabot_tweak.dart';
 import 'tweaks/github_action_tweak.dart';
 import 'tweaks/no_reponse_tweak.dart';
 import 'utils.dart';
 
 final allTweaks = Set<RepoTweak>.unmodifiable([
+  AutoPublishTweak(),
   DependabotTweak(),
   GitHubActionTweak(),
   NoResponseTweak(),
@@ -25,17 +27,23 @@ Future<void> runFix({
   required bool deleteTemp,
   required bool onlyStable,
   required String? prReviewer,
+  Iterable<RepoTweak>? tweaks,
 }) async {
   await withSystemTemp(
     deleteTemp: deleteTemp,
     (tempDir, runKey) async {
       await cloneGitHubRepoToPath(slug, tempDir.path);
 
-      final result = await fixAll(tempDir, onlyStable: onlyStable);
+      final result = await fixAll(
+        slug,
+        tempDir,
+        tweaks: tweaks,
+        onlyStable: onlyStable,
+      );
 
       final fixes = result.entries
           .where((element) => element.value.fixes.isNotEmpty)
-          .map((e) => e.key.name)
+          .map((e) => e.key.id)
           .toList()
         ..sort();
 
@@ -46,7 +54,7 @@ Future<void> runFix({
 
       printHeader('Fixes:');
       for (var entry in result.entries) {
-        print(entry.key.name);
+        print(entry.key.id);
         print(const JsonEncoder.withIndent(' ').convert(entry.value.fixes));
       }
 
@@ -93,25 +101,30 @@ ${fixes.join('\n')}
 }
 
 Future<Map<RepoTweak, FixResult>> fixAll(
+  String repoSlug,
   Directory checkout, {
   Iterable<RepoTweak>? tweaks,
   required bool onlyStable,
-}) async =>
-    {
-      for (var tweak in tweaks.orAll(onlyStable: onlyStable))
-        tweak: await _safeRun(checkout, tweak.name, tweak.fix),
-    };
+}) async {
+  tweaks ??= allTweaks.orAll(onlyStable: onlyStable);
+
+  return {
+    for (var tweak in tweaks)
+      tweak: await _safeRun(repoSlug, checkout, tweak.id, tweak.fix),
+  };
+}
 
 Future<T> _safeRun<T>(
+  String repoSlug,
   Directory checkout,
-  String description,
-  FutureOr<T> Function(Directory) action,
+  String id,
+  FutureOr<T> Function(Directory, String repoSlug) action,
 ) async {
-  printHeader('Running "$description"');
+  printHeader('Running "$id"');
   try {
-    return await action(checkout);
+    return await action(checkout, repoSlug);
   } catch (_) {
-    printError('  Error running $description');
+    printError('  Error running $id');
     rethrow;
   }
 }

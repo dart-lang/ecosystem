@@ -12,8 +12,7 @@ import 'repo_tweak.dart';
 abstract class ExactFileTweak extends RepoTweak {
   ExactFileTweak({
     required this.filePath,
-    required this.expectedContent,
-    required super.name,
+    required super.id,
     required super.description,
     this.alternateFilePaths = const {},
   }) : assert(p.isRelative(filePath)) {
@@ -45,23 +44,33 @@ abstract class ExactFileTweak extends RepoTweak {
 
   final String filePath;
   final Set<String> alternateFilePaths;
-  final String expectedContent;
+
+  String expectedContent(String repoSlug);
 
   @override
-  FutureOr<FixResult> fix(Directory checkout) {
+  FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
     final file = _targetFile(checkout);
 
-    final exists = file.existsSync();
-    if (exists) {
-      final existingContent = file.readAsStringSync();
-      assert(existingContent != expectedContent);
-    }
-    file.writeAsStringSync(expectedContent);
+    var fixResults = <String>[];
 
-    return FixResult(
-      fixes: ['$filePath has been ${exists ? 'updated' : 'created'}.'],
-    );
+    final newContent = expectedContent(repoSlug);
+    if (!file.existsSync()) {
+      file.writeAsStringSync(newContent);
+      fixResults.add('$filePath has been created.');
+    } else if (file.readAsStringSync() != newContent) {
+      file.writeAsStringSync(newContent);
+      fixResults.add('$filePath has been updated.');
+    }
+
+    fixResults.addAll(performAdditionalFixes(checkout, repoSlug));
+
+    return fixResults.isEmpty
+        ? FixResult.noFixesMade
+        : FixResult(fixes: fixResults);
   }
+
+  List<String> performAdditionalFixes(Directory checkout, String repoSlug) =>
+      [];
 
   File _targetFile(Directory checkout) {
     assert(checkout.existsSync());
