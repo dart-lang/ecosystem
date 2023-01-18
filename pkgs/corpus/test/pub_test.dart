@@ -31,7 +31,7 @@ extension VersionConstraintChecks on Check<VersionConstraint> {
   void allows(String version) {
     context.expect(() => const ['allows'], (VersionConstraint actual) {
       final ver = Version.parse(version);
-      if (!actual.allows(ver)) return Rejection(actual: '$actual');
+      if (!actual.allows(ver)) return Rejection(actual: ['$actual']);
       return null;
     });
   }
