@@ -45,7 +45,7 @@ abstract class ExactFileTweak extends RepoTweak {
   final String filePath;
   final Set<String> alternateFilePaths;
 
-  String expectedContent(String repoSlug);
+  String expectedContent(Directory checkout, String repoSlug);
 
   @override
   FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
@@ -53,7 +53,7 @@ abstract class ExactFileTweak extends RepoTweak {
 
     var fixResults = <String>[];
 
-    final newContent = expectedContent(repoSlug);
+    final newContent = expectedContent(checkout, repoSlug);
     if (!file.existsSync()) {
       file.writeAsStringSync(newContent);
       fixResults.add('$filePath has been created.');

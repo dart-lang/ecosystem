@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import '../exact_file_tweak.dart';
+import '../utils.dart';
 
 final _instance = AutoPublishTweak._();
 
@@ -25,11 +26,15 @@ class AutoPublishTweak extends ExactFileTweak {
   bool get stable => false;
 
   @override
-  String expectedContent(String repoSlug) {
+  String expectedContent(Directory checkout, String repoSlug) {
     final org = repoSlug.split('/').first;
+    final branch = gitDefaultBranch(checkout) ?? 'main';
 
-    // Substitute the org value for the pattern '{org}'.
-    return publishContents.replaceAll('{org}', org);
+    // Substitute the org value for the pattern '{org}' and the default branch
+    // value for '{branch}'.
+    return publishContents
+        .replaceAll('{org}', org)
+        .replaceAll('{branch}', branch);
   }
 
   @override
@@ -62,13 +67,13 @@ name: Publish
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ {branch} ]
   push:
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 
 jobs:
   publish:
-    if: github.repository_owner == '{org}'
+    if: ${{ github.repository_owner == {org} }}
     uses: devoncarew/firehose/.github/workflows/publish.yaml@main
 ''';
 

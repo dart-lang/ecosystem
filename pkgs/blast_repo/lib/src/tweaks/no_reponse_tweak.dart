@@ -27,7 +27,8 @@ class NoResponseTweak extends ExactFileTweak {
   bool get stable => false;
 
   @override
-  String expectedContent(String repoSlug) => _noResponseContent;
+  String expectedContent(Directory checkout, String repoSlug) =>
+      _noResponseContent;
 
   @override
   FutureOr<FixResult> fix(Directory checkout, String repoSlug) {

@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
+import 'package:path/path.dart' as p;
 
 const packageName = 'blast_repo';
 
@@ -97,3 +98,21 @@ String _fileDate() => DateTime.now()
     .split(_dateSeparators)
     .take(5)
     .join('_');
+
+/// This makes a best effort to find the default branch of the given repo.
+String? gitDefaultBranch(Directory repoDir) {
+  const branchNames = {'main', 'master'};
+
+  var configFile = File(p.join(repoDir.path, '.git', 'config'));
+  if (!configFile.existsSync()) return null;
+
+  var lines = configFile.readAsLinesSync();
+
+  for (var name in branchNames) {
+    if (lines.contains('[branch "$name"]')) {
+      return name;
+    }
+  }
+
+  return null;
+}
