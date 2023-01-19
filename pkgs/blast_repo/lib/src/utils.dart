@@ -101,7 +101,7 @@ String _fileDate() => DateTime.now()
 
 /// This makes a best effort to find the default branch of the given repo.
 String? gitDefaultBranch(Directory repoDir) {
-  const branchNames = ['main', 'master'];
+  const branchNames = {'main', 'master'};
 
   var configFile = File(p.join(repoDir.path, '.git', 'config'));
   if (!configFile.existsSync()) return null;
