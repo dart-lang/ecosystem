@@ -8,9 +8,10 @@ import 'package:blast_repo/src/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // We skip this test on github actions as that typically does a shallow clone.
   test('gitDefaultBranch', () {
     final result = gitDefaultBranch(io.Directory.current.parent.parent);
 
     expect(result, 'main');
-  });
+  }, skip: io.Platform.environment['GITHUB_ACTIONS'] == 'true');
 }
