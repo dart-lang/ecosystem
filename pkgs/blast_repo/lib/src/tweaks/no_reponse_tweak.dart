@@ -86,9 +86,9 @@ jobs:
           daysUntilClose: 14
           # Comment to post when closing an Issue for lack of response.
           closeComment: >
-            Without additional information we're not able to resolve this
-            issue, so it will be closed at this time. You're still free to add
-            more info and respond to any questions above, though. We'll reopen
-            the case if you do. Thanks for your contribution!
+            Without additional information we're not able to resolve this issue,
+            so it will be closed at this time. You're still free to add more
+            info and respond to any questions above, though. We'll reopen the
+            issue if you do. Thanks for your contribution!
           token: ${{ github.token }}
 ''';

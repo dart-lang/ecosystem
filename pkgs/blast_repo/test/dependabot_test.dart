@@ -79,8 +79,24 @@ updates:
     }
   });
 
+  test('dependabotDefaultContent', () {
+    expect(dependabotDefaultContent, _expectedDependabotContent);
+  });
+
   test('default content should be a no-op', () {
     final result = doDependabotFix(dependabotDefaultContent);
     expect(result, dependabotDefaultContent);
   });
 }
+
+const _expectedDependabotContent = '''
+# Dependabot configuration file.
+# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+''';

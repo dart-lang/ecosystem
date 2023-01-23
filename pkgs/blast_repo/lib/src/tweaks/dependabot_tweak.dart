@@ -137,7 +137,10 @@ updates: null
       _githubActionValue(_monthlyFrequency),
     ]);
 
-  return editor.toString();
+  var result = editor.toString();
+  // TODO: Update YamlEditor to not leave trailing eol spaces.
+  result = result.splitMapJoin('\n', onNonMatch: (line) => line.trimRight());
+  return result;
 }
 
 const _updatesKey = 'updates';
