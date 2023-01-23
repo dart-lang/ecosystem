@@ -2,13 +2,44 @@
 
 name: Publish
 
+# Callers of this workflow should use it as follows:
+#
+# name: Publish
+# on:
+#   pull_request:
+#     branches: [ main ]
+#   push:
+#     tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+
 on:
-  pull_request:
-    branches: [ main ]
-  push:
-    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+*' ]
+  workflow_call:
 
 jobs:
   publish:
-    if: github.repository_owner == 'dart-lang'
-    uses: devoncarew/firehose/.github/workflows/publish.yaml@main
+    # These permissions are required for authentication using OIDC and to enable
+    # us to create comments on PRs.
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Install firehose
+        run: dart pub global activate firehose
+
+      - name: Validate packages
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+        run: dart pub global run firehose --verify
+
+      - name: Publish packages
+        if: ${{ github.event_name == 'push' }}
+        run: dart pub global run firehose --publish

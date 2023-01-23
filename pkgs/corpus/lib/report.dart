@@ -98,29 +98,49 @@ class Report {
     var packagesReferences = usage.referringPackages;
     var libraryReferences = usage.referringLibraries;
 
-    // TODO(devoncarew): write a utility class to construct markdown tables;
-    // that could then include automatic whitespace padding for cells
-
     // Library references
     buf.writeln();
     buf.writeln('## Library references');
     buf.writeln();
     buf.writeln('### Library references from packages');
     buf.writeln();
-    buf.writeln('| Library | Package references | % |');
-    buf.writeln('| --- | ---: | ---: |');
+    var table = MarkdownTable();
+    table.startRow()
+      ..cell('Library')
+      ..cell('Package references', right: true)
+      ..cell('%', right: true);
+    var srcRefCount = 0;
     for (var entry in packagesReferences.sortedLibraryReferences.entries) {
       var val = entry.value;
       var count = usage.corpusPackages.length;
-      buf.writeln('| ${entry.key} | $val | ${percent(val, count)} |');
+      table.startRow()
+        ..cell(entry.key)
+        ..cell('$val', right: true)
+        ..cell(percent(val, count), right: true);
+
       var library = entry.key;
-      if (showSrcReferences && library.contains('/src/')) {
-        for (var entity in packagesReferences.getLibraryReferences(entry.key)) {
-          buf.writeln('  - ${entity.toString()}');
+      if (library.contains('/src/')) {
+        srcRefCount++;
+      }
+    }
+    buf.writeln(table.finish());
+
+    if (showSrcReferences && srcRefCount > 0) {
+      // todo:
+      for (var entry in packagesReferences.sortedLibraryReferences.entries) {
+        var val = entry.value;
+        var library = entry.key;
+        buf.writeln(entry.key);
+        if (library.contains('/src/')) {
+          srcRefCount++;
+          for (var entity
+              in packagesReferences.getLibraryReferences(entry.key)) {
+            buf.writeln('  - ${entity.toString()}');
+          }
         }
       }
     }
-    buf.writeln();
+
     buf.writeln('### Library references from libraries');
     buf.writeln();
     buf.writeln('| Library | Library references | % |');
@@ -129,12 +149,6 @@ class Report {
       var val = entry.value;
       var count = libraryReferences.entityCount;
       buf.writeln('| ${entry.key} | $val | ${percent(val, count)} |');
-      var library = entry.key;
-      if (showSrcReferences && library.contains('/src/')) {
-        for (var entity in libraryReferences.getLibraryReferences(entry.key)) {
-          buf.writeln('  - ${entity.toString()}');
-        }
-      }
     }
 
     // Class references
