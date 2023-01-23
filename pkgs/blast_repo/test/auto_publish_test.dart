@@ -42,8 +42,7 @@ void main() {
     var results = await tweak.fix(dir, 'my_org/my_repo');
     expect(results.fixes, isNotEmpty);
 
-    await d.dir('foo', [
-      d.file('README.md', contains('Contributions, PRs, and publishing'))
-    ]).validate();
+    await d.dir('foo',
+        [d.file('README.md', contains('Publishing automation'))]).validate();
   });
 }
