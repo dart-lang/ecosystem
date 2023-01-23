@@ -74,12 +74,12 @@ on:
 jobs:
   publish:
     if: ${{ github.repository_owner == '{org}' }}
-    uses: devoncarew/firehose/.github/workflows/publish.yaml@main
+    uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ''';
 
 const String readmeSection = '''
 ## Publishing automation
 
-For information about our publishing automation and process, see
+For information about our publishing automation and release process, see
 https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
