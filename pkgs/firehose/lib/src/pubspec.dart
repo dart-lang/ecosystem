@@ -17,15 +17,15 @@ class Pubspec {
     _yaml = yaml.loadYaml(file.readAsStringSync()) as Map;
   }
 
-  /// Return the package name.
+  /// The package name.
   String get name => _yaml['name'] as String;
 
-  /// Return the package version.
+  /// The package version.
   ///
-  /// Returns null if no version is specified.
+  /// Null if no version is specified.
   String? get version => _yaml['version'] as String?;
 
-  /// Returns whether the pubspec semver version is a pre-release version
+  /// Whether the pubspec semver version is a pre-release version
   /// (`'1.2.3-foo'`).
   bool get isPreRelease => Version.parse(version!).isPreRelease;
 }

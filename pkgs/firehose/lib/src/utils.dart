@@ -10,7 +10,7 @@ import 'dart:io';
 ///
 /// This will also echo the command being run to stdout and indent the processes
 /// output slightly.
-Future<int> stream(
+Future<int> runCommand(
   String command, {
   List<String> args = const [],
   Directory? cwd,

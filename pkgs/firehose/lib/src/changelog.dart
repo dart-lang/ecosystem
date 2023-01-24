@@ -23,20 +23,20 @@ class Changelog {
     return sections.isEmpty ? [] : sections.first.entries;
   }
 
-  List<_Section> _parseSections() {
-    var sections = <_Section>[];
+  Iterable<_Section> _parseSections() sync* {
     _Section? section;
 
     for (var line in file.readAsLinesSync().where((line) => line.isNotEmpty)) {
       if (line.startsWith('## ')) {
+        if (section != null) yield section;
+
         section = _Section(line);
-        sections.add(section);
       } else if (section != null) {
         section.entries.add(line);
       }
     }
 
-    return sections;
+    if (section != null) yield section;
   }
 
   String get describeLatestChanges {

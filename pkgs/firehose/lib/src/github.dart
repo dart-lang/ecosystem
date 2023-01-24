@@ -7,6 +7,8 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+// TODO:(devoncarew): Consider replacing some of this class with package:github.
+
 class Github {
   static Map<String, String> get _env => Platform.environment;
 
@@ -99,12 +101,9 @@ class Github {
   /// Create a new comment on the given PR.
   Future<String> createComment(
       String repoSlug, String issueNumber, String commentText) async {
-    var org = repoSlug.split('/')[0];
-    var repo = repoSlug.split('/')[1];
-
     var result = await callRestApiPost(
       Uri.parse(
-          'https://api.github.com/repos/$org/$repo/issues/$issueNumber/comments'),
+          'https://api.github.com/repos/$repoSlug/issues/$issueNumber/comments'),
       jsonEncode({'body': commentText}),
     );
     var json = jsonDecode(result) as Map;
@@ -120,11 +119,8 @@ class Github {
     required String user,
     String? searchTerm,
   }) async {
-    var org = repoSlug.split('/')[0];
-    var repo = repoSlug.split('/')[1];
-
     var result = await callRestApiGet(
-      Uri.parse('https://api.github.com/repos/$org/$repo/issues/$issueNumber/'
+      Uri.parse('https://api.github.com/repos/$repoSlug/issues/$issueNumber/'
           'comments?per_page=100'),
     );
 
@@ -147,12 +143,9 @@ class Github {
   /// Update the given PR comment with new text.
   Future<String> updateComment(
       String repoSlug, int commentId, String commentText) async {
-    var org = repoSlug.split('/')[0];
-    var repo = repoSlug.split('/')[1];
-
     var result = await callRestApiPatch(
       Uri.parse(
-          'https://api.github.com/repos/$org/$repo/issues/comments/$commentId'),
+          'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'),
       jsonEncode({'body': commentText}),
     );
     var json = jsonDecode(result) as Map;
@@ -160,11 +153,8 @@ class Github {
   }
 
   Future<void> deleteComment(String repoSlug, int commentId) async {
-    var org = repoSlug.split('/')[0];
-    var repo = repoSlug.split('/')[1];
-
     await callRestApiDelete(Uri.parse(
-        'https://api.github.com/repos/$org/$repo/issues/comments/$commentId'));
+        'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'));
   }
 
   void close() {

@@ -7,20 +7,19 @@ import 'package:test/test.dart';
 
 void main() {
   group('repo', () {
-    late Repo packages;
+    late Repository packages;
 
     setUp(() {
-      packages = Repo();
+      packages = Repository();
     });
 
-    test('singlePackageRepo', () {
-      var result = packages.singlePackageRepo;
+    test('isSinglePackageRepo', () {
+      var result = packages.isSinglePackageRepo;
       expect(result, true);
     });
 
     test('locatePackages', () {
       var result = packages.locatePackages();
-
       expect(result, isNotEmpty);
     });
   });

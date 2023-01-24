@@ -10,10 +10,10 @@ import 'package:yaml/yaml.dart' as yaml;
 
 import 'pubspec.dart';
 
-class Repo {
+class Repository {
   /// Returns true if this repository hosts only a single package, and that
   /// package lives at the top level of the repo.
-  bool get singlePackageRepo {
+  bool get isSinglePackageRepo {
     var packages = locatePackages();
     if (packages.length != 1) {
       return false;
@@ -59,7 +59,7 @@ class Repo {
   }
 
   String calculateRepoTag(Package package) {
-    if (singlePackageRepo) {
+    if (isSinglePackageRepo) {
       return 'v${package.pubspec.version}';
     } else {
       return '${package.name}-v${package.pubspec.version}';

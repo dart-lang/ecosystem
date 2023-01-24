@@ -19,7 +19,7 @@ class Pub {
     }
 
     var json = jsonDecode(response.body) as Map;
-    var versions = (json['versions'] as List).cast<String>();
+    var versions = json['versions'] as List;
     return versions.contains(version);
   }
 

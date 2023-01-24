@@ -70,8 +70,8 @@ ArgParser _createArgs() {
     ..addFlag(
       'validate',
       negatable: false,
-      help: 'Validate any changes packages indicate whether --publish would '
-          'publish anything.',
+      help: 'Validate packages and indicate whether --publish would publish '
+          'anything.',
     )
     ..addFlag(
       'publish',

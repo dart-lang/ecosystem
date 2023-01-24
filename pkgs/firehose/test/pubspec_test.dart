@@ -17,7 +17,6 @@ void main() {
 
     test('name', () {
       var name = pubspec.name;
-      expect(name, isNotNull);
       expect(name, equals('firehose'));
     });
 

@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:firehose/src/repo.dart';
 
 import 'src/github.dart';
@@ -22,7 +21,13 @@ class Firehose {
 
   Firehose(this.directory);
 
-  /// Verify the packages in the repository.
+  /// Validate the packages in the repository.
+  ///
+  /// This method is intended to run in the context of a PR. It will:
+  /// - determine the set of packages in the repo
+  /// - validate that the changelog version == the pubspec version
+  /// - provide feedback on the PR (via a PR comment) about packages which are
+  ///   ready to publish
   Future validate() async {
     var github = Github();
 
@@ -30,10 +35,6 @@ class Firehose {
       print('Skipping package validation for dependabot PR.');
       return;
     }
-
-    // for a PR:
-    //   - determine packages
-    //   - validate that the changelog version == the pubspec version
 
     var results = await _validate(github);
 
@@ -59,7 +60,7 @@ class Firehose {
   }
 
   Future<VerificationResults> _validate(Github github) async {
-    var repo = Repo();
+    var repo = Repository();
     var packages = repo.locatePackages();
 
     var pub = Pub();
@@ -106,7 +107,7 @@ class Firehose {
         print(result);
         results.addResult(result);
       } else {
-        var code = await stream('dart',
+        var code = await runCommand('dart',
             args: ['pub', 'publish', '--dry-run'], cwd: package.directory);
         if (code != 0) {
           exitCode = code;
@@ -130,13 +131,14 @@ class Firehose {
   }
 
   /// Publish the indicated package in the repository.
+  ///
+  /// This is intended to be run on a github workflow in response to a git tag.
+  /// It will:
+  /// - validate the tag
+  /// - validate the package exists
+  /// - validate changelog and pubspec versions
+  /// - perform a publish
   Future publish() async {
-    // for tagged commits:
-    //   - validate the tag
-    //   - validate the package exists
-    //   - validate changelog and pubspec versions
-    //   - publish
-
     var success = await _publish();
     if (!success && exitCode == 0) {
       exitCode = 1;
@@ -147,11 +149,12 @@ class Firehose {
     var github = Github();
 
     // Validate the git tag.
-    if (github.refName == null) {
+    var refName = github.refName;
+    if (refName == null) {
       stderr.writeln('Git tag not found.');
       return false;
     }
-    var tag = Tag(github.refName!);
+    var tag = Tag(refName);
     if (!tag.valid) {
       stderr.writeln("Git tag not in expected format: '$tag'");
       return false;
@@ -160,7 +163,7 @@ class Firehose {
     print("Publishing '$tag'");
     print('');
 
-    var repo = Repo();
+    var repo = Repository();
     var packages = repo.locatePackages();
     print('');
     print('Repository packages:');
@@ -170,8 +173,8 @@ class Firehose {
     print('');
 
     // Find package to publish.
-    Package? package;
-    if (repo.singlePackageRepo) {
+    Package package;
+    if (repo.isSinglePackageRepo) {
       if (packages.isEmpty) {
         stderr.writeln('No publishable package found.');
         return false;
@@ -183,11 +186,11 @@ class Firehose {
         stderr.writeln("Tag does not include package name ('$tag').");
         return false;
       }
-      package = packages.firstWhereOrNull((p) => p.name == name);
-      if (package == null) {
+      if (!packages.any((p) => p.name == name)) {
         stderr.writeln("Tag does not match a repo package ('$tag').");
         return false;
       }
+      package = packages.firstWhere((p) => p.name == name);
     }
 
     print('');
@@ -214,10 +217,10 @@ class Firehose {
       return false;
     }
 
-    await stream('dart', args: ['pub', 'get'], cwd: package.directory);
+    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
     print('');
 
-    var result = await stream('dart',
+    var result = await runCommand('dart',
         args: ['pub', 'publish', '--force'], cwd: package.directory);
     if (result != 0) {
       exitCode = result;
@@ -234,7 +237,7 @@ class VerificationResults {
   bool get hasSuccess => results.any((r) => r.severity == Severity.success);
 
   String get describe {
-    results.sort();
+    results.sort((a, b) => Enum.compareByIndex(a.severity, b.severity));
 
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
@@ -243,7 +246,7 @@ class VerificationResults {
   }
 }
 
-class Result implements Comparable<Result> {
+class Result {
   final Severity severity;
   final Package package;
   final String message;
@@ -261,9 +264,6 @@ class Result implements Comparable<Result> {
 
   @override
   String toString() => message;
-
-  @override
-  int compareTo(Result other) => severity.index - other.severity.index;
 }
 
 enum Severity {
