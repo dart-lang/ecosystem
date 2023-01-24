@@ -31,6 +31,12 @@ class Firehose {
   Future validate() async {
     var github = Github();
 
+    // Do basic validation of our expected env var.
+    if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
+    if (!_expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
+    if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
+
     if (github.actor == _dependabotUser) {
       print('Skipping package validation for dependabot PR.');
       return;
@@ -148,13 +154,10 @@ class Firehose {
   Future<bool> _publish() async {
     var github = Github();
 
+    if (!_expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
+
     // Validate the git tag.
-    var refName = github.refName;
-    if (refName == null) {
-      stderr.writeln('Git tag not found.');
-      return false;
-    }
-    var tag = Tag(refName);
+    var tag = Tag(github.refName!);
     if (!tag.valid) {
       stderr.writeln("Git tag not in expected format: '$tag'");
       return false;
@@ -226,6 +229,15 @@ class Firehose {
       exitCode = result;
     }
     return result == 0;
+  }
+
+  bool _expectEnv(String? value, String name) {
+    if (value == null) {
+      print("Expected environment variable not found: ''$name");
+      return false;
+    } else {
+      return true;
+    }
   }
 }
 

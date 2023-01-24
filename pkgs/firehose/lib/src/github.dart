@@ -14,7 +14,7 @@ class Github {
 
   http.Client? _httpClient;
 
-  String? get _githubAuthToken => _env['GITHUB_TOKEN'];
+  String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
   /// The owner and repository name. For example, `octocat/Hello-World`.
   String? get repoSlug => _env['GITHUB_REPOSITORY'];
@@ -39,7 +39,7 @@ class Github {
   http.Client get httpClient => _httpClient ??= http.Client();
 
   Future<String> callRestApiGet(Uri uri) async {
-    var token = _githubAuthToken!;
+    var token = githubAuthToken!;
 
     return httpClient.get(uri, headers: {
       'Authorization': 'Bearer $token',
@@ -52,7 +52,7 @@ class Github {
   }
 
   Future<String> callRestApiPost(Uri uri, String body) async {
-    var token = _githubAuthToken!;
+    var token = githubAuthToken!;
 
     return httpClient
         .post(uri,
@@ -69,7 +69,7 @@ class Github {
   }
 
   Future<String> callRestApiPatch(Uri uri, String body) async {
-    var token = _githubAuthToken!;
+    var token = githubAuthToken!;
 
     return httpClient
         .patch(uri,
@@ -86,7 +86,7 @@ class Github {
   }
 
   Future<void> callRestApiDelete(Uri uri) async {
-    var token = _githubAuthToken!;
+    var token = githubAuthToken!;
 
     return httpClient.delete(uri, headers: {
       'Authorization': 'Bearer $token',
