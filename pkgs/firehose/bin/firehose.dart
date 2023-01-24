@@ -21,9 +21,9 @@ void main(List<String> arguments) async {
     var validate = argResults['validate'] == true;
     var publish = argResults['publish'] == true;
 
-    if (!verify && !publish) {
+    if (!validate && !publish) {
       _usage(argParser,
-          error: 'Error: one of --verify or --publish must be specified.');
+          error: 'Error: one of --validate or --publish must be specified.');
       exit(1);
     }
 
@@ -37,9 +37,9 @@ void main(List<String> arguments) async {
 
     var firehose = Firehose(Directory.current);
 
-    if (verify) {
+    if (validate) {
       await firehose.validate();
-    } else if(publish) {
+    } else if (publish) {
       await firehose.publish();
     }
   } on ArgParserException catch (e) {
@@ -68,7 +68,7 @@ ArgParser _createArgs() {
       help: 'Print tool help.',
     )
     ..addFlag(
-      'verify',
+      'validate',
       negatable: false,
       help: 'Validate any changes packages indicate whether --publish would '
           'publish anything.',

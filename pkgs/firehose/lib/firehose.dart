@@ -23,7 +23,7 @@ class Firehose {
   Firehose(this.directory);
 
   /// Verify the packages in the repository.
-  Future verify() async {
+  Future validate() async {
     var github = Github();
 
     if (github.actor == _dependabotUser) {
@@ -35,7 +35,7 @@ class Firehose {
     //   - determine packages
     //   - validate that the changelog version == the pubspec version
 
-    var results = await _verify(github);
+    var results = await _validate(github);
 
     var existingCommentId = await github.findCommentId(
         github.repoSlug!, github.issueNumber!,
@@ -58,7 +58,7 @@ class Firehose {
     github.close();
   }
 
-  Future<VerificationResults> _verify(Github github) async {
+  Future<VerificationResults> _validate(Github github) async {
     var repo = Repo();
     var packages = repo.locatePackages();
 
@@ -93,9 +93,9 @@ class Firehose {
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion!)) {
         var result = Result.info(
-            package,
-            '$pubspecVersion already published at pub.dev',
-          );
+          package,
+          '$pubspecVersion already published at pub.dev',
+        );
         print(result);
         results.addResult(result);
       } else if (package.pubspec.isPreRelease) {

@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
-        run: dart pub global run firehose --verify
+        run: dart pub global run firehose --validate
 
       - name: Publish packages
         if: ${{ github.event_name == 'push' }}

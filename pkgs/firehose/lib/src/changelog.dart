@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+
 class Changelog {
   final File file;
 
