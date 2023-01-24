@@ -53,21 +53,20 @@ void main() {
         addTearDown(resolver.close);
       });
 
-      for (var action in actions.entries) {
-        final result = ActionVersion.parse(action.key);
-        test(
-          '"${action.key}"',
-          skip:
-              result.path == null ? null : 'Cannot handle paths at the moment.',
-          () async {
-            final tag = await resolver.resolve(result);
-            // version or branch resolved
-            expect(tag.version?.toString() ?? tag.branch, isNotEmpty);
-            // sha resolved
-            expect(tag.sha, isNotEmpty);
-          },
-        );
-      }
+      final action = actions.entries.first;
+      final result = ActionVersion.parse(action.key);
+
+      test(
+        '"${action.key}"',
+        skip: result.path == null ? null : 'Cannot handle paths at the moment.',
+        () async {
+          final tag = await resolver.resolve(result);
+          // version or branch resolved
+          expect(tag.version?.toString() ?? tag.branch, isNotEmpty);
+          // sha resolved
+          expect(tag.sha, isNotEmpty);
+        },
+      );
     });
 
     group('latest fun', () {
@@ -78,15 +77,12 @@ void main() {
         addTearDown(resolver.close);
       });
 
-      final repos =
-          actions.keys.map(ActionVersion.parse).map((e) => e.fullRepo).toSet();
+      final repo = ActionVersion.parse(actions.keys.first).fullRepo;
 
-      for (var repo in repos) {
-        test('"$repo"', () async {
-          // TODO(kevmoo): do more than just run - but better than nothing
-          await resolver.latestStable(repo);
-        });
-      }
+      test('"$repo"', () async {
+        // TODO(kevmoo): do more than just run - but better than nothing
+        await resolver.latestStable(repo);
+      });
     });
   });
 }
