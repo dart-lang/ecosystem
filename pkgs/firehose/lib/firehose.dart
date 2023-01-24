@@ -28,7 +28,7 @@ class Firehose {
   /// - validate that the changelog version == the pubspec version
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
-  Future validate() async {
+  Future<void> validate() async {
     var github = Github();
 
     // Do basic validation of our expected env var.
