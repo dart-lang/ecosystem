@@ -58,7 +58,6 @@ void main() {
 
       test(
         '"${action.key}"',
-        skip: result.path == null ? null : 'Cannot handle paths at the moment.',
         () async {
           final tag = await resolver.resolve(result);
           // version or branch resolved
@@ -66,6 +65,7 @@ void main() {
           // sha resolved
           expect(tag.sha, isNotEmpty);
         },
+        skip: 'flakey due to the the use of unauthenticated github api calls',
       );
     });
 
@@ -79,10 +79,14 @@ void main() {
 
       final repo = ActionVersion.parse(actions.keys.first).fullRepo;
 
-      test('"$repo"', () async {
-        // TODO(kevmoo): do more than just run - but better than nothing
-        await resolver.latestStable(repo);
-      });
+      test(
+        '"$repo"',
+        () async {
+          // TODO(kevmoo): do more than just run - but better than nothing
+          await resolver.latestStable(repo);
+        },
+        skip: 'flakey due to the the use of unauthenticated github api calls',
+      );
     });
   });
 }
