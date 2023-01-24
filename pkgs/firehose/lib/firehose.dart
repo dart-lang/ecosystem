@@ -93,7 +93,9 @@ class Firehose {
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion!)) {
         var result = Result.info(
-            package, '$pubspecVersion already published at pub.dev');
+            package,
+            '$pubspecVersion already published at pub.dev',
+          );
         print(result);
         results.addResult(result);
       } else if (package.pubspec.isPreRelease) {

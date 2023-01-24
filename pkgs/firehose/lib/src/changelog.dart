@@ -13,7 +13,7 @@ class Changelog {
 
   String? get latestVersion {
     var sections = _parseSections();
-    return sections.isEmpty ? null : sections.first.title.substring(3).trim();
+    return sections.firstOrNull?.title.substring(3).trim();
   }
 
   List<String> get latestChangeEntries {

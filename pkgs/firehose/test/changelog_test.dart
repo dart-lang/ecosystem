@@ -16,8 +16,8 @@ void main() {
     });
 
     test('exists', () {
-      var version = changelog.exists;
-      expect(version, isTrue);
+      var exists = changelog.exists;
+      expect(exists, isTrue);
     });
 
     test('latestVersion', () {

@@ -49,7 +49,7 @@ repo; to omit packages from validation and auto-publishing, add a
 `publish_to: none` key to its pubspec.
 
 For single package repos, the tag pattern should be `v1.2.3`. For mono-repos,
-the tage pattern be prefixed with the package name, e.g. `foo-v1.2.3`.
+the tag pattern must be prefixed with the package name, e.g. `foo-v1.2.3`.
 
 ## Integrating this tool into a repo
 

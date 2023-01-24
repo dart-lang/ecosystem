@@ -18,7 +18,7 @@ void main(List<String> arguments) async {
       exit(0);
     }
 
-    var verify = argResults['verify'] == true;
+    var validate = argResults['validate'] == true;
     var publish = argResults['publish'] == true;
 
     if (!verify && !publish) {
@@ -38,8 +38,8 @@ void main(List<String> arguments) async {
     var firehose = Firehose(Directory.current);
 
     if (verify) {
-      await firehose.verify();
-    } else {
+      await firehose.validate();
+    } else if(publish) {
       await firehose.publish();
     }
   } on ArgParserException catch (e) {
