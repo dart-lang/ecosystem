@@ -23,7 +23,7 @@ class Repo {
     return dir.absolute.path == Directory.current.absolute.path;
   }
 
-  /// This will return all the potentially publishable packages for the current
+  /// Returns all the potentially publishable packages for the current
   /// repository.
   ///
   /// This could be one package - if this is a single package repository - or

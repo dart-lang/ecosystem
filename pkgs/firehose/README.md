@@ -11,7 +11,7 @@ changelogs and indicate whether the criteria for publishing has been met.
 Generally, each PR should add a new entry to the changelog, rev the pubspec
 version, and the changelog version and pubspec version should agree.
 
-When run in reponse to a git tag event (a tag with a pattern like `v1.2.3` or
+When run in response to a git tag event (a tag with a pattern like `v1.2.3` or
 `name_v1.2.3` for monorepos), this tool will publish the indicated package.
 
 ## Pre-release versions
