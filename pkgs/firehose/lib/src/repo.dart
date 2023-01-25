@@ -80,6 +80,8 @@ class Package {
 
   String get name => pubspec.name;
 
+  String? get version => pubspec.version;
+
   @override
   String toString() {
     return 'package:${pubspec.name} ${pubspec.version} (dir=${directory.path})';
