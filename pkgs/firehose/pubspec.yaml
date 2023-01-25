@@ -20,7 +20,3 @@ dependencies:
 dev_dependencies:
   dart_flutter_team_lints: ^0.1.0
   test: ^1.21.0
-
-dependency_overrides:
-  dart_flutter_team_lints:
-    path: ../dart_flutter_team_lints
