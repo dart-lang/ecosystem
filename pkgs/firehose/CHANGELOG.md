@@ -1,3 +1,7 @@
+## 0.3.8
+
+- Updated the pubspec `repository` field to reflect the new source location.
+
 ## 0.3.7+1
 
 - Fix an issue in the `.github/workflows/publish.yaml` workflow file.

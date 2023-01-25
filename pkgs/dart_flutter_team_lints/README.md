@@ -1,4 +1,5 @@
 [![pub package](https://img.shields.io/pub/v/dart_flutter_team_lints.svg)](https://pub.dev/packages/dart_flutter_team_lints)
+[![package publisher](https://img.shields.io/pub/publisher/dart_flutter_team_lints.svg)](https://pub.dev/packages/dart_flutter_team_lints/publisher)
 
 ## What is this?
 

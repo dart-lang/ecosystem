@@ -1,4 +1,5 @@
 [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose)
+[![package publisher](https://img.shields.io/pub/publisher/firehose.svg)](https://pub.dev/packages/firehose/publisher)
 
 ## What's this?
 
@@ -75,3 +76,8 @@ jobs:
   publish:
     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
 ```
+
+## Workflow docs
+
+The description of the common workflow for repos using this tool can be found at
+https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
