@@ -75,3 +75,8 @@ jobs:
   publish:
     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
 ```
+
+## Workflow docs
+
+The description of the common workflow for repos using this tool can be found at
+https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.

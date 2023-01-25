@@ -1,0 +1,42 @@
+# A CI configuration to auto-publish pub packages from dart-lang/ecosystem.
+
+# We don't use the regular publish.yaml script here in order to dogfood the
+# publishing code at head.
+
+name: Publish
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+*' ]
+
+jobs:
+  publish:
+    if: github.repository_owner == 'dart-lang'
+
+    # These permissions are required for authentication using OIDC and to enable
+    # us to create comments on PRs.
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
+
+      - name: Pub get
+        working-directory: pkgs/firehose
+        run: dart pub get
+
+      - name: Validate packages
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+        run: dart pkgs/firehose/bin/firehose.dart --verify
+
+      - name: Publish tagged package
+        if: ${{ github.event_name == 'push' }}
+        run: dart pkgs/firehose/bin/firehose.dart --publish
