@@ -1,4 +1,5 @@
 [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose)
+[![package publisher](https://img.shields.io/pub/publisher/firehose.svg)](https://pub.dev/packages/firehose/publisher)
 
 ## What's this?
 
