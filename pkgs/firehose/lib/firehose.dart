@@ -108,10 +108,7 @@ ${results.describeAsMarkdown}
       }
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion!)) {
-        var result = Result.info(
-          package,
-          '$pubspecVersion already published at pub.dev',
-        );
+        var result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
       } else if (package.pubspec.isPreRelease) {
