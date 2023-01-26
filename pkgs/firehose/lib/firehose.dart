@@ -130,11 +130,8 @@ ${results.describeAsMarkdown}
         } else {
           print('No issues found.');
 
-          var result = Result.success(
-            package,
-            'ready to publish; merge and tag the commit to trigger publishing',
-            repoTag,
-          );
+          var result = Result.success(package,
+              'ready to publish; merge and tag to trigger publishing', repoTag);
           print(result);
           results.addResult(result);
         }
