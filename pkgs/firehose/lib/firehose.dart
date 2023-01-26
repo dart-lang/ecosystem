@@ -54,6 +54,9 @@ class Firehose {
 | Package | Version | Status | Publish tag |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown}
+
+See publish bot docs at
+[dart-lang/ecosystem](https://github.com/dart-lang/ecosystem/wiki/Publishing-automation).
 ''';
 
       if (existingCommentId == null) {
