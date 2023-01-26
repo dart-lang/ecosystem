@@ -1,0 +1,3 @@
+dependency_overrides:
+  dart_flutter_team_lints:
+    path: ../dart_flutter_team_lints
