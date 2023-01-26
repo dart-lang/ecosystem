@@ -14,7 +14,7 @@ const String _dependabotUser = 'dependabot[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
 
-const String _publishBotTag = '**publish action**';
+const String _publishBotTag = '## Package publishing';
 
 class Firehose {
   final Directory directory;
@@ -49,7 +49,14 @@ class Firehose {
         user: _githubActionsUser, searchTerm: _publishBotTag);
 
     if (results.hasSuccess) {
-      var text = '$_publishBotTag:\n\n${results.describe}';
+      var text = '''$_publishBotTag
+
+| Package | Version | Status | Publish tag |
+| :--- | ---: | :--- | ---: |
+${results.describeAsMarkdown}
+
+See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+''';
 
       if (existingCommentId == null) {
         await github.createComment(github.repoSlug!, github.issueNumber!, text);
@@ -57,6 +64,10 @@ class Firehose {
         await github.updateComment(github.repoSlug!, existingCommentId, text);
       }
     } else {
+      if (results.hasError && exitCode == 0) {
+        exitCode = 1;
+      }
+
       if (existingCommentId != null) {
         await github.deleteComment(github.repoSlug!, existingCommentId);
       }
@@ -99,16 +110,13 @@ class Firehose {
       }
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion!)) {
-        var result = Result.info(
-          package,
-          '$pubspecVersion already published at pub.dev',
-        );
+        var result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
       } else if (package.pubspec.isPreRelease) {
         var result = Result.info(
           package,
-          'version ($pubspecVersion) is pre-release; no publish is necessary',
+          'version $pubspecVersion is pre-release; no publish is necessary',
         );
         print(result);
         results.addResult(result);
@@ -121,10 +129,8 @@ class Firehose {
         } else {
           print('No issues found.');
 
-          var result = Result.success(
-              package,
-              '${package.pubspec.version} is ready to publish; after merging, '
-              'tag with `$repoTag` to trigger publishing');
+          var result = Result.success(package,
+              'ready to publish; merge and tag to trigger publishing', repoTag);
           print(result);
           results.addResult(result);
         }
@@ -248,12 +254,15 @@ class VerificationResults {
 
   bool get hasSuccess => results.any((r) => r.severity == Severity.success);
 
-  String get describe {
+  bool get hasError => results.any((r) => r.severity == Severity.error);
+
+  String get describeAsMarkdown {
     results.sort((a, b) => Enum.compareByIndex(a.severity, b.severity));
 
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
-      return '- package:${r.package.name}: $sev${r.message}';
+      return '| package:${r.package.name} | ${r.package.version} | '
+          '$sev${r.message} | ${r.other ?? ''} |';
     }).join('\n');
   }
 }
@@ -262,8 +271,9 @@ class Result {
   final Severity severity;
   final Package package;
   final String message;
+  final String? other;
 
-  Result(this.severity, this.package, this.message);
+  Result(this.severity, this.package, this.message, [this.other]);
 
   factory Result.fail(Package package, String message) =>
       Result(Severity.error, package, message);
@@ -271,11 +281,11 @@ class Result {
   factory Result.info(Package package, String message) =>
       Result(Severity.info, package, message);
 
-  factory Result.success(Package package, String message) =>
-      Result(Severity.success, package, message);
+  factory Result.success(Package package, String message, [String? other]) =>
+      Result(Severity.success, package, message, other);
 
   @override
-  String toString() => message;
+  String toString() => severity == Severity.error ? 'error: $message' : message;
 }
 
 enum Severity {

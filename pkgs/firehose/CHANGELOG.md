@@ -1,3 +1,7 @@
+## 0.3.9
+
+- Update the 'publishable' PR comment to use a markdown table.
+
 ## 0.3.8
 
 - Updated the pubspec `repository` field to reflect the new source location.
