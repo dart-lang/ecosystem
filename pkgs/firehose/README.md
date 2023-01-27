@@ -7,7 +7,7 @@ This is a tool to automate publishing of pub packages from GitHub actions.
 
 ## Conventions and setup
 
-When run from a PR, this tool will validate the package pubspecs and and
+When run from a PR, this tool will validate the package pubspecs and
 changelogs and indicate whether the criteria for publishing has been met.
 Generally, each PR should add a new entry to the changelog, rev the pubspec
 version, and the changelog version and pubspec version should agree.
@@ -36,7 +36,7 @@ For PRs, this tool:
 
 ## Git tag actions
 
-In reponse to a git tag event, this tool:
+In response to a git tag event, this tool:
 
 - validates the tag is well-formed
 - determines the indicated package
