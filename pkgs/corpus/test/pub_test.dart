@@ -5,10 +5,10 @@
 import 'dart:convert';
 
 import 'package:checks/checks.dart';
-import 'package:checks/src/checks.dart' show ContextExtension, Rejection;
+import 'package:checks/context.dart';
 import 'package:corpus/pub.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:test/scaffolding.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PackageInfo', () {
@@ -27,7 +27,7 @@ void main() {
   });
 }
 
-extension VersionConstraintChecks on Check<VersionConstraint> {
+extension VersionConstraintChecks on Subject<VersionConstraint> {
   void allows(String version) {
     context.expect(() => const ['allows'], (VersionConstraint actual) {
       final ver = Version.parse(version);
