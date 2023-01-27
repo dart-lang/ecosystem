@@ -36,7 +36,7 @@ For PRs, this tool:
 
 ## Git tag actions
 
-In reponse to a git tag event, this tool:
+In response to a git tag event, this tool:
 
 - validates the tag is well-formed
 - determines the indicated package
