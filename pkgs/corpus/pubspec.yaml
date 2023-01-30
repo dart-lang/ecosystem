@@ -16,10 +16,7 @@ dependencies:
   yaml: ^3.0.0
 
 dev_dependencies:
-  checks:
-    git:
-      url: https://github.com/dart-lang/test
-      path: pkgs/checks
+  checks: ^0.1.0
   dart_flutter_team_lints: ^0.1.0
   test: ^1.22.0
   test_descriptor: ^2.0.0
