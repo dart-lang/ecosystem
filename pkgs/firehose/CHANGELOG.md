@@ -1,3 +1,7 @@
+## 0.3.10
+
+- Fixed an exception that occurred when no CHANGELOG.md file was present.
+
 ## 0.3.9
 
 - Update the 'publishable' PR comment to use a markdown table.

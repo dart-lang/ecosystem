@@ -24,6 +24,8 @@ class Changelog {
   }
 
   Iterable<_Section> _parseSections() sync* {
+    if (!exists) return;
+
     _Section? section;
 
     for (var line in file.readAsLinesSync().where((line) => line.isNotEmpty)) {
