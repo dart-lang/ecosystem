@@ -37,6 +37,13 @@ void main() {
       });
     });
 
+    test('no changelog file', () {
+      var changelog = Changelog(File('missing_changelog.md'));
+      expect(changelog.exists, false);
+      expect(changelog.latestVersion, isNull);
+      expect(changelog.latestChangeEntries, isEmpty);
+    });
+
     test('latestChangeEntries', () {
       withChangelog(_defaultContents, (file) {
         var changelog = Changelog(file);
