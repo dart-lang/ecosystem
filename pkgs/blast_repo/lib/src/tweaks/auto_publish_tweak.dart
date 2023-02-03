@@ -29,12 +29,15 @@ class AutoPublishTweak extends ExactFileTweak {
   String expectedContent(Directory checkout, String repoSlug) {
     final org = repoSlug.split('/').first;
     final branch = gitDefaultBranch(checkout) ?? 'main';
+    final glob = singlePackageRepo(checkout)
+        ? "'v[0-9]+.[0-9]+.[0-9]+*'"
+        : "'[A-z]+-v[0-9]+.[0-9]+.[0-9]+*'";
 
-    // Substitute the org value for the pattern '{org}' and the default branch
-    // value for '{branch}'.
+    // Substitute for the github org, default branch, and glob pattern values.
     return publishContents
         .replaceAll('{org}', org)
-        .replaceAll('{branch}', branch);
+        .replaceAll('{branch}', branch)
+        .replaceAll('{glob}', glob);
   }
 
   @override
@@ -69,7 +72,7 @@ on:
   pull_request:
     branches: [ {branch} ]
   push:
-    tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
+    tags: [ {glob} ]
 
 jobs:
   publish:

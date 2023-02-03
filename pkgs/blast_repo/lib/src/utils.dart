@@ -116,3 +116,11 @@ String? gitDefaultBranch(Directory repoDir) {
 
   return null;
 }
+
+/// Returns whether this repo is a single package repo (or a mono-repo).
+bool singlePackageRepo(Directory repoDir) {
+  // Here, we assume that having a pubspec at the top level of a repo implies
+  // a single package repo.
+  var pubspec = File(p.join(repoDir.path, 'pubspec.yaml'));
+  return pubspec.existsSync();
+}
