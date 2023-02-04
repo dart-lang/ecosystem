@@ -93,7 +93,7 @@ Future<List<String>> _fixFile(
   final jobs = (fileYaml as Map)['jobs'] as yaml.YamlMap;
 
   for (var jobEntry in jobs.entries) {
-    final steps = (jobEntry.value as Map)['steps'] as yaml.YamlList;
+    final steps = jobEntry.steps;
 
     for (var i = 0; i < steps.length; i++) {
       final step = steps[i];
@@ -149,7 +149,7 @@ Future<Set<ActionVersion>> _versionsForFile(
   final result = <ActionVersion>{};
 
   for (var jobEntry in jobs.entries) {
-    final steps = (jobEntry.value as Map)['steps'] as yaml.YamlList;
+    final steps = jobEntry.steps;
     for (var step in steps) {
       final stepMap = step as yaml.YamlMap;
       final uses = stepMap['uses'] as String?;
@@ -165,6 +165,11 @@ Future<Set<ActionVersion>> _versionsForFile(
   }
 
   return result;
+}
+
+extension on MapEntry<dynamic, dynamic> {
+  List<dynamic> get steps =>
+      (value as Map)['steps'] as yaml.YamlList? ?? const [];
 }
 
 Future<void> _withResolver(
