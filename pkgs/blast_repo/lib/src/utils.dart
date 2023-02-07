@@ -13,7 +13,13 @@ const packageName = 'blast_repo';
 Future<void> cloneGitHubRepoToPath(String slug, String path) {
   printHeader('Cloning repo $slug');
   return runGit(
-    ['clone', 'https://github.com/$slug', path],
+    [
+      'clone',
+      '--depth',
+      '1',
+      'https://github.com/$slug',
+      path,
+    ],
     echoOutput: true,
   );
 }
