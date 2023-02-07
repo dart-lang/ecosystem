@@ -1,3 +1,7 @@
+## 0.3.11
+
+- Add additional console logging when we encounter GitHub API errors. 
+
 ## 0.3.10
 
 - Fixed an exception that occurred when no CHANGELOG.md file was present.

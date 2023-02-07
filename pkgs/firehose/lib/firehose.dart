@@ -29,7 +29,7 @@ class Firehose {
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
   Future<void> validate() async {
-    var github = Github();
+    var github = Github(verbose: true);
 
     // Do basic validation of our expected env var.
     if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
@@ -285,7 +285,12 @@ class Result {
       Result(Severity.success, package, message, other);
 
   @override
-  String toString() => severity == Severity.error ? 'error: $message' : message;
+  String toString() {
+    final details = other == null ? '' : ' ($other)';
+    return severity == Severity.error
+        ? 'error: $message$details'
+        : '$message$details';
+  }
 }
 
 enum Severity {
