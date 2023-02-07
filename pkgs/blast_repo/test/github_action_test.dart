@@ -34,6 +34,8 @@ void main() {
           'master::3284643be2c47fb6432518ecec17f1255e8a06a6',
       'codecov/codecov-action@main':
           'main::e0fbd592d323cb2991fb586fdd260734fcb41fcb',
+      'bluefireteam/melos-action@v2':
+          'v2::dd3c344d731938d2ab2567a261f54a19a68b5f6a',
     };
 
     group('parse', () {
@@ -65,7 +67,7 @@ void main() {
           // sha resolved
           expect(tag.sha, isNotEmpty);
         },
-        skip: 'flakey due to the the use of unauthenticated github api calls',
+        skip: 'flaky due to the the use of unauthenticated github api calls',
       );
     });
 
@@ -77,16 +79,18 @@ void main() {
         addTearDown(resolver.close);
       });
 
-      final repo = ActionVersion.parse(actions.keys.first).fullRepo;
+      for (var action in actions.entries) {
+        final repo = ActionVersion.parse(action.key).fullRepo;
 
-      test(
-        '"$repo"',
-        () async {
-          // TODO(kevmoo): do more than just run - but better than nothing
-          await resolver.latestStable(repo);
-        },
-        skip: 'flakey due to the the use of unauthenticated github api calls',
-      );
+        test(
+          '"$repo"',
+          () async {
+            // TODO(kevmoo): do more than just run - but better than nothing
+            await resolver.latestStable(repo);
+          },
+          skip: 'flaky due to the the use of unauthenticated github api calls',
+        );
+      }
     });
   });
 }
