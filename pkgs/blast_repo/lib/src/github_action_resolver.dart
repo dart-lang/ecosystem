@@ -139,9 +139,10 @@ class GitHubActionResolver {
     for (var tag in tags) {
       var name = tag.name;
       if (name.startsWith('v')) {
-        // Handle the case (with Dart) where we only do vX.Y instead of vX.Y.Z
+        // Handle the case (with Dart and melos)
+        // where we only do vX.Y or vX instead of vX.Y.Z
         // TODO(kevmoo): remove this silly once Dart fixes it's tags
-        if ('.'.allMatches(name).length == 1) {
+        while ('.'.allMatches(name).length < 2) {
           name = '$name.0';
         }
 
