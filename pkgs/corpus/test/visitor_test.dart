@@ -42,9 +42,9 @@ void main() {
 
       await surveyor.analyze();
 
-      checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
+      check(apiUsageCollector.referringPackages.sortedLibraryReferences)
           .containsKey('package:path/path.dart');
-      checkThat(apiUsageCollector.referringLibraries.sortedLibraryReferences)
+      check(apiUsageCollector.referringLibraries.sortedLibraryReferences)
           .containsKey('package:path/path.dart');
     });
 
@@ -57,15 +57,15 @@ void main() {
       await surveyor.analyze();
 
       // class constructor invocation
-      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+      check(apiUsageCollector.referringPackages.sortedClassReferences)
           .containsKey('PosixStyle');
-      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+      check(apiUsageCollector.referringLibraries.sortedClassReferences)
           .containsKey('PosixStyle');
 
       // class static variable reference
-      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+      check(apiUsageCollector.referringPackages.sortedClassReferences)
           .containsKey('Style');
-      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+      check(apiUsageCollector.referringLibraries.sortedClassReferences)
           .containsKey('Style');
     });
 
@@ -89,9 +89,9 @@ void main() {
 
       await surveyor.analyze();
 
-      checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
+      check(apiUsageCollector.referringPackages.sortedExtensionReferences)
           .containsKey('IterableExtension');
-      checkThat(apiUsageCollector.referringLibraries.sortedExtensionReferences)
+      check(apiUsageCollector.referringLibraries.sortedExtensionReferences)
           .containsKey('IterableExtension');
     });
 
@@ -104,15 +104,15 @@ void main() {
       await surveyor.analyze();
 
       // check for a top level function invokation
-      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+      check(apiUsageCollector.referringPackages.sortedTopLevelReferences)
           .containsKey('join');
-      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+      check(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
           .containsKey('join');
 
       // check for a top level getter reference
-      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+      check(apiUsageCollector.referringPackages.sortedTopLevelReferences)
           .containsKey('basename');
-      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+      check(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
           .containsKey('basename');
     });
   });
@@ -143,9 +143,9 @@ void main() {
 
       await surveyor.analyze();
 
-      checkThat(apiUsageCollector.referringPackages.sortedLibraryReferences)
+      check(apiUsageCollector.referringPackages.sortedLibraryReferences)
           .containsKey('dart:collection');
-      checkThat(apiUsageCollector.referringLibraries.sortedLibraryReferences)
+      check(apiUsageCollector.referringLibraries.sortedLibraryReferences)
           .containsKey('dart:collection');
     });
 
@@ -158,15 +158,15 @@ void main() {
       await surveyor.analyze();
 
       // class constructor invocation
-      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+      check(apiUsageCollector.referringPackages.sortedClassReferences)
           .containsKey('SplayTreeMap');
-      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+      check(apiUsageCollector.referringLibraries.sortedClassReferences)
           .containsKey('SplayTreeMap');
 
       // class static method reference
-      checkThat(apiUsageCollector.referringPackages.sortedClassReferences)
+      check(apiUsageCollector.referringPackages.sortedClassReferences)
           .containsKey('Queue');
-      checkThat(apiUsageCollector.referringLibraries.sortedClassReferences)
+      check(apiUsageCollector.referringLibraries.sortedClassReferences)
           .containsKey('Queue');
     });
 
@@ -187,15 +187,15 @@ void main() {
       await surveyor.analyze();
 
       // check for a top level function invokation
-      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+      check(apiUsageCollector.referringPackages.sortedTopLevelReferences)
           .containsKey('jsonDecode');
-      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+      check(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
           .containsKey('jsonDecode');
 
       // check for a top level getter reference
-      checkThat(apiUsageCollector.referringPackages.sortedTopLevelReferences)
+      check(apiUsageCollector.referringPackages.sortedTopLevelReferences)
           .containsKey('base64');
-      checkThat(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
+      check(apiUsageCollector.referringLibraries.sortedTopLevelReferences)
           .containsKey('base64');
     });
 
@@ -213,9 +213,9 @@ void main() {
 
       await surveyor.analyze();
 
-      checkThat(apiUsageCollector.referringPackages.sortedExtensionReferences)
+      check(apiUsageCollector.referringPackages.sortedExtensionReferences)
           .containsKey('FutureExtensions');
-      checkThat(apiUsageCollector.referringLibraries.sortedExtensionReferences)
+      check(apiUsageCollector.referringLibraries.sortedExtensionReferences)
           .containsKey('FutureExtensions');
     });
   });
