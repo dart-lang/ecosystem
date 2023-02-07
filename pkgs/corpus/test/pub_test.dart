@@ -16,13 +16,13 @@ void main() {
       var packageInfo =
           PackageInfo.from(jsonDecode(_pubSampleData) as Map<String, dynamic>);
 
-      checkThat(packageInfo.name).equals('usage');
-      checkThat(packageInfo.version).equals('4.0.2');
-      checkThat(packageInfo.archiveUrl).isNotNull();
-      checkThat(packageInfo.publishedDate).isNotNull();
+      check(packageInfo.name).equals('usage');
+      check(packageInfo.version).equals('4.0.2');
+      check(packageInfo.archiveUrl).isNotNull();
+      check(packageInfo.publishedDate).isNotNull();
 
-      checkThat(packageInfo.constraintFor('path')).isNotNull().allows('1.8.0');
-      checkThat(packageInfo.constraintFor('test')).isNotNull().allows('1.16.0');
+      check(packageInfo.constraintFor('path')).isNotNull().allows('1.8.0');
+      check(packageInfo.constraintFor('test')).isNotNull().allows('1.16.0');
     });
   });
 }

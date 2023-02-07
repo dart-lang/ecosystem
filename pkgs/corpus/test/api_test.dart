@@ -31,10 +31,10 @@ void main() {
       var tempFile = File(path.join(sandbox, 'temp.json'));
       sampleUsage.toFile(tempFile);
 
-      checkThat(tempFile.existsSync()).isTrue();
+      check(tempFile.existsSync()).isTrue();
 
       // we have a reference to the main package entry-point
-      checkThat(tempFile.readAsStringSync()).contains('package:path/path.dart');
+      check(tempFile.readAsStringSync()).contains('package:path/path.dart');
     });
 
     test('fromFile', () {
@@ -47,33 +47,33 @@ void main() {
         tempFile,
       );
 
-      checkThat(result).isNotNull();
+      check(result).isNotNull();
 
       var fromPackages = result.fromPackages;
 
       // we have a library reference from package:build
-      checkThat(
+      check(
         fromPackages.getLibraryReferences('package:path/path.dart'),
       ).contains(PackageEntity('build'));
 
       // there are no references to classes
-      checkThat(fromPackages.sortedClassReferences).isEmpty();
+      check(fromPackages.sortedClassReferences).isEmpty();
 
       // there are references to top-level symbols
-      checkThat(fromPackages.sortedTopLevelReferences).isNotEmpty();
+      check(fromPackages.sortedTopLevelReferences).isNotEmpty();
 
       var fromLibraries = result.fromLibraries;
 
       // we have a library reference from package:build
-      checkThat(
+      check(
         fromLibraries.getLibraryReferences('package:path/path.dart'),
       ).isNotEmpty();
 
       // there are no references to classes
-      checkThat(fromLibraries.sortedClassReferences).isEmpty();
+      check(fromLibraries.sortedClassReferences).isEmpty();
 
       // there are references to top-level symbols
-      checkThat(fromLibraries.sortedTopLevelReferences).isNotEmpty();
+      check(fromLibraries.sortedTopLevelReferences).isNotEmpty();
     });
   });
 }
