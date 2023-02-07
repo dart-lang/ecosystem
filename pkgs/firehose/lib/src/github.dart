@@ -70,6 +70,9 @@ class Github {
       if (response.statusCode != 201) {
         if (verbose) {
           stderr.writeln('${response.statusCode} ${response.reasonPhrase}');
+          for (var entry in response.headers.entries) {
+            stderr.writeln('${entry.key}: ${entry.value}');
+          }
           stderr.writeln(response.body);
         }
         throw RpcException(response.reasonPhrase!);
