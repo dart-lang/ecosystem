@@ -12,7 +12,12 @@ import 'package:http/http.dart' as http;
 class Github {
   static Map<String, String> get _env => Platform.environment;
 
+  /// When true, details of any RPC error are printed to the console.
+  final bool verbose;
+
   http.Client? _httpClient;
+
+  Github({this.verbose = false});
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
@@ -62,9 +67,17 @@ class Github {
             },
             body: body)
         .then((response) {
-      return response.statusCode != 201
-          ? throw RpcException(response.reasonPhrase!)
-          : response.body;
+      if (response.statusCode != 201) {
+        if (verbose) {
+          stderr.writeln('${response.statusCode} ${response.reasonPhrase}');
+          for (var entry in response.headers.entries) {
+            stderr.writeln('${entry.key}: ${entry.value}');
+          }
+          stderr.writeln(response.body);
+        }
+        throw RpcException(response.reasonPhrase!);
+      }
+      return response.body;
     });
   }
 
