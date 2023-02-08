@@ -92,6 +92,15 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
 
       print('pubspec:');
       var pubspecVersion = package.pubspec.version;
+      if (pubspecVersion == null) {
+        var result = Result.info(
+          package,
+          'no version specified; not able to publish.',
+        );
+        print(result);
+        results.addResult(result);
+        continue;
+      }
       print('  - version: $pubspecVersion');
 
       var changelogVersion = package.changelog.latestVersion;
@@ -109,7 +118,7 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
         continue;
       }
 
-      if (await pub.hasPublishedVersion(package.name, pubspecVersion!)) {
+      if (await pub.hasPublishedVersion(package.name, pubspecVersion)) {
         var result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
@@ -239,7 +248,7 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
 
   bool _expectEnv(String? value, String name) {
     if (value == null) {
-      print("Expected environment variable not found: ''$name");
+      print("Expected environment variable not found: '$name'");
       return false;
     } else {
       return true;

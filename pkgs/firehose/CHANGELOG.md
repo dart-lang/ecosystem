@@ -1,3 +1,7 @@
+## 0.3.12-dev
+
+- Handle un-publishable packages without a `version`.
+
 ## 0.3.11
 
 - Add additional console logging when we encounter GitHub API errors. 
