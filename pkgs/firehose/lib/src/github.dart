@@ -34,12 +34,12 @@ class Github {
   String? get actor => _env['GITHUB_ACTOR'];
 
   /// Whether we're running withing the context of a GitHub action.
-  bool get inGithubContext => Platform.environment['GITHUB_ACTIONS'] != null;
+  bool get inGithubContext => _env['GITHUB_ACTIONS'] != null;
 
   /// The short ref name of the branch or tag that triggered the workflow run.
   /// This value matches the branch or tag name shown on GitHub. For example,
   /// `feature-branch-1`.
-  String? get refName => Platform.environment['GITHUB_REF_NAME'];
+  String? get refName => _env['GITHUB_REF_NAME'];
 
   http.Client get httpClient => _httpClient ??= http.Client();
 
@@ -47,14 +47,15 @@ class Github {
   /// `GITHUB_STEP_SUMMARY` file. This will cause the markdown output to be
   /// appended to the GitHub job summary for the current PR.
   void appendStepSummary(String markdownSummary) {
-    var summaryPath = Platform.environment['GITHUB_STEP_SUMMARY'];
+    var summaryPath = _env['GITHUB_STEP_SUMMARY'];
     if (summaryPath == null) {
       stderr.writeln("'GITHUB_STEP_SUMMARY' doesn't exist.");
       return;
     }
 
-    var file = File('${summaryPath.trimRight()}\n\n');
-    file.writeAsStringSync(markdownSummary, mode: FileMode.append);
+    var file = File(summaryPath);
+    file.writeAsStringSync('${summaryPath.trimRight()}\n\n',
+        mode: FileMode.append);
   }
 
   Future<String> callRestApiGet(Uri uri) async {

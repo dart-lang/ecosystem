@@ -46,11 +46,6 @@ class Firehose {
 
     var results = await _validate(github);
 
-    // todo: allow this to fail silently
-    var existingCommentId = await github.findCommentId(
-        github.repoSlug!, github.issueNumber!,
-        user: _githubActionsUser, searchTerm: _publishBotTag);
-
     var summaryMarkdown = '''$_publishBotTag
 
 | Package | Version | Status | Publish tag |
@@ -62,6 +57,11 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
 
     // Write the publish info status to the job summary.
     github.appendStepSummary(summaryMarkdown);
+
+    // todo: allow this to fail silently
+    var existingCommentId = await github.findCommentId(
+        github.repoSlug!, github.issueNumber!,
+        user: _githubActionsUser, searchTerm: _publishBotTag);
 
     if (results.hasSuccess) {
       if (existingCommentId == null) {
@@ -149,8 +149,8 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
         } else {
           print('No issues found.');
 
-          var result = Result.success(package,
-              'ready to publish; merge and tag to trigger publishing', repoTag);
+          var result = Result.success(
+              package, 'ready to publish; merge and tag to publish', repoTag);
           print(result);
           results.addResult(result);
         }
