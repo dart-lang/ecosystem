@@ -10,11 +10,13 @@ import 'src/github.dart';
 import 'src/pub.dart';
 import 'src/utils.dart';
 
-const String _dependabotUser = 'dependabot[bot]';
+const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
+
+// todo: make the pr comments informational (they can fail silently)
 
 class Firehose {
   final Directory directory;
@@ -29,7 +31,7 @@ class Firehose {
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
   Future<void> validate() async {
-    var github = Github(verbose: true);
+    var github = Github();
 
     // Do basic validation of our expected env var.
     if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
@@ -37,19 +39,19 @@ class Firehose {
     if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
     if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    if (github.actor == _dependabotUser) {
-      print('Skipping package validation for dependabot PR.');
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping package validation for ${github.actor} PRs.');
       return;
     }
 
     var results = await _validate(github);
 
+    // todo: allow this to fail silently
     var existingCommentId = await github.findCommentId(
         github.repoSlug!, github.issueNumber!,
         user: _githubActionsUser, searchTerm: _publishBotTag);
 
-    if (results.hasSuccess) {
-      var text = '''$_publishBotTag
+    var summaryMarkdown = '''$_publishBotTag
 
 | Package | Version | Status | Publish tag |
 | :--- | ---: | :--- | ---: |
@@ -58,10 +60,18 @@ ${results.describeAsMarkdown}
 See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
 
+    // Write the publish info status to the job summary.
+    github.appendStepSummary(summaryMarkdown);
+
+    if (results.hasSuccess) {
       if (existingCommentId == null) {
-        await github.createComment(github.repoSlug!, github.issueNumber!, text);
+        // todo: allow this to fail silently
+        await github.createComment(
+            github.repoSlug!, github.issueNumber!, summaryMarkdown);
       } else {
-        await github.updateComment(github.repoSlug!, existingCommentId, text);
+        // todo: allow this to fail silently
+        await github.updateComment(
+            github.repoSlug!, existingCommentId, summaryMarkdown);
       }
     } else {
       if (results.hasError && exitCode == 0) {
@@ -69,6 +79,7 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
       }
 
       if (existingCommentId != null) {
+        // todo: allow this to fail silently
         await github.deleteComment(github.repoSlug!, existingCommentId);
       }
     }
@@ -93,9 +104,9 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
       print('pubspec:');
       var pubspecVersion = package.pubspec.version;
       if (pubspecVersion == null) {
-        var result = Result.info(
+        var result = Result.fail(
           package,
-          'no version specified; not able to publish.',
+          "no version specified (perhaps you need a' publish_to: none' entry?)",
         );
         print(result);
         results.addResult(result);

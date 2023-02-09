@@ -43,6 +43,20 @@ class Github {
 
   http.Client get httpClient => _httpClient ??= http.Client();
 
+  /// Write the given [markdownSummary] content to the GitHub
+  /// `GITHUB_STEP_SUMMARY` file. This will cause the markdown output to be
+  /// appended to the GitHub job summary for the current PR.
+  void appendStepSummary(String markdownSummary) {
+    var summaryPath = Platform.environment['GITHUB_STEP_SUMMARY'];
+    if (summaryPath == null) {
+      stderr.writeln("'GITHUB_STEP_SUMMARY' doesn't exist.");
+      return;
+    }
+
+    var file = File('${summaryPath.trimRight()}\n\n');
+    file.writeAsStringSync(markdownSummary, mode: FileMode.append);
+  }
+
   Future<String> callRestApiGet(Uri uri) async {
     var token = githubAuthToken!;
 
