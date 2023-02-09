@@ -10,7 +10,7 @@ import 'src/github.dart';
 import 'src/pub.dart';
 import 'src/utils.dart';
 
-const String _dependabotUser = 'dependabot[bot]';
+const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
 
@@ -29,7 +29,7 @@ class Firehose {
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
   Future<void> validate() async {
-    var github = Github(verbose: true);
+    var github = Github();
 
     // Do basic validation of our expected env var.
     if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
@@ -37,31 +37,49 @@ class Firehose {
     if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
     if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    if (github.actor == _dependabotUser) {
-      print('Skipping package validation for dependabot PR.');
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping package validation for ${github.actor} PRs.');
       return;
     }
 
     var results = await _validate(github);
 
-    var existingCommentId = await github.findCommentId(
-        github.repoSlug!, github.issueNumber!,
-        user: _githubActionsUser, searchTerm: _publishBotTag);
-
-    if (results.hasSuccess) {
-      var text = '''$_publishBotTag
-
+    var markdownTable = '''
 | Package | Version | Status | Publish tag |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown}
 
-See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
 
+    // Write the publish info status to the job summary.
+    github.appendStepSummary(markdownTable);
+
+    var existingCommentId = await allowFailure(
+      github.findCommentId(
+        github.repoSlug!,
+        github.issueNumber!,
+        user: _githubActionsUser,
+        searchTerm: _publishBotTag,
+      ),
+      logError: print,
+    );
+
+    if (results.hasSuccess) {
+      var commentText = '$_publishBotTag\n\n$markdownTable';
+
       if (existingCommentId == null) {
-        await github.createComment(github.repoSlug!, github.issueNumber!, text);
+        await allowFailure(
+          github.createComment(
+              github.repoSlug!, github.issueNumber!, commentText),
+          logError: print,
+        );
       } else {
-        await github.updateComment(github.repoSlug!, existingCommentId, text);
+        await allowFailure(
+          github.updateComment(
+              github.repoSlug!, existingCommentId, commentText),
+          logError: print,
+        );
       }
     } else {
       if (results.hasError && exitCode == 0) {
@@ -69,7 +87,10 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
       }
 
       if (existingCommentId != null) {
-        await github.deleteComment(github.repoSlug!, existingCommentId);
+        await allowFailure(
+          github.deleteComment(github.repoSlug!, existingCommentId),
+          logError: print,
+        );
       }
     }
 
@@ -93,9 +114,9 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
       print('pubspec:');
       var pubspecVersion = package.pubspec.version;
       if (pubspecVersion == null) {
-        var result = Result.info(
+        var result = Result.fail(
           package,
-          'no version specified; not able to publish.',
+          "no version specified (perhaps you need a' publish_to: none' entry?)",
         );
         print(result);
         results.addResult(result);
@@ -139,7 +160,7 @@ See also the docs at https://github.com/dart-lang/ecosystem/wiki/Publishing-auto
           print('No issues found.');
 
           var result = Result.success(package,
-              'ready to publish; merge and tag to trigger publishing', repoTag);
+              '**ready to publish**; merge and tag to publish', repoTag);
           print(result);
           results.addResult(result);
         }
@@ -270,8 +291,10 @@ class VerificationResults {
 
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
+      var tag = r.other == null ? '' : '`${r.other}`';
+
       return '| package:${r.package.name} | ${r.package.version} | '
-          '$sev${r.message} | ${r.other ?? ''} |';
+          '$sev${r.message} | $tag |';
     }).join('\n');
   }
 }

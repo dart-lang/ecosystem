@@ -1,5 +1,7 @@
-## 0.3.12-dev
+## 0.3.12
 
+- Don't have issues creating PR comments fail the job.
+- Write a github workflow summary of the publishing status.
 - Handle un-publishable packages without a `version`.
 
 ## 0.3.11
