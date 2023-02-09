@@ -64,3 +64,17 @@ class Tag {
   @override
   String toString() => tag;
 }
+
+/// Await the given [operation]; if there's a exception from the future, we
+/// ignore the exception and return `null`.
+Future<T?> allowFailure<T>(
+  Future<T> operation, {
+  required void Function(Object) logError,
+}) async {
+  try {
+    return await operation;
+  } catch (e) {
+    logError(e);
+    return null;
+  }
+}
