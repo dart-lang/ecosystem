@@ -46,6 +46,9 @@ class Github {
   /// Write the given [markdownSummary] content to the GitHub
   /// `GITHUB_STEP_SUMMARY` file. This will cause the markdown output to be
   /// appended to the GitHub job summary for the current PR.
+  ///
+  /// See also:
+  /// https://docs.github.com/en/actions/learn-github-actions/variables.
   void appendStepSummary(String markdownSummary) {
     var summaryPath = _env['GITHUB_STEP_SUMMARY'];
     if (summaryPath == null) {
@@ -54,7 +57,7 @@ class Github {
     }
 
     var file = File(summaryPath);
-    file.writeAsStringSync('${summaryPath.trimRight()}\n\n',
+    file.writeAsStringSync('${markdownSummary.trimRight()}\n\n',
         mode: FileMode.append);
   }
 
