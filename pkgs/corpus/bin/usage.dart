@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:corpus/api_usage.dart';
+import 'package:corpus/usage.dart';
 
 void main(List<String> args) async {
   var argParser = _createArgParser();
@@ -60,7 +60,7 @@ ArgParser _createArgParser() {
 }
 
 void _printUsage(ArgParser argParser) {
-  print('usage: dart bin/api_usage.dart [options] <package-name>');
+  print('usage: dart bin/usage.dart [options] <package-name>');
   print('');
   print('options:');
   print(argParser.usage);

@@ -43,17 +43,6 @@ class Pub {
     );
   }
 
-  Future<List<String>> dependenciesOf(
-    String packageName, {
-    int? limit,
-  }) async {
-    return await _packageNamesForSearch(
-      'dependency:$packageName',
-      limit: limit,
-      sort: 'top',
-    ).toList();
-  }
-
   Future<PackageInfo> getPackageInfo(String pkgName) async {
     final json = await _getJson(Uri.https('pub.dev', 'api/packages/$pkgName'));
 
@@ -99,44 +88,6 @@ class Pub {
       if (map.containsKey('next')) {
         page = page + 1;
       } else {
-        break;
-      }
-    }
-  }
-
-  Stream<String> _packageNamesForSearch(
-    String query, {
-    int page = 1,
-    int? limit,
-    String? sort,
-  }) async* {
-    final uri = Uri.parse('https://pub.dev/api/search');
-
-    var count = 0;
-
-    for (;;) {
-      final targetUri = uri.replace(queryParameters: {
-        if (query.isNotEmpty) 'q': query,
-        'page': page.toString(),
-        if (sort != null) 'sort': sort,
-      });
-
-      final map = await _getJson(targetUri);
-
-      for (var packageName in (map['packages'] as List)
-          .cast<Map<String, dynamic>>()
-          .map((e) => e['package'] as String?)) {
-        count++;
-        yield packageName!;
-      }
-
-      if (map.containsKey('next')) {
-        page = page + 1;
-      } else {
-        break;
-      }
-
-      if (limit != null && count >= limit) {
         break;
       }
     }
@@ -285,8 +236,8 @@ class PackageScore {
 
   PackageScore.from(this.json);
 
-  int get grantedPoints => json['grantedPoints'] as int;
-  int get maxPoints => json['maxPoints'] as int;
-  int get likeCount => json['likeCount'] as int;
-  double get popularityScore => json['popularityScore'] as double;
+  int get grantedPoints => json['grantedPoints'] as int? ?? 0;
+  int get maxPoints => json['maxPoints'] as int? ?? 140;
+  int get likeCount => json['likeCount'] as int? ?? 0;
+  double get popularityScore => json['popularityScore'] as double? ?? 0.0;
 }

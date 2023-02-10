@@ -1,0 +1,34 @@
+matcher 0.12.14
+
+Package,Version,Publish Days,Score,Popularity,Likes,Constraint,Dep Type,SDK,Repo
+mockito,5.3.2,140,93,99,930,^0.12.10,regular,>=2.17.0-0 <3.0.0,https://github.com/dart-lang/mockito
+mocktail,0.3.0,344,100,98,698,^0.12.10,regular,>=2.12.0 <3.0.0,https://github.com/felangel/mocktail
+quiver,3.2.1,50,93,99,434,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/google/quiver-dart
+dcli,2.0.1,5,93,91,166,^0.12.14,regular,>=2.19.0 <3.0.0,https://github.com/onepub-dev/dcli
+code_builder,4.4.0,50,100,96,154,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/dart-lang/code_builder
+mockingjay,0.3.0,310,100,93,67,^0.12.10,regular,>=2.12.0 <3.0.0,https://github.com/VeryGoodOpenSource/mockingjay
+leak_tracker,2.0.1,13,93,88,54,^0.12.13,regular,>=2.18.0 <3.0.0,https://github.com/dart-lang/leak_tracker
+webdriver,3.0.2,22,79,100,35,^0.12.10,regular,>=2.18.0 <3.0.0,https://github.com/google/webdriver.dart
+gherkin,3.1.0,223,93,86,33,^0.12.11,regular,>=2.15.0 <3.0.0,https://github.com/jonsamwell/dart_gherkin
+angel3_framework,7.0.3,126,93,77,33,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/dukefirehawk/angel/tree/master/packages/framework
+test_api,0.4.18,28,86,99,10,>=0.12.11 <0.12.15,regular,>=2.18.0 <3.0.0,https://github.com/dart-lang/test/tree/master/pkgs/test_api
+rx,0.2.0,4,100,78,8,^0.12.0,regular,>=2.17.0 <3.0.0,https://github.com/renggli/dart-rx
+build_test,2.1.6,20,86,93,8,^0.12.0,regular,>=2.18.0 <3.0.0,https://github.com/dart-lang/build/tree/master/build_test
+typed_result,1.0.0,21,100,54,4,^0.12.14,regular,>=2.18.2 <3.0.0,https://github.com/lucastsantos/typed_result
+flutter_lwa,2.1.0,46,93,82,3,^0.12.10,regular,>=2.12.0 <3.0.0,https://github.com/ayvazj/flutter_lwa
+built_value_test,8.4.3,29,93,58,3,^0.12.0,regular,>=2.12.0 <3.0.0,https://github.com/google/built_value.dart/tree/master/built_value_test
+angel3_validate,7.0.1,68,100,71,2,^0.12.0,regular,>=2.17.0 <3.0.0,https://github.com/dukefirehawk/angel/tree/master/packages/validate
+conduit_test,4.2.2,8,100,70,2,^0.12.12,regular,>=2.19.0 <3.0.0,https://github.com/conduit-dart/conduit
+test_descriptor,2.0.1,113,79,83,2,^0.12.10,regular,>=2.12.0 <3.0.0,https://github.com/dart-lang/test_descriptor
+ngpageloader,5.0.0,184,86,6,2,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/angulardart-community/ngpageloader
+test_core,0.4.23,1,93,100,1,any,regular,>=2.18.0 <3.0.0,https://github.com/dart-lang/test/tree/master/pkgs/test_core
+jael3,7.0.0,165,93,57,1,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/dukefirehawk/angel/tree/master/packages/jael/jael
+dartbag,0.6.0,8,93,31,1,^0.12.14,regular,>=2.19.0 <3.0.0,https://github.com/jamesderlin/dartbag
+critical_test,7.0.1,85,64,0,1,0.12.13,regular,>=2.18.0 <3.0.0,https://github.com/bsutton/critical_tester
+dev_test,0.15.7+1,14,100,79,0,>=0.12.10 <2.0.0,regular,>=2.18.0 <3.0.0,https://github.com/tekartik/dev_test.dart/tree/master/dev_test
+mock_exceptions,0.8.2,37,100,69,0,^0.12.12,regular,>=2.18.6 <3.0.0,https://github.com/atn832/mock_exceptions
+belatuk_combinator,4.0.0,218,100,49,0,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/dart-backend/belatuk-common-utilities/tree/main/packages/combinator
+angel3_test,7.0.0,166,100,39,0,^0.12.10,regular,>=2.17.0 <3.0.0,https://github.com/dukefirehawk/angel/tree/master/packages/test
+tridev_test,1.0.0,109,93,0,0,>=0.12.3 <0.14.0,regular,>=2.12.0 <3.0.0,https://github.com/tridev-dart/tridev
+flutter_lwa_platform_interface,2.1.0,46,71,41,0,^0.12.10,regular,>=2.12.0 <3.0.0,https://github.com/ayvazj/flutter_lwa
+endaft_core,0.0.3-dev.45,97,71,22,0,^0.12.12,regular,>=2.18.0 <3.0.0,https://github.com/endaft/endaft-core

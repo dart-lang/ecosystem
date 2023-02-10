@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Outputs information in CSV format for all the dependencies of a given
-/// package.
+/// Outputs information in CSV format for all the dependents of a given package.
 
 import 'dart:io';
 
@@ -11,8 +10,16 @@ import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:corpus/packages.dart';
 import 'package:corpus/pub.dart';
+import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
-// TODO: show the 'discontinued' property
+const packageLimitFlag = 'package-limit';
+const includeOldFlag = 'include-old';
+const includeDevDepsFlag = 'include-dev-deps';
+const requireSdk212 = true;
+
+// TODO: Turn this and 'usage.dart' into a combined CommandRunner tool.
+// TODO: Move the bulk of the implementation into lib/ (to facilitate testing).
 
 void main(List<String> args) async {
   var argParser = createArgParser();
@@ -33,8 +40,9 @@ void main(List<String> args) async {
   }
 
   final packageName = argResults.rest.first;
-  var packageLimit = argResults['package-limit'] as String?;
-  var excludeOld = argResults['exclude-old'] as bool;
+  var packageLimit = argResults[packageLimitFlag] as String?;
+  var includeOld = argResults[includeOldFlag] as bool;
+  var includeDevDeps = argResults[includeDevDepsFlag] as bool;
 
   var log = Logger.standard();
 
@@ -52,10 +60,7 @@ void main(List<String> args) async {
 
   var limit = packageLimit == null ? null : int.parse(packageLimit);
 
-  var packages = await pub.dependenciesOf(
-    packageName,
-    limit: limit == null ? null : limit * 2,
-  );
+  var packageStream = pub.popularDependenciesOf(packageName);
 
   progress.finish(showTiming: true);
 
@@ -63,17 +68,34 @@ void main(List<String> args) async {
 
   var count = 0;
 
-  for (var package in packages) {
-    progress = log.progress('  $package');
+  await for (var package in packageStream) {
     var usage = await getPackageUsageInfo(pub, package);
-    progress.finish();
 
-    if (excludeOld) {
-      if (!usage.packageInfo.publishedDate.isAfter(dateOneYearAgo)) {
+    if (usage.packageOptions.isDiscontinued) {
+      continue;
+    }
+
+    if (!includeOld &&
+        !usage.packageInfo.publishedDate.isAfter(dateOneYearAgo)) {
+      continue;
+    }
+
+    var constraintType = package.constraintType(targetPackage.name);
+    if (!includeDevDeps && constraintType == 'dev') {
+      continue;
+    }
+
+    var sdkConstraint = usage.packageInfo.sdkConstraint;
+    if (requireSdk212 && sdkConstraint != null) {
+      // We only want packages that support 2.12 and later. As a close proxy, we
+      // skip packages that allow 2.11.0.
+      var constraint = VersionConstraint.parse(sdkConstraint);
+      if (constraint.allows(Version.parse('2.11.0'))) {
         continue;
       }
     }
 
+    log.stdout('  $package');
     usageInfos.add(usage);
     count++;
 
@@ -101,12 +123,12 @@ class PackageUsageInfo {
   PackageUsageInfo(this.packageInfo, this.packageOptions, this.packageScore);
 }
 
-Future<PackageUsageInfo> getPackageUsageInfo(Pub pub, String package) async {
-  var packageInfo = await pub.getPackageInfo(package);
-  var packageOptions = await pub.getPackageOptions(packageInfo.name);
-  var packageScore = await pub.getPackageScore(packageInfo.name);
+Future<PackageUsageInfo> getPackageUsageInfo(
+    Pub pub, PackageInfo package) async {
+  var packageOptions = await pub.getPackageOptions(package.name);
+  var packageScore = await pub.getPackageScore(package.name);
 
-  return PackageUsageInfo(packageInfo, packageOptions, packageScore);
+  return PackageUsageInfo(package, packageOptions, packageScore);
 }
 
 File generateCsvReport(
@@ -115,29 +137,39 @@ File generateCsvReport(
 ) {
   var buf = StringBuffer();
 
+  var columns = [
+    Column('Package', (usage) => usage.packageInfo.name),
+    Column('Version', (usage) => usage.packageInfo.version),
+    Column('Publish Days', (usage) => daysOld(usage.packageInfo.publishedDate)),
+    Column('Score', (usage) {
+      var score = usage.packageScore;
+      return printDouble(score.grantedPoints * 100 / score.maxPoints);
+    }),
+    Column('Popularity',
+        (usage) => printDouble(usage.packageScore.popularityScore * 100)),
+    Column('Likes', (usage) => '${usage.packageScore.likeCount}'),
+    Column('Constraint',
+        (usage) => '${usage.packageInfo.constraintFor(targetPackage.name)}'),
+    Column('Dep Type',
+        (usage) => '${usage.packageInfo.constraintType(targetPackage.name)}'),
+    Column('SDK', (usage) => '${usage.packageInfo.sdkConstraint}'),
+    Column('Repo', (usage) => '${usage.packageInfo.repo}'),
+  ];
+
   buf.writeln('${targetPackage.name} ${targetPackage.version}');
   buf.writeln();
-  buf.writeln('Package,Version,Last Published (days),Popularity,Quality Score,'
-      'SDK Constraint,Package Constraint,Constraint Type,Likes,Repo');
+  buf.writeln(columns.map((c) => c.title).join(','));
+
+  // Sort the packages by the number of likes.
+  usageInfos.sort((usage1, usage2) {
+    return usage2.packageScore.likeCount - usage1.packageScore.likeCount;
+  });
 
   for (var usage in usageInfos) {
-    var package = usage.packageInfo;
-    var score = usage.packageScore;
-    buf.writeln(
-      '${package.name},'
-      '${package.version},'
-      '${daysOld(package.publishedDate)},'
-      '${printDouble(score.popularityScore * 100)},'
-      '${printDouble(score.grantedPoints * 100 / score.maxPoints)},'
-      '${package.sdkConstraint ?? ''},'
-      '${package.constraintFor(targetPackage.name) ?? ''},'
-      '${package.constraintType(targetPackage.name) ?? ''},'
-      '${score.likeCount},'
-      '${package.repo ?? ''}',
-    );
+    buf.writeln(columns.map((c) => c.fn(usage)).join(','));
   }
 
-  var file = File('reports/${targetPackage.name}.csv');
+  var file = File(path.join('reports', '${targetPackage.name}.csv'));
   file.parent.createSync();
   file.writeAsStringSync(buf.toString());
   return file;
@@ -152,14 +184,19 @@ ArgParser createArgParser() {
     help: 'Print this usage information.',
   );
   parser.addOption(
-    'package-limit',
-    help: 'Limit the number of packages usage data is collected from.',
+    packageLimitFlag,
+    help: 'Limit the number of packages to return data for.',
     valueHelp: 'count',
   );
   parser.addFlag(
-    'exclude-old',
+    includeOldFlag,
     negatable: false,
-    help: 'Exclude packages that haven\'t been published in the last year.',
+    help: "Include packages that haven't been published in the last year.",
+  );
+  parser.addFlag(
+    includeDevDepsFlag,
+    negatable: false,
+    help: 'Include usages from dev dependencies.',
   );
   return parser;
 }
@@ -179,3 +216,10 @@ String daysOld(DateTime dateTime) {
 }
 
 String printDouble(double value) => '${value.round()}';
+
+class Column {
+  final String title;
+  final String Function(PackageUsageInfo) fn;
+
+  Column(this.title, this.fn);
+}
