@@ -74,7 +74,7 @@ on:
 
 jobs:
   publish:
-    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+    uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ```
 
 ## Workflow docs
