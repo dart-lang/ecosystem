@@ -1,5 +1,8 @@
 # This configures the .github/workflows/pull_request_label.yml workflow. 
 
+'infra':
+  - '.github/**'
+
 'package:blast_repo':
   - pkgs/blast_repo/**/*
 
