@@ -1,0 +1,16 @@
+# This configures the .github/workflows/pull_request_label.yml workflow. 
+
+'infra':
+  - '.github/**'
+
+'package:blast_repo':
+  - pkgs/blast_repo/**/*
+
+'package:corpus':
+  - pkgs/corpus/**/*
+
+'package:dart_flutter_team_lints':
+  - pkgs/dart_flutter_team_lints/**/*
+
+'package:firehose':
+  - pkgs/firehose/**/*
