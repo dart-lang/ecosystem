@@ -1,3 +1,7 @@
+## 0.3.13
+
+- Added the ability to specify the version of the SDK to use for publishing.
+
 ## 0.3.12
 
 - Don't have issues creating PR comments fail the job.

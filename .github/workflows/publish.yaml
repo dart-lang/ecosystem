@@ -14,8 +14,29 @@ name: Publish
 #   publish:
 #     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
 
+# Callers may optionally specify the version of the SDK to use when publishing a
+# package. This can be useful if your package has a very recent minimum SDK
+# constraint. This is done via the `sdk` input parameter. Note that this
+# parameter is not required; it defaults to `stable` - using the most recent
+# stable release of the Dart SDK. To pass this value:
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     with:
+#       sdk: beta
+
 on:
   workflow_call:
+    inputs:
+      sdk:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
 
 jobs:
   publish:
@@ -29,6 +50,8 @@ jobs:
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
       - uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
+        with:
+          sdk: ${{ inputs.sdk }}
 
       - name: Install firehose
         run: dart pub global activate firehose
