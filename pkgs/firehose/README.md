@@ -77,6 +77,22 @@ jobs:
     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ```
 
+## Publishing from a specific version of the SDK
+
+Callers may optionally specify the version of the SDK to use when publishing a
+package. This can be useful if your package has a very recent minimum SDK
+constraint. This is done via the `sdk` input parameter. Note that this parameter
+is not required; it defaults to `stable` - using the most recent stable release
+of the Dart SDK. To pass this value:
+
+```yaml
+jobs:
+  publish:
+    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+    with:
+      sdk: beta
+```
+
 ## Workflow docs
 
 The description of the common workflow for repos using this tool can be found at
