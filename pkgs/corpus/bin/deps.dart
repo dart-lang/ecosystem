@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Outputs information in CSV format for all the dependents of a given package.
+library;
 
 import 'dart:io';
 

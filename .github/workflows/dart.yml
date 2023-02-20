@@ -39,16 +39,16 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "analyze_and_format; Dart 2.17.0; PKGS: pkgs/dart_flutter_team_lints, pkgs/firehose; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart 2.17.0; PKG: pkgs/firehose; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints-pkgs/firehose;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/firehose;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints-pkgs/firehose
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/firehose
             os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -59,15 +59,6 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkgs_dart_flutter_team_lints_pub_upgrade
-        name: pkgs/dart_flutter_team_lints; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-      - name: "pkgs/dart_flutter_team_lints; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
       - id: pkgs_firehose_pub_upgrade
         name: pkgs/firehose; dart pub upgrade
         run: dart pub upgrade
@@ -80,23 +71,23 @@ jobs:
     needs:
       - job_001
   job_003:
-    name: "analyze_and_format; Dart 2.18.0; PKG: pkgs/corpus; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart 2.19.0; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
         with:
-          sdk: "2.18.0"
+          sdk: "2.19.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -109,6 +100,15 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkgs_corpus_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/corpus
+      - id: pkgs_dart_flutter_team_lints_pub_upgrade
+        name: pkgs/dart_flutter_team_lints; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+      - name: "pkgs/dart_flutter_team_lints; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
     needs:
       - job_001
   job_004:
@@ -212,42 +212,6 @@ jobs:
     needs:
       - job_001
   job_006:
-    name: "unit_test; Dart 2.17.0; PKG: pkgs/dart_flutter_team_lints; `dart test`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0;packages:pkgs/dart_flutter_team_lints
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.17.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: "2.17.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkgs_dart_flutter_team_lints_pub_upgrade
-        name: pkgs/dart_flutter_team_lints; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-      - name: pkgs/dart_flutter_team_lints; dart test
-        run: dart test
-        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
-  job_007:
     name: "unit_test; Dart 2.17.0; PKG: pkgs/firehose; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -283,24 +247,24 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_008:
-    name: "unit_test; Dart 2.18.0; PKG: pkgs/corpus; `dart test`"
+  job_007:
+    name: "unit_test; Dart 2.19.0; PKG: pkgs/corpus; `dart test`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus;commands:test_1"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus;commands:test_1"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0;packages:pkgs/corpus
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.18.0
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
       - name: Setup Dart SDK
         uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
         with:
-          sdk: "2.18.0"
+          sdk: "2.19.0"
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -313,6 +277,42 @@ jobs:
         run: dart test
         if: "always() && steps.pkgs_corpus_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/corpus
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_008:
+    name: "unit_test; Dart 2.19.0; PKG: pkgs/dart_flutter_team_lints; `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/dart_flutter_team_lints
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
+        with:
+          sdk: "2.19.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+      - id: pkgs_dart_flutter_team_lints_pub_upgrade
+        name: pkgs/dart_flutter_team_lints; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+      - name: pkgs/dart_flutter_team_lints; dart test
+        run: dart test
+        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
     needs:
       - job_001
       - job_002
