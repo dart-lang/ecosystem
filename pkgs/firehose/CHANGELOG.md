@@ -1,3 +1,7 @@
+## 0.3.14-dev
+
+- Require Dart `2.19.0`.
+
 ## 0.3.13
 
 - Added the ability to specify the version of the SDK to use for publishing.
