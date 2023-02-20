@@ -8,6 +8,7 @@
 - Added `unnecessary_library_directive`.
 - Added `unreachable_from_main`.
 - Added `use_string_in_part_of_directives`.
+- Require Dart `2.19.0`.
 
 ## 0.1.0
 
