@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:checks/checks.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -16,16 +17,16 @@ void main() {
 
   test('well-formed', () {
     var result = yaml.loadYaml(content);
-    expect(result, isMap);
+    check(result).isA<Map>();
   });
 
   test('references recommended', () {
     var result = yaml.loadYaml(content) as yaml.YamlMap;
-    expect(result['include'], equals('package:lints/recommended.yaml'));
+    check(result['include']).equals('package:lints/recommended.yaml');
   });
 
   test('defines linter rules', () {
     var result = yaml.loadYaml(content) as yaml.YamlMap;
-    expect((result['linter'] as Map)['rules'], isNotEmpty);
+    check((result['linter'] as Map)['rules'] as List).isNotEmpty();
   });
 }
