@@ -9,5 +9,3 @@ stages:
   - format:
     sdk:
     - dev
-- unit_test:
-  - test

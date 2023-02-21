@@ -321,41 +321,6 @@ jobs:
       - job_003
       - job_004
   job_008:
-    name: "unit_test; Dart 2.19.0; PKG: pkgs/repo_query; `dart test`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/repo_query;commands:test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/repo_query
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: "2.19.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkgs_repo_query_pub_upgrade
-        name: pkgs/repo_query; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/repo_query
-      - name: pkgs/repo_query; dart test
-        run: dart test
-        if: "always() && steps.pkgs_repo_query_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/repo_query
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_009:
     name: "unit_test; Dart dev; PKG: pkgs/corpus; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -390,7 +355,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_010:
+  job_009:
     name: "unit_test; Dart dev; PKG: pkgs/dart_flutter_team_lints; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -425,7 +390,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_011:
+  job_010:
     name: "unit_test; Dart dev; PKG: pkgs/firehose; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -460,42 +425,7 @@ jobs:
       - job_002
       - job_003
       - job_004
-  job_012:
-    name: "unit_test; Dart dev; PKG: pkgs/repo_query; `dart test`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/repo_query;commands:test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/repo_query
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@a57a6c04cf7d4840e88432aad6281d1e125f0d46
-        with:
-          sdk: dev
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - id: pkgs_repo_query_pub_upgrade
-        name: pkgs/repo_query; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/repo_query
-      - name: pkgs/repo_query; dart test
-        run: dart test
-        if: "always() && steps.pkgs_repo_query_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/repo_query
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-  job_013:
+  job_011:
     name: "analyze_format; Dart dev; PKG: pkgs/blast_repo; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
@@ -540,9 +470,7 @@ jobs:
       - job_008
       - job_009
       - job_010
-      - job_011
-      - job_012
-  job_014:
+  job_012:
     name: "test; Dart dev; PKG: pkgs/blast_repo; `dart test --test-randomize-ordering-seed=random`"
     runs-on: ubuntu-latest
     steps:
@@ -584,5 +512,3 @@ jobs:
       - job_009
       - job_010
       - job_011
-      - job_012
-      - job_013
