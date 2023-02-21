@@ -8,8 +8,8 @@ environment:
 
 dependencies:
   args: any
+  github: any
   graphql: any
-  http: any
   path: any
 
 dev_dependencies:

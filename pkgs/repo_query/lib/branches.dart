@@ -14,12 +14,12 @@ class BranchesCommand extends ReportCommand {
     print('Repository, Default branch, Stars');
 
     for (var org in ['dart-lang', 'flutter']) {
-      var repos = getReposForOrg(org);
+      var repos = await getReposForOrg(org);
 
-      await repos.forEach((repo) {
+      for (var repo in repos) {
         print('$org/${repo.name}, ${repo.defaultBranch}, '
             '${repo.stargazersCount}');
-      });
+      }
     }
 
     return 0;

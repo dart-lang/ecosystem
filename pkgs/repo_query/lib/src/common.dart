@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
-import 'package:http/http.dart' as http;
 
 import '../branches.dart';
 import '../labels.dart';
@@ -55,34 +54,15 @@ abstract class ReportCommand extends Command<int> {
 
   ReportCommandRunner get reportRunner => runner as ReportCommandRunner;
 
-  Future<String?> callRestApi(Uri uri) {
-    return reportRunner.callRestApi(uri);
-  }
-
-  Stream<Repo> getReposForOrg(String org) async* {
-    int? page = 1;
-
-    while (page != null) {
-      var json = await callRestApi(Uri.parse(
-          'https://api.github.com/orgs/$org/repos?sort=full_name&page=$page'));
-
-      var repos = (jsonDecode(json!) as List).cast<Map>();
-
-      for (var repo in repos) {
-        yield Repo(org, repo.cast<String, dynamic>());
-      }
-
-      if (repos.isEmpty) {
-        page = null;
-      } else {
-        page++;
-      }
-    }
+  Future<List<Repository>> getReposForOrg(String org) async {
+    return await reportRunner.github.repositories
+        .listUserRepositories(org)
+        .toList();
   }
 }
 
 class ReportCommandRunner extends CommandRunner<int> {
-  http.Client? _httpClient;
+  GitHub? _github;
 
   ReportCommandRunner()
       : super('report',
@@ -93,7 +73,8 @@ class ReportCommandRunner extends CommandRunner<int> {
     addCommand(WeeklyCommand());
   }
 
-  http.Client get httpClient => _httpClient ??= http.Client();
+  GitHub get github =>
+      _github ??= GitHub(auth: findAuthenticationFromEnvironment());
 
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
@@ -104,16 +85,7 @@ class ReportCommandRunner extends CommandRunner<int> {
     }
   }
 
-  Future<String?> callRestApi(Uri uri) async {
-    return httpClient.get(uri, headers: {
-      'Authorization': 'token $githubToken',
-      'Accept': 'application/vnd.github+json',
-    }).then((response) {
-      return response.statusCode == 404 ? null : response.body;
-    });
-  }
-
-  void close() => _httpClient?.close();
+  void close() => _github?.dispose();
 }
 
 class Repo {

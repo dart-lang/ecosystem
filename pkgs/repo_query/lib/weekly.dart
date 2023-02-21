@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import 'src/common.dart';
@@ -64,12 +65,10 @@ class WeeklyCommand extends ReportCommand {
       lastReportingDay = firstReportingDay.add(Duration(days: 6));
     }
 
-    var repos = noteableRepos.map(RepoSlug.new).toList();
+    var repos = noteableRepos.map(RepositorySlug.full).toList();
 
     if (allDartLang) {
-      repos = (await getReposForOrg('dart-lang').toList())
-          .map((r) => RepoSlug('dart-lang/${r.name}'))
-          .toList();
+      repos = (await getReposForOrg('dart-lang')).map((r) => r.slug()).toList();
     }
 
     print(
@@ -77,9 +76,9 @@ class WeeklyCommand extends ReportCommand {
       'to ${iso8601String(lastReportingDay)}...',
     );
 
-    var infos = await Future.wait(repos.map((RepoSlug repo) async {
+    var infos = await Future.wait(repos.map((RepositorySlug repo) async {
       return RepoInfo(
-        repo.slug,
+        repo.fullName,
         issuesOpened: await queryIssuesOpened(
           repo: repo,
           from: firstReportingDay,
@@ -131,13 +130,15 @@ class WeeklyCommand extends ReportCommand {
     return 0;
   }
 
+  // todo: see if we can replace these calls with package:github
+
   Future<int> queryIssuesOpened({
-    required RepoSlug repo,
+    required RepositorySlug repo,
     required DateTime from,
     required DateTime to,
   }) async {
     final queryString = '''{
-  search(query: "repo:${repo.slug} is:issue created:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
+  search(query: "repo:${repo.fullName} is:issue created:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
   issueCount
     edges {
       node {
@@ -162,12 +163,12 @@ class WeeklyCommand extends ReportCommand {
   }
 
   Future<int> queryIssuesClosed({
-    required RepoSlug repo,
+    required RepositorySlug repo,
     required DateTime from,
     required DateTime to,
   }) async {
     final queryString = '''{
-  search(query: "repo:${repo.slug} is:issue is:closed closed:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
+  search(query: "repo:${repo.fullName} is:issue is:closed closed:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
   issueCount
     edges {
       node {
@@ -192,12 +193,12 @@ class WeeklyCommand extends ReportCommand {
   }
 
   Future<int> queryCommitsSince({
-    required RepoSlug repo,
+    required RepositorySlug repo,
     required DateTime since,
     required DateTime until,
   }) async {
     final queryString = '''{
-  repository(owner: "${repo.org}", name: "${repo.name}") {
+  repository(owner: "${repo.fullName}", name: "${repo.name}") {
     defaultBranchRef {
       target {
         ... on Commit {
@@ -224,11 +225,11 @@ class WeeklyCommand extends ReportCommand {
   }
 
   Future<int> queryIssueCountForLabel({
-    required RepoSlug repo,
+    required RepositorySlug repo,
     required String label,
   }) async {
     final queryString = '''query {
-  repository(owner:"${repo.org}", name:"${repo.name}") {
+  repository(owner:"${repo.owner}", name:"${repo.name}") {
     issues(states:OPEN labels:"$label") {
       totalCount
     }
@@ -249,10 +250,10 @@ class WeeklyCommand extends ReportCommand {
   }
 
   Future<int> queryStargazers({
-    required RepoSlug repo,
+    required RepositorySlug repo,
   }) async {
     final queryString = '''query {
-  repository(owner:"${repo.org}", name:"${repo.name}") {
+  repository(owner:"${repo.owner}", name:"${repo.name}") {
     stargazerCount
   }
 }
@@ -264,25 +265,5 @@ class WeeklyCommand extends ReportCommand {
     }
     var count = (result.data!['repository'] as Map)['stargazerCount'] as int;
     return count;
-  }
-}
-
-class RepoSlug {
-  final String slug;
-
-  RepoSlug(this.slug);
-
-  String get org => slug.split('/')[0];
-  String get name => slug.split('/')[1];
-
-  @override
-  int get hashCode => slug.hashCode;
-
-  @override
-  String toString() => slug;
-
-  @override
-  bool operator ==(Object other) {
-    return other is RepoSlug && slug == other.slug;
   }
 }

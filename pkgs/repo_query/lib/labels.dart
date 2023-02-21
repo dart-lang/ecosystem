@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:math';
+
+import 'package:github/github.dart';
 
 import 'src/common.dart';
 
@@ -14,23 +15,15 @@ class LabelsCommand extends ReportCommand {
 
   @override
   Future<int> run() async {
-    var repos = getReposForOrg('dart-lang');
+    var repos = await getReposForOrg('dart-lang');
 
-    var results = <Repo, List<Label>>{};
+    var results = <Repository, List<IssueLabel>>{};
 
-    for (var repo in await repos.toList()) {
-      var page = 1;
-      var lastItemCount = 0;
-      do {
-        var json = await callRestApi(Uri.parse(
-            'https://api.github.com/repos/${repo.org}/${repo.name}/labels?per_page=100&page=$page'));
-        var items = (jsonDecode(json!) as List).cast<Map>();
-        var labels = items.map((item) => Label(item.cast<String, dynamic>()));
-        results.putIfAbsent(repo, () => []).addAll(labels);
+    for (var repo in repos) {
+      var labels =
+          await reportRunner.github.issues.listLabels(repo.slug()).toList();
 
-        page++;
-        lastItemCount = items.length;
-      } while (lastItemCount > 0);
+      results[repo] = labels;
 
       print('${repo.slug} has ${results[repo]!.length} labels '
           '(${repo.openIssuesCount} issues, ${repo.stargazersCount} stars).');
@@ -39,7 +32,7 @@ class LabelsCommand extends ReportCommand {
     print('');
 
     // calculate label usage
-    var labels = <String, LabelInfo>{};
+    var labels = <String, _LabelInfo>{};
 
     for (var entry in results.entries) {
       var repo = entry.key;
@@ -47,7 +40,7 @@ class LabelsCommand extends ReportCommand {
 
       for (var label in entry.value) {
         var labelInfo =
-            labels.putIfAbsent(label.name, () => LabelInfo(label.name));
+            labels.putIfAbsent(label.name, () => _LabelInfo(label.name));
 
         labelInfo.repos.add(repo.name);
         labelInfo.weight += log(repo.openIssuesCount);
@@ -68,23 +61,13 @@ class LabelsCommand extends ReportCommand {
   }
 }
 
-class Label {
-  Map<String, dynamic> json;
-
-  Label(this.json);
-
-  String get name => json['name'] as String;
-  String? get description => json['description'] as String?;
-  String get color => json['color'] as String;
-}
-
-class LabelInfo {
+class _LabelInfo {
   final String name;
   final Set<String> repos = {};
 
   double weight = 0.0;
 
-  LabelInfo(this.name);
+  _LabelInfo(this.name);
 
   int get repoCount => repos.length;
 
