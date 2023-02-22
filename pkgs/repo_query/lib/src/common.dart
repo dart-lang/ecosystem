@@ -146,5 +146,4 @@ final List<String> noteableRepos = [
   'dart-lang/webdev',
   'flutter/flutter',
   'flutter/packages',
-  'flutter/plugins',
 ];
