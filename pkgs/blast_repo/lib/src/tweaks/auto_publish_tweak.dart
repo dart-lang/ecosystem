@@ -30,8 +30,8 @@ class AutoPublishTweak extends ExactFileTweak {
     final org = repoSlug.split('/').first;
     final branch = gitDefaultBranch(checkout) ?? 'main';
     final glob = singlePackageRepo(checkout)
-        ? "'v[0-9]+.[0-9]+.[0-9]+*'"
-        : "'[A-z]+-v[0-9]+.[0-9]+.[0-9]+*'";
+        ? "'v[0-9]+.[0-9]+.[0-9]+'"
+        : "'[A-z]+-v[0-9]+.[0-9]+.[0-9]+'";
 
     // Substitute for the github org, default branch, and glob pattern values.
     return publishContents

@@ -146,7 +146,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       } else if (package.pubspec.isPreRelease) {
         var result = Result.info(
           package,
-          'version $pubspecVersion is pre-release; no publish is necessary',
+          'version $pubspecVersion is pre-release; no publish necessary',
         );
         print(result);
         results.addResult(result);
@@ -160,7 +160,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           print('No issues found.');
 
           var result = Result.success(package,
-              '**ready to publish**; merge and tag to publish', repoTag);
+              '**ready to publish** (merge and tag to publish)', repoTag);
           print(result);
           results.addResult(result);
         }
