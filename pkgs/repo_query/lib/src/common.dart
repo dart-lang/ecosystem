@@ -35,8 +35,8 @@ String get githubToken {
   return token;
 }
 
-Future<QueryResult> query(QueryOptions options) {
-  return _client.query(options);
+Future<QueryResult<T>> query<T>(QueryOptions<T> options) {
+  return _client.query<T>(options);
 }
 
 String iso8601String(DateTime date) {

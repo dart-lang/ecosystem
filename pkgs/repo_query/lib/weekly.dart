@@ -76,7 +76,7 @@ class WeeklyCommand extends ReportCommand {
       'to ${iso8601String(lastReportingDay)}...',
     );
 
-    var infos = await Future.wait(repos.map((RepositorySlug repo) async {
+    var infos = await Future.wait(repos.map((repo) async {
       return RepoInfo(
         repo.fullName,
         issuesOpened: await queryIssuesOpened(
@@ -130,8 +130,6 @@ class WeeklyCommand extends ReportCommand {
     return 0;
   }
 
-  // todo: see if we can replace these calls with package:github
-
   Future<int> queryIssuesOpened({
     required RepositorySlug repo,
     required DateTime from,
@@ -141,25 +139,19 @@ class WeeklyCommand extends ReportCommand {
   search(query: "repo:${repo.fullName} is:issue created:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
   issueCount
     edges {
-      node {
-        ... on Issue {
-          title
-          url
-          createdAt
-          number
-          state         
-        }
+      node { 
+        ... on Issue { title url createdAt number state }
       }
     }
   }
 }''';
-    final result = await query(QueryOptions(document: gql(queryString)));
 
-    if (result.hasException) {
-      throw result.exception!;
-    }
+    final result = await query(QueryOptions(
+      document: gql(queryString),
+      parserFn: (data) => (data['search'] as Map)['issueCount']! as int,
+    ));
 
-    return (result.data!['search'] as Map)['issueCount']! as int;
+    return result.hasException ? throw result.exception! : result.parsedData!;
   }
 
   Future<int> queryIssuesClosed({
@@ -172,24 +164,18 @@ class WeeklyCommand extends ReportCommand {
   issueCount
     edges {
       node {
-        ... on Issue {
-          title
-          url
-          createdAt
-          number
-          state         
-        }
+        ... on Issue { title url createdAt number state }
       }
     }
   }
 }''';
-    final result = await query(QueryOptions(document: gql(queryString)));
 
-    if (result.hasException) {
-      throw result.exception!;
-    }
+    final result = await query(QueryOptions(
+      document: gql(queryString),
+      parserFn: (data) => (data['search'] as Map)['issueCount']! as int,
+    ));
 
-    return (result.data!['search'] as Map)['issueCount']! as int;
+    return result.hasException ? throw result.exception! : result.parsedData!;
   }
 
   Future<int> queryCommitsSince({
@@ -198,7 +184,7 @@ class WeeklyCommand extends ReportCommand {
     required DateTime until,
   }) async {
     final queryString = '''{
-  repository(owner: "${repo.fullName}", name: "${repo.name}") {
+  repository(owner: "${repo.owner}", name: "${repo.name}") {
     defaultBranchRef {
       target {
         ... on Commit {
@@ -237,16 +223,13 @@ class WeeklyCommand extends ReportCommand {
 }
 ''';
 
-    final result = await query(QueryOptions(document: gql(queryString)));
-    if (result.hasException) {
-      throw result.exception!;
-    }
-    var issues = (result.data!['repository'] as Map)['issues'] as Map?;
-    if (issues == null) {
-      print('error querying issues for $repo');
-      return 0;
-    }
-    return issues['totalCount'] as int;
+    final result = await query(QueryOptions(
+      document: gql(queryString),
+      parserFn: (data) =>
+          ((data['repository'] as Map)['issues'] as Map)['totalCount'] as int,
+    ));
+
+    return result.hasException ? throw result.exception! : result.parsedData!;
   }
 
   Future<int> queryStargazers({
@@ -259,11 +242,11 @@ class WeeklyCommand extends ReportCommand {
 }
 ''';
 
-    final result = await query(QueryOptions(document: gql(queryString)));
-    if (result.hasException) {
-      throw result.exception!;
-    }
-    var count = (result.data!['repository'] as Map)['stargazerCount'] as int;
-    return count;
+    final result = await query(QueryOptions(
+      document: gql(queryString),
+      parserFn: (data) => (data['repository'] as Map)['stargazerCount'] as int,
+    ));
+
+    return result.hasException ? throw result.exception! : result.parsedData!;
   }
 }
