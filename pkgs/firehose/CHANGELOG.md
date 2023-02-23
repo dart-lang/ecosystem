@@ -1,6 +1,8 @@
 ## 0.3.14-dev
 
 - Require Dart `2.19.0`.
+- Adjust docs for the recommended tag format to use to trigger publishing
+  (support semver release versions, not pre-release versions).
 
 ## 0.3.13
 

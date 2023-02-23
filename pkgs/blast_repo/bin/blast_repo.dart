@@ -14,28 +14,29 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag(
       'keep-temp',
+      help: "Don't delete the temporary repo clone.",
       negatable: false,
     )
     ..addMultiOption('tweaks',
         help: 'Optionally list the specific tweaks to run (defaults to all '
-            'stable tweaks)',
+            'stable tweaks).',
         allowed: allTweaks.map((t) => t.id),
         valueHelp: 'tweak1,tweak2')
     ..addFlag(
       'include-unstable',
-      help: 'To run tweaks that are not stable.',
+      help: 'Run tweaks that are not stable.',
       negatable: false,
     )
     ..addOption(
       'pr-reviewer',
       valueHelp: 'github-id',
-      help: 'The GitHub handle for the desired reviewer.',
+      help: 'Specify the GitHub handle for the desired reviewer.',
     )
     ..addFlag(
       'help',
       abbr: 'h',
       negatable: false,
-      help: 'Prints out usage and exits',
+      help: 'Prints out usage and exits.',
     );
 
   void printUsage() {
