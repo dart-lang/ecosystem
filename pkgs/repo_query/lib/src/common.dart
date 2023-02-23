@@ -130,7 +130,7 @@ class RepoInfo {
   });
 }
 
-// This are monorepos, high-traffic repos, or otherwise noteable repos.
+// These are monorepos, high-traffic repos, or otherwise noteable repos.
 final List<String> noteableRepos = [
   'dart-lang/build',
   'dart-lang/ecosystem',
