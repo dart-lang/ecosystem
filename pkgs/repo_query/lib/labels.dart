@@ -36,14 +36,19 @@ class LabelsCommand extends ReportCommand {
 
     for (var entry in results.entries) {
       var repo = entry.key;
-      if (repo.openIssuesCount < 30) continue;
+      var openIssues = repo.openIssuesCount;
+
+      // If a repo doesn't have very many issues, we don't want to give too much
+      // weight to how it's using labels (fewer issues means less need for a
+      // mature labeling strategy).
+      if (openIssues < 30) continue;
 
       for (var label in entry.value) {
         var labelInfo =
             labels.putIfAbsent(label.name, () => _LabelInfo(label.name));
 
         labelInfo.repos.add(repo.name);
-        labelInfo.weight += log(repo.openIssuesCount);
+        labelInfo.weight += log(openIssues);
       }
     }
 
