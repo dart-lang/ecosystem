@@ -1,0 +1,16 @@
+name: repo_query
+description: Miscellaneous issue, repo, and PR query tools.
+
+publish_to: none
+
+environment:
+  sdk: ^2.19.0
+
+dependencies:
+  args: any
+  github: any
+  graphql: any
+  path: any
+
+dev_dependencies:
+  dart_flutter_team_lints: any

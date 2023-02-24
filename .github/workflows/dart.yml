@@ -39,16 +39,16 @@ jobs:
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
-    name: "analyze_and_format; Dart 2.19.0; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart 2.19.0; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_query; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose
+            os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query
             os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -86,19 +86,28 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkgs_firehose_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/firehose
+      - id: pkgs_repo_query_pub_upgrade
+        name: pkgs/repo_query; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/repo_query
+      - name: "pkgs/repo_query; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_repo_query_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/repo_query
     needs:
       - job_001
   job_003:
-    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_query; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -136,19 +145,28 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkgs_firehose_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/firehose
+      - id: pkgs_repo_query_pub_upgrade
+        name: pkgs/repo_query; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/repo_query
+      - name: "pkgs/repo_query; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_repo_query_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/repo_query
     needs:
       - job_001
   job_004:
-    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose; `dart format --output=none --set-exit-if-changed .`"
+    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_query; `dart format --output=none --set-exit-if-changed .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose;commands:format"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:format"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -186,6 +204,15 @@ jobs:
         run: "dart format --output=none --set-exit-if-changed ."
         if: "always() && steps.pkgs_firehose_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/firehose
+      - id: pkgs_repo_query_pub_upgrade
+        name: pkgs/repo_query; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/repo_query
+      - name: "pkgs/repo_query; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.pkgs_repo_query_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/repo_query
     needs:
       - job_001
   job_005:
