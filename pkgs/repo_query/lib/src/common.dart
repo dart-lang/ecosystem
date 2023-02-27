@@ -11,6 +11,7 @@ import 'package:graphql/client.dart';
 
 import '../branches.dart';
 import '../labels.dart';
+import '../labels_update.dart';
 import '../links.dart';
 import '../weekly.dart';
 
@@ -43,6 +44,10 @@ String iso8601String(DateTime date) {
   return date.toIso8601String().substring(0, 10);
 }
 
+String overflow(String str, [int overflows = 40]) {
+  return str.length <= overflows ? str : '${str.substring(0, overflows)}...';
+}
+
 abstract class ReportCommand extends Command<int> {
   @override
   final String name;
@@ -69,6 +74,7 @@ class ReportCommandRunner extends CommandRunner<int> {
             'Run various reports on Dart and Flutter related repositories.') {
     addCommand(BranchesCommand());
     addCommand(LabelsCommand());
+    addCommand(LabelsUpdateCommand());
     addCommand(LinksCommand());
     addCommand(WeeklyCommand());
   }
@@ -79,7 +85,7 @@ class ReportCommandRunner extends CommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     try {
-      return super.runCommand(topLevelResults);
+      return await super.runCommand(topLevelResults);
     } finally {
       close();
     }
