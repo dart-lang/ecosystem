@@ -4,4 +4,6 @@ dependency_overrides:
 
   # TODO: Remove once https://github.com/SpinlockLabs/github.dart/pull/355 lands.
   github:
-    path: /Users/devoncarew/projects/SpinlockLabs/github.dart
+    git:
+      url: https://github.com/devoncarew/github.dart.git
+      ref: labels_apis
