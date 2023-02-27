@@ -16,6 +16,8 @@ const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
 
+const String _ignoreWarningsLabel = 'publish-ignore-warnings';
+
 class Firehose {
   final Directory directory;
 
@@ -153,12 +155,17 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       } else {
         var code = await runCommand('dart',
             args: ['pub', 'publish', '--dry-run'], cwd: package.directory);
-        if (code != 0) {
-          exitCode = code;
-          results.addResult(Result.fail(package, 'pub publish dry-run failed'));
-        } else {
-          print('No issues found.');
 
+        final ignoreWarnings = github.prLabels.contains(_ignoreWarningsLabel);
+
+        if (code != 0 && !ignoreWarnings) {
+          exitCode = code;
+          results.addResult(Result.fail(
+            package,
+            'pub publish dry-run failed '
+            '(add `$_ignoreWarningsLabel` label to ignore)',
+          ));
+        } else {
           var result = Result.success(package,
               '**ready to publish** (merge and tag to publish)', repoTag);
           print(result);
@@ -291,7 +298,7 @@ class VerificationResults {
 
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
-      var tag = r.other == null ? '' : '`${r.other}`';
+      var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
 
       return '| package:${r.package.name} | ${r.package.version} | '
           '$sev${r.message} | $tag |';
@@ -303,9 +310,9 @@ class Result {
   final Severity severity;
   final Package package;
   final String message;
-  final String? other;
+  final String? gitTag;
 
-  Result(this.severity, this.package, this.message, [this.other]);
+  Result(this.severity, this.package, this.message, [this.gitTag]);
 
   factory Result.fail(Package package, String message) =>
       Result(Severity.error, package, message);
@@ -313,12 +320,12 @@ class Result {
   factory Result.info(Package package, String message) =>
       Result(Severity.info, package, message);
 
-  factory Result.success(Package package, String message, [String? other]) =>
-      Result(Severity.success, package, message, other);
+  factory Result.success(Package package, String message, [String? gitTag]) =>
+      Result(Severity.success, package, message, gitTag);
 
   @override
   String toString() {
-    final details = other == null ? '' : ' ($other)';
+    final details = gitTag == null ? '' : ' ($gitTag)';
     return severity == Severity.error
         ? 'error: $message$details'
         : '$message$details';

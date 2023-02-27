@@ -69,6 +69,7 @@ name: Publish
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
 

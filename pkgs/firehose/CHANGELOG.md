@@ -1,8 +1,12 @@
-## 0.3.14-dev
+## 0.3.14
 
 - Require Dart `2.19.0`.
 - Adjust docs for the recommended tag format to use to trigger publishing
   (support semver release versions, not pre-release versions).
+- Support using a `publish-ignore-warnings` label to ignore `dart pub publish`
+  dry-run validation failures.
+- Update the recommended publish.yaml file to listen for label changes on PRs
+  (`types: ...`).
 
 ## 0.3.13
 
