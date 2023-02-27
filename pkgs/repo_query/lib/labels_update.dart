@@ -59,10 +59,6 @@ const String templateRepoSlug = 'dart-lang/.github';
 /// If a package:<name> label exists, ensure it has this color.
 final String packageLabelColor = '4774bc';
 
-// todo: help
-// todo: --dry-run
-// todo: --apply-changes
-
 class LabelsUpdateCommand extends ReportCommand {
   LabelsUpdateCommand()
       : super('labels-update',
@@ -83,13 +79,15 @@ class LabelsUpdateCommand extends ReportCommand {
   @override
   Future<int> run() async {
     var applyChanges = argResults!['apply-changes'] as bool;
-
     var rest = argResults!.rest;
+
     if (rest.isEmpty) {
-      stderr.writeln('For the --audit flag, provide a repo slug '
-          '(e.g. dart-lang/foo_repo).');
+      stderr.writeln('Please provide a repo slug (e.g. dart-lang/foo_repo).');
+      stderr.writeln();
+      stderr.writeln(usage);
       return 1;
     }
+
     return await performAudit(rest, alsoFix: applyChanges);
   }
 
