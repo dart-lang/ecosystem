@@ -195,6 +195,11 @@ class Github {
   void close() {
     _httpClient?.close();
   }
+
+  /// Write a notice message to the github log.
+  void notice({required String message}) {
+    print('::notice ::$message');
+  }
 }
 
 class RpcException implements Exception {

@@ -160,11 +160,11 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
         if (code != 0 && !ignoreWarnings) {
           exitCode = code;
-          results.addResult(Result.fail(
-            package,
-            'pub publish dry-run failed '
-            '(add `$_ignoreWarningsLabel` label to ignore)',
-          ));
+          var message =
+              'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
+              'label to ignore';
+          github.notice(message: message);
+          results.addResult(Result.fail(package, message));
         } else {
           var result = Result.success(package,
               '**ready to publish** (merge and tag to publish)', repoTag);
