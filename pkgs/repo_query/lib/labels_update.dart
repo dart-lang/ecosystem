@@ -64,6 +64,12 @@ class LabelsUpdateCommand extends ReportCommand {
       : super('labels-update',
             'Audit and update the labels used by dart-lang repos.') {
     argParser.addFlag(
+      'dry-run',
+      negatable: false,
+      help: "Audit the labels used but don't make any changes to the given "
+          'repos.',
+    );
+    argParser.addFlag(
       'apply-changes',
       negatable: false,
       help: 'Rename, edit, and add labels to bring them in line with those '
@@ -78,8 +84,14 @@ class LabelsUpdateCommand extends ReportCommand {
 
   @override
   Future<int> run() async {
+    var dryRun = argResults!['dry-run'] as bool;
     var applyChanges = argResults!['apply-changes'] as bool;
     var rest = argResults!.rest;
+
+    if (!dryRun && !applyChanges) {
+      stdout.writeln(usage);
+      return 0;
+    }
 
     if (rest.isEmpty) {
       stderr.writeln('Please provide a repo slug (e.g. dart-lang/foo_repo).');
