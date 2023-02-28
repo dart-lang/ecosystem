@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 
 import 'src/common.dart';
@@ -57,7 +58,7 @@ final Set<String> allowList = {
 const String templateRepoSlug = 'dart-lang/.github';
 
 /// If a package:<name> label exists, ensure it has this color.
-final String packageLabelColor = '4774bc';
+final String packageColor = '4774bc';
 
 class LabelsUpdateCommand extends ReportCommand {
   LabelsUpdateCommand()
@@ -164,11 +165,10 @@ class LabelsUpdateCommand extends ReportCommand {
         }
 
         // package: colors
-        if (label.name.startsWith('package:') &&
-            label.color != packageLabelColor) {
+        if (label.name.startsWith('package:') && label.color != packageColor) {
           edits
               .putIfAbsent(label.name, LabelEdit.new)
-              .join(LabelEdit(color: packageLabelColor));
+              .join(LabelEdit(color: packageColor));
         }
       }
 
@@ -252,22 +252,18 @@ class LabelsUpdateCommand extends ReportCommand {
 }
 
 String? checkSynonym(String label) {
-  for (var entry in synonyms.entries) {
-    if (entry.value.contains(label.toLowerCase())) {
-      return entry.key;
-    }
-  }
-
-  return null;
+  return synonyms.entries
+      .firstWhereOrNull((entry) => entry.value.contains(label.toLowerCase()))
+      ?.key;
 }
 
 String? wellFormed(String label) {
   if (allowList.contains(label)) return null;
 
   if (label.startsWith('package:')) {
-    const avoidPrefix = 'package: ';
-    if (label.startsWith(avoidPrefix)) {
-      return 'rename to package:${label.substring(avoidPrefix.length)}';
+    final packageName = label.substring('package:'.length);
+    if (packageName != packageName.trim()) {
+      return 'rename to package:${packageName.trim()}';
     } else {
       return null;
     }

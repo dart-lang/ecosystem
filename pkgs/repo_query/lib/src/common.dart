@@ -45,7 +45,9 @@ String iso8601String(DateTime date) {
 }
 
 String overflow(String str, [int overflows = 40]) {
-  return str.length <= overflows ? str : '${str.substring(0, overflows - 3)}...';
+  return str.length <= overflows
+      ? str
+      : '${str.substring(0, overflows - 3)}...';
 }
 
 abstract class ReportCommand extends Command<int> {
