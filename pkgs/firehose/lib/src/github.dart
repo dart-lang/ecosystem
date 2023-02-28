@@ -27,6 +27,10 @@ class Github {
   /// The PR (or issue) number.
   String? get issueNumber => _env['ISSUE_NUMBER'];
 
+  /// Any labels applied to this PR.
+  List<String> get prLabels =>
+      _env.containsKey('PR_LABELS') ? _env['PR_LABELS']!.split(',') : [];
+
   /// The commit SHA that triggered the workflow.
   String? get sha => _env['GITHUB_SHA'];
 
@@ -190,6 +194,11 @@ class Github {
 
   void close() {
     _httpClient?.close();
+  }
+
+  /// Write a notice message to the github log.
+  void notice({required String message}) {
+    print('::notice ::$message');
   }
 }
 

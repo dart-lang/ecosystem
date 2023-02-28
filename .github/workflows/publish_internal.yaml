@@ -8,6 +8,7 @@ name: Publish
 on:
   pull_request:
     branches: [ main ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
 
@@ -35,6 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
+          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
         run: dart pkgs/firehose/bin/firehose.dart --validate
 
       - name: Publish tagged package
