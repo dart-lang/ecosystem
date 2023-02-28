@@ -1,3 +1,9 @@
 dependency_overrides:
   dart_flutter_team_lints:
     path: ../dart_flutter_team_lints
+
+  # TODO: Remove once https://github.com/SpinlockLabs/github.dart/pull/355 lands.
+  github:
+    git:
+      url: https://github.com/devoncarew/github.dart.git
+      ref: labels_apis

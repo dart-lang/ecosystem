@@ -25,7 +25,7 @@ class LabelsCommand extends ReportCommand {
 
       results[repo] = labels;
 
-      print('${repo.slug} has ${results[repo]!.length} labels '
+      print('${repo.slug()} has ${results[repo]!.length} labels '
           '(${repo.openIssuesCount} issues, ${repo.stargazersCount} stars).');
     }
 
