@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:stable"
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:analyze"
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:analyze"
@@ -161,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_query;commands:format"
@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/corpus;commands:test_1"
@@ -255,7 +255,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
@@ -290,7 +290,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:2.19.0;packages:pkgs/firehose;commands:test_1"
@@ -325,7 +325,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus;commands:test_1"
@@ -360,7 +360,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/dart_flutter_team_lints;commands:test_1"
@@ -395,7 +395,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/firehose;commands:test_1"
@@ -430,7 +430,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo;commands:format-analyze"
@@ -475,7 +475,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: "~/.pub-cache/hosted"
           key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/blast_repo;commands:test_0"
