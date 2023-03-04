@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
-      - uses: dart-lang/setup-dart@699d6853bbf1b96d77f24d46b19c38c66c2e22b1
+      - uses: dart-lang/setup-dart@929ed5f8bae55086c6fac456ba5acb9763c9e3e2
 
       - name: Pub get
         working-directory: pkgs/firehose
