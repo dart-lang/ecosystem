@@ -49,7 +49,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-
   - package-ecosystem: github-actions
     directory: /
     schedule:
