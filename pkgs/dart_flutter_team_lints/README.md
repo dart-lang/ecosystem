@@ -20,7 +20,7 @@ To use the lints, add a dependency in your `pubspec.yaml` file:
 
 ```yaml
 dev_dependencies:
-  dart_flutter_team_lints: ^0.1.0
+  dart_flutter_team_lints: ^1.0.0
 ```
 
 then, add an `analysis_options.yaml` file to your project:
