@@ -10,11 +10,11 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import '../branches.dart';
+import '../issue_transfer.dart';
 import '../labels.dart';
 import '../labels_update.dart';
 import '../links.dart';
 import '../weekly.dart';
-import '../issue_transfer.dart';
 
 final GraphQLClient _client = _initGraphQLClient();
 
