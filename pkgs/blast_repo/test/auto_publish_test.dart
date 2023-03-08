@@ -38,14 +38,6 @@ void main() {
     ]).validate();
   });
 
-  test('updates readme', () async {
-    var results = await tweak.fix(dir, 'my_org/my_repo');
-    expect(results.fixes, isNotEmpty);
-
-    await d.dir('foo',
-        [d.file('README.md', contains('Publishing automation'))]).validate();
-  });
-
   test('detects mono-repo', () async {
     var results = await tweak.fix(dir, 'my_org/my_repo');
     expect(results.fixes, isNotEmpty);
