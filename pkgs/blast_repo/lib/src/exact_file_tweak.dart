@@ -62,15 +62,10 @@ abstract class ExactFileTweak extends RepoTweak {
       fixResults.add('$filePath has been updated.');
     }
 
-    fixResults.addAll(performAdditionalFixes(checkout, repoSlug));
-
     return fixResults.isEmpty
         ? FixResult.noFixesMade
         : FixResult(fixes: fixResults);
   }
-
-  List<String> performAdditionalFixes(Directory checkout, String repoSlug) =>
-      [];
 
   File _targetFile(Directory checkout) {
     assert(checkout.existsSync());
