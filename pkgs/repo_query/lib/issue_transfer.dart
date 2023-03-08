@@ -21,23 +21,23 @@ class TransferIssuesCommand extends ReportCommand {
       defaultsTo: false,
     );
     argParser.addMultiOption(
-      'issue_numbers',
+      'issue-numbers',
       valueHelp: '1,2,3',
       help: 'Specifiy the numbers of specific issues to transfer, otherwise'
           ' transfers all.',
     );
     argParser.addOption(
-      'source_repo',
+      'source-repo',
       valueHelp: 'repo-org/repo-name',
       help: 'The source repository for the issues to be moved from.',
     );
     argParser.addOption(
-      'target_repo',
+      'target-repo',
       valueHelp: 'repo-org/repo-name',
       help: 'The target repository name where the issues will be moved to.',
     );
     argParser.addOption(
-      'add_label',
+      'add-label',
       help: 'Add a label to all transferred issues.',
       valueHelp: 'pkg:foo',
     );
@@ -45,22 +45,22 @@ class TransferIssuesCommand extends ReportCommand {
 
   @override
   String get invocation =>
-      '${super.invocation} --target_repo <repo-org/repo-name> --add_label <pkg:old-repo-name>';
+      '${super.invocation} --target-repo <repo-org/repo-name> --add-label <pkg:old-repo-name>';
 
   @override
   Future<int> run() async {
     var applyChanges = argResults!['apply-changes'] as bool;
 
-    var sourceRepo = argResults!['source_repo'] as String?;
-    var targetRepo = argResults!['target_repo'] as String?;
+    var sourceRepo = argResults!['source-repo'] as String?;
+    var targetRepo = argResults!['target-repo'] as String?;
     if (targetRepo == null || sourceRepo == null) {
-      print('target_repo and source_repo must be specified.');
+      print('target-repo and source-repo must be specified.');
       exit(0);
     }
 
-    var issueNumberString = argResults!['issue_numbers'] as List<String>?;
+    var issueNumberString = argResults!['issue-numbers'] as List<String>?;
     var issueNumbers = issueNumberString?.map(int.parse).toList();
-    var labelName = argResults!['add_label'] as String?;
+    var labelName = argResults!['add-label'] as String?;
 
     return await transferIssues(
       RepositorySlug.full(sourceRepo),
@@ -121,8 +121,8 @@ class TransferIssuesCommand extends ReportCommand {
 ''';
     final result = await query(QueryOptions(
       document: gql(queryString),
-      // If the cache is enabled always return the same issues, even after
-      // transferring them to another repo.
+      // If the cache is enabled this will always return the same issues, even
+      // after transferring them to another repo.
       fetchPolicy: FetchPolicy.noCache,
       parserFn: (data) {
         var repository = data['repository'] as Map;
