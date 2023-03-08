@@ -4,8 +4,6 @@
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 import '../exact_file_tweak.dart';
 import '../utils.dart';
 
@@ -38,28 +36,6 @@ class AutoPublishTweak extends ExactFileTweak {
         .replaceAll('{org}', org)
         .replaceAll('{branch}', branch)
         .replaceAll('{glob}', glob);
-  }
-
-  @override
-  List<String> performAdditionalFixes(Directory checkout, String repoSlug) {
-    var results = <String>[];
-
-    // Update the readme to include contribution + publishing info.
-    const tag = 'Contributions, PRs, and publishing';
-
-    var readmeFile = File(path.join(checkout.path, 'README.md'));
-
-    if (readmeFile.existsSync()) {
-      var contents = readmeFile.readAsStringSync();
-
-      if (!contents.contains(tag)) {
-        var newContents = '${contents.trimRight()}\n\n$readmeSection';
-        readmeFile.writeAsStringSync(newContents);
-        results.add('README.md updated with contribution and publishing info.');
-      }
-    }
-
-    return results;
   }
 }
 
