@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:repo_query/src/common.dart';
+import 'package:repo_manage/src/common.dart';
 
 void main(List<String> args) async {
   final runner = ReportCommandRunner();

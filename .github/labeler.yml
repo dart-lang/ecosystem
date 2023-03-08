@@ -15,5 +15,5 @@
 'package:firehose':
   - pkgs/firehose/**/*
 
-'package:repo_query':
-  - pkgs/repo_query/**/*
+'package:repo_manage':
+  - pkgs/repo_manage/**/*

@@ -8,13 +8,13 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
-import 'package:repo_query/issue_transfer.dart';
 
 import '../branches.dart';
 import '../labels.dart';
 import '../labels_update.dart';
 import '../links.dart';
 import '../weekly.dart';
+import '../issue_transfer.dart';
 
 final GraphQLClient _client = _initGraphQLClient();
 
