@@ -13,7 +13,6 @@ import '../branches.dart';
 import '../issue_transfer.dart';
 import '../labels.dart';
 import '../labels_update.dart';
-import '../links.dart';
 import '../weekly.dart';
 
 final GraphQLClient _client = _initGraphQLClient();
@@ -82,7 +81,6 @@ class ReportCommandRunner extends CommandRunner<int> {
     addCommand(BranchesCommand());
     addCommand(LabelsCommand());
     addCommand(LabelsUpdateCommand());
-    addCommand(LinksCommand());
     addCommand(WeeklyCommand());
     addCommand(TransferIssuesCommand());
   }

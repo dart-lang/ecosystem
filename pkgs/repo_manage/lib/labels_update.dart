@@ -214,7 +214,7 @@ class LabelsUpdateCommand extends ReportCommand {
         if (slug == templateRepoSlug || slug == 'dart-lang/sdk') {
           print("  skipping: won't update labels for $slug.");
         } else if (repo.openIssuesCount >= 100) {
-          print("  skipping: won't update labels when issue count >=100.");
+          print("  skipping: won't update labels when issue count >= 100.");
         } else {
           // Perform updates.
           for (var entry in edits.entries) {
