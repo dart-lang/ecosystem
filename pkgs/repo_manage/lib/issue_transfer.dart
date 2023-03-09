@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
@@ -21,7 +19,7 @@ class TransferIssuesCommand extends ReportCommand {
       defaultsTo: false,
     );
     argParser.addMultiOption(
-      'issue-numbers',
+      'issues',
       valueHelp: '1,2,3',
       help: 'Specifiy the numbers of specific issues to transfer, otherwise'
           ' transfers all.',
@@ -30,11 +28,13 @@ class TransferIssuesCommand extends ReportCommand {
       'source-repo',
       valueHelp: 'repo-org/repo-name',
       help: 'The source repository for the issues to be moved from.',
+      mandatory: true,
     );
     argParser.addOption(
       'target-repo',
       valueHelp: 'repo-org/repo-name',
       help: 'The target repository name where the issues will be moved to.',
+      mandatory: true,
     );
     argParser.addOption(
       'add-label',
@@ -51,18 +51,18 @@ class TransferIssuesCommand extends ReportCommand {
   Future<int> run() async {
     var applyChanges = argResults!['apply-changes'] as bool;
 
-    var sourceRepo = argResults!['source-repo'] as String?;
-    var targetRepo = argResults!['target-repo'] as String?;
-    if (targetRepo == null || sourceRepo == null) {
-      print('target-repo and source-repo must be specified.');
-      exit(0);
-    }
+    var sourceRepo = argResults!['source-repo'] as String;
+    var targetRepo = argResults!['target-repo'] as String;
 
-    var issueNumberString = argResults!['issue-numbers'] as List<String>?;
+    var issueNumberString = argResults!['issues'] as List<String>?;
     var issueNumbers = issueNumberString?.map(int.parse).toList();
     var labelName = argResults!['add-label'] as String?;
 
-    return await transferIssues(
+    if (!applyChanges) {
+      print('This is a dry run, no issues will be transferred!');
+    }
+
+    return await transferAndLabelIssues(
       RepositorySlug.full(sourceRepo),
       RepositorySlug.full(targetRepo),
       issueNumbers,
@@ -71,7 +71,7 @@ class TransferIssuesCommand extends ReportCommand {
     );
   }
 
-  Future<int> transferIssues(
+  Future<int> transferAndLabelIssues(
     RepositorySlug sourceRepo,
     RepositorySlug targetRepo, [
     List<int>? issueNumbers,
@@ -85,12 +85,18 @@ class TransferIssuesCommand extends ReportCommand {
       }
     }
 
-    var parsedData =
-        await transferIssue(sourceRepo, targetRepo, labelName, applyChanges);
+    var issues = await transferIssues(
+      sourceRepo,
+      targetRepo,
+      labelName,
+      applyChanges,
+    );
 
+    print('Transferred ${issues.length} issues');
     if (labelName != null) {
-      for (var issueNumber in parsedData) {
-        print('Add label $labelName to issue $issueNumber');
+      print('Adding label $labelName to all transferred issues');
+      for (var issueNumber in issues) {
+        print('Add to issue $issueNumber');
         if (applyChanges) {
           await reportRunner.github.issues.addLabelsToIssue(
             targetRepo,
@@ -159,14 +165,17 @@ class TransferIssuesCommand extends ReportCommand {
     return result.hasException ? throw result.exception! : result.parsedData!;
   }
 
-  Future<List<int>> transferIssue(
+  Future<List<int>> transferIssues(
     RepositorySlug sourceRepo,
     RepositorySlug targetRepo,
     String? issueLabel,
     bool applyChanges,
   ) async {
     var repositoryId = await getRepositoryId(targetRepo);
+
     var allIssueIds = <int>[];
+    // As we can only do 100 issues at a time per GraphQL API limitations, we
+    // need to run this in a loop.
     while (true) {
       var issueIds = await getIssueIds(sourceRepo);
       if (issueIds.isEmpty) {
@@ -175,11 +184,17 @@ class TransferIssuesCommand extends ReportCommand {
         return allIssueIds;
       }
       print('Transfer ${issueIds.length} issues from $sourceRepo to $targetRepo'
-          'with id $repositoryId');
-      var transferredIssues =
-          await _transferMutation(issueIds, repositoryId, applyChanges);
+          ' with id $repositoryId');
+      var transferredIssues = await _transferMutation(
+        issueIds,
+        repositoryId,
+        applyChanges,
+      );
+
       allIssueIds.addAll(transferredIssues);
       if (!applyChanges) {
+        // Return mock list of indices to allow user to see how downstream
+        // methods would continue.
         return List.generate(issueIds.length, (index) => index);
       }
 
