@@ -1,5 +1,5 @@
 ---
-name: "package:repo_query"
-about: "Create a bug or file a feature request against package:repo_query."
-labels: "package:repo_query"
+name: "package:repo_manage"
+about: "Create a bug or file a feature request against package:repo_manage."
+labels: "package:repo_manage"
 ---

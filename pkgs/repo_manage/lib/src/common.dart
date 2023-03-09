@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import '../branches.dart';
+import '../issue_transfer.dart';
 import '../labels.dart';
 import '../labels_update.dart';
 import '../links.dart';
@@ -38,6 +39,10 @@ String get githubToken {
 
 Future<QueryResult<T>> query<T>(QueryOptions<T> options) {
   return _client.query<T>(options);
+}
+
+Future<QueryResult<T>> mutate<T>(MutationOptions<T> options) {
+  return _client.mutate<T>(options);
 }
 
 String iso8601String(DateTime date) {
@@ -79,6 +84,7 @@ class ReportCommandRunner extends CommandRunner<int> {
     addCommand(LabelsUpdateCommand());
     addCommand(LinksCommand());
     addCommand(WeeklyCommand());
+    addCommand(TransferIssuesCommand());
   }
 
   GitHub get github =>

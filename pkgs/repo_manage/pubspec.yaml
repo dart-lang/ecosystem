@@ -1,4 +1,4 @@
-name: repo_query
+name: repo_manage
 description: Miscellaneous issue, repo, and PR query tools.
 
 publish_to: none
