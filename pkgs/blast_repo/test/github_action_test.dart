@@ -22,7 +22,7 @@ void main() {
       'android-actions/setup-android@v2.0.2':
           '2.0.2::72fdd2e74f58fb338a2743720c0847b8becf1589',
       'dart-lang/setup-dart@v1':
-          '1.4.0::a57a6c04cf7d4840e88432aad6281d1e125f0d46',
+          '1.5.0::d6a63dab3335f427404425de0fbfed4686d93c4f',
       'dart-lang/setup-dart@v1.0':
           '1.0.0::9a04e6d73cca37bd455e0608d7e5092f881fd603',
       'dart-lang/setup-dart@v1.3':
