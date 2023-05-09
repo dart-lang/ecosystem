@@ -69,7 +69,7 @@ class Repository {
 
   Uri calculateReleaseUri(Package package, Github github) {
     final tag = calculateRepoTag(package);
-    final title = '${package.name} version ${package.pubspec.version}';
+    final title = 'package:${package.name} v${package.pubspec.version}';
     final body = package.changelog.describeLatestChanges;
     return Uri.https('github.com', '/${github.repoSlug}/releases/new',
         {'tag': tag, 'title': title, 'body': body});
