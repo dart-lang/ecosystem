@@ -1,4 +1,4 @@
-## 0.3.15-wip
+## 0.3.15
 
 - Make publish tags link to the new release page for that tag, with
   pre-populated fields.
