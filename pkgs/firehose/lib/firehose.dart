@@ -47,7 +47,7 @@ class Firehose {
     var results = await _validate(github);
 
     var markdownTable = '''
-| Package | Version | Status | Publish release (post-merge) |
+| Package | Version | Status | Post-merge release link |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown}
 
@@ -166,10 +166,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           github.notice(message: message);
           results.addResult(Result.fail(package, message));
         } else {
-          var result = Result.success(
-              package,
-              '**ready to publish** (merge and tag to publish)',
-              repoTag,
+          var result = Result.success(package, '**ready to publish**', repoTag,
               repo.calculateReleaseUri(package, github));
           print(result);
           results.addResult(result);
