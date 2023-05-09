@@ -166,8 +166,11 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           github.notice(message: message);
           results.addResult(Result.fail(package, message));
         } else {
-          var result = Result.success(package,
-              '**ready to publish** (merge and tag to publish)', repoTag);
+          var result = Result.success(
+              package,
+              '**ready to publish** (merge and tag to publish)',
+              repoTag,
+              repo.calculateReleaseUri(package, github));
           print(result);
           results.addResult(result);
         }
@@ -299,6 +302,10 @@ class VerificationResults {
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
       var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
+      var publishReleaseUri = r.publishReleaseUri;
+      if (publishReleaseUri != null) {
+        tag = '[$tag]($publishReleaseUri)';
+      }
 
       return '| package:${r.package.name} | ${r.package.version} | '
           '$sev${r.message} | $tag |';
@@ -311,8 +318,10 @@ class Result {
   final Package package;
   final String message;
   final String? gitTag;
+  final Uri? publishReleaseUri;
 
-  Result(this.severity, this.package, this.message, [this.gitTag]);
+  Result(this.severity, this.package, this.message,
+      [this.gitTag, this.publishReleaseUri]);
 
   factory Result.fail(Package package, String message) =>
       Result(Severity.error, package, message);
@@ -320,8 +329,9 @@ class Result {
   factory Result.info(Package package, String message) =>
       Result(Severity.info, package, message);
 
-  factory Result.success(Package package, String message, [String? gitTag]) =>
-      Result(Severity.success, package, message, gitTag);
+  factory Result.success(Package package, String message,
+          [String? gitTag, Uri? publishReleaseUri]) =>
+      Result(Severity.success, package, message, gitTag, publishReleaseUri);
 
   @override
   String toString() {
