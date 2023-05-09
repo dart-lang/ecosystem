@@ -1,3 +1,8 @@
+## 0.3.15
+
+- Make publish tags link to the new release page for that tag, with
+  pre-populated fields.
+
 ## 0.3.14
 
 - Require Dart `2.19.0`.
@@ -20,7 +25,7 @@
 
 ## 0.3.11
 
-- Add additional console logging when we encounter GitHub API errors. 
+- Add additional console logging when we encounter GitHub API errors.
 
 ## 0.3.10
 

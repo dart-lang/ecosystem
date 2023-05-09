@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:firehose/src/github.dart';
 import 'package:firehose/src/repo.dart';
 import 'package:test/test.dart';
 
@@ -21,6 +22,18 @@ void main() {
     test('locatePackages', () {
       var result = packages.locatePackages();
       expect(result, isNotEmpty);
+    });
+
+    test('github release link', () {
+      final github = Github();
+      final package = packages.locatePackages().single;
+      final releaseUri = packages.calculateReleaseUri(package, github);
+      expect(releaseUri.path, '/${github.repoSlug}/releases/new');
+      final queryParams = releaseUri.queryParameters;
+      expect(queryParams['tag'], packages.calculateRepoTag(package));
+      expect(queryParams['title'],
+          allOf(contains(package.name), contains(package.version)));
+      expect(queryParams['body'], package.changelog.describeLatestChanges);
     });
   });
 }
