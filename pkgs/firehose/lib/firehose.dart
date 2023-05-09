@@ -47,7 +47,7 @@ class Firehose {
     var results = await _validate(github);
 
     var markdownTable = '''
-| Package | Version | Status | Post-merge release link |
+| Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown}
 
