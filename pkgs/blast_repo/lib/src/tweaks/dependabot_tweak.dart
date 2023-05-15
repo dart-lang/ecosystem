@@ -156,5 +156,6 @@ const _packageEcosystemKey = 'package-ecosystem';
 Map<String, Object> _githubActionValue(String frequency) => {
       _packageEcosystemKey: 'github-actions',
       'directory': '/',
-      'schedule': {'interval': frequency}
+      'schedule': {'interval': frequency},
+      'labels': ['autosubmit'],
     };

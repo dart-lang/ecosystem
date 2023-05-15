@@ -53,6 +53,8 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    labels:
+      - autosubmit
 ''');
   });
 
@@ -70,6 +72,8 @@ updates:
     directory: "/"
     schedule:
       interval: "$frequency"
+    labels:
+      - autosubmit
 ''';
         final result = doDependabotFix(input);
 
@@ -98,4 +102,6 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    labels:
+      - autosubmit
 ''';

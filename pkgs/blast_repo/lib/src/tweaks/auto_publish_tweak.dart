@@ -55,10 +55,3 @@ jobs:
     if: ${{ github.repository_owner == '{org}' }}
     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ''';
-
-const String readmeSection = '''
-## Publishing automation
-
-For information about our publishing automation and release process, see
-https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
-''';
