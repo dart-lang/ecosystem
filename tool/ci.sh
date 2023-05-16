@@ -1,5 +1,5 @@
 #!/bin/bash
-# Created with package:mono_repo v6.5.4
+# Created with package:mono_repo v6.5.6
 
 # Support built in commands on windows out of the box.
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
@@ -67,9 +67,17 @@ for PKG in ${PKGS}; do
       echo
       echo -e "\033[1mPKG: ${PKG}; TASK: ${TASK}\033[22m"
       case ${TASK} in
-      analyze)
+      analyze_0)
         echo 'dart analyze --fatal-infos .'
         dart analyze --fatal-infos . || EXIT_CODE=$?
+        ;;
+      analyze_1)
+        echo 'dart analyze'
+        dart analyze || EXIT_CODE=$?
+        ;;
+      analyze_2)
+        echo 'dart analyze --fatal-infos'
+        dart analyze --fatal-infos || EXIT_CODE=$?
         ;;
       format)
         echo 'dart format --output=none --set-exit-if-changed .'
@@ -82,6 +90,30 @@ for PKG in ${PKGS}; do
       test_1)
         echo 'dart test'
         dart test || EXIT_CODE=$?
+        ;;
+      test_2)
+        echo 'dart test --platform vm'
+        dart test --platform vm || EXIT_CODE=$?
+        ;;
+      test_3)
+        echo 'dart test --platform chrome'
+        dart test --platform chrome || EXIT_CODE=$?
+        ;;
+      test_4)
+        echo 'dart test -p chrome'
+        dart test -p chrome || EXIT_CODE=$?
+        ;;
+      test_5)
+        echo 'dart test --run-skipped -t presubmit-only test/annotation_version_test.dart'
+        dart test --run-skipped -t presubmit-only test/annotation_version_test.dart || EXIT_CODE=$?
+        ;;
+      test_6)
+        echo 'dart test --run-skipped -t presubmit-only test/ensure_build_test.dart'
+        dart test --run-skipped -t presubmit-only test/ensure_build_test.dart || EXIT_CODE=$?
+        ;;
+      test_7)
+        echo 'dart test --test-randomize-ordering-seed=random -p chrome'
+        dart test --test-randomize-ordering-seed=random -p chrome || EXIT_CODE=$?
         ;;
       *)
         echo -e "\033[31mUnknown TASK '${TASK}' - TERMINATING JOB\033[0m"
