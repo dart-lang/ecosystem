@@ -78,7 +78,7 @@ Future<void> runFix({
           '''
 $packageName fixes
 
-${fixes.join('\n')}
+${fixes.join(', ')}
 '''
         ],
       );
@@ -90,6 +90,11 @@ ${fixes.join('\n')}
           'pr',
           'create',
           '--fill',
+          '--title',
+          'blast repo changes: ${fixes.join(', ')}',
+          '--body',
+          'This PR contains changes created by the blast repo tool.\n\n'
+              '${fixes.map((fix) => '- `$fix`').join('\n')}',
           '--repo',
           slug,
           if (prReviewer != null) ...['--reviewer', prReviewer]
