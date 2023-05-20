@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 import '../exact_file_tweak.dart';
-import '../repo_tweak.dart';
 
 final _instance = NoResponseTweak._();
 
@@ -20,52 +16,31 @@ class NoResponseTweak extends ExactFileTweak {
           id: 'no-response',
           description:
               "configure a 'no response' bot to handle needs-info labels",
-          filePath: _filePath,
+          filePath: filePath,
         );
 
   @override
   bool get stable => false;
 
   @override
-  String expectedContent(Directory checkout, String repoSlug) =>
-      _noResponseContent;
+  String expectedContent(Directory checkout, String repoSlug) {
+    final org = repoSlug.split('/').first;
 
-  @override
-  FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
-    // Check for and fail if this fix is not being run for a dart-lang repo.
-    if (!isDartLangOrgRepo(checkout)) {
-      print('  repo is not in the dart-lang/ org');
-      return FixResult.noFixesMade;
-    }
-
-    return super.fix(checkout, repoSlug);
+    // Substitute for the github org value.
+    return noResponseContent.replaceAll('{org}', org);
   }
 }
 
-bool isDartLangOrgRepo(Directory checkout) {
-  final gitConfigFile = File(path.join(checkout.path, '.git', 'config'));
-  final contents = gitConfigFile.readAsStringSync();
+const filePath = '.github/workflows/no-response.yml';
 
-  return contents.contains('@github.com:dart-lang/') ||
-      contents.contains('github.com/dart-lang/');
-}
-
-const _filePath = '.github/workflows/no-response.yml';
-
-// The content below - as is - should only be run on dart-lang repos.
-// Alternatively, we could substitue in the GitHub org for the repo into the
-// config content.
-
-const _noResponseContent = r'''
+const noResponseContent = r'''
 # A workflow to close issues where the author hasn't responded to a request for
-# more information; see https://github.com/godofredoc/no-response for docs.
+# more information; see https://github.com/actions/stale.
 
 name: No Response
 
-# Both `issue_comment` and `scheduled` event types are required.
+# Run as a daily cron.
 on:
-  issue_comment:
-    types: [created]
   schedule:
     # Every day at 8am
     - cron: '0 8 * * *'
@@ -73,22 +48,25 @@ on:
 # All permissions not specified are set to 'none'.
 permissions:
   issues: write
+  pull-requests: write
 
 jobs:
-  noResponse:
+  no-response:
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'dart-lang' }}
+    if: ${{ github.repository_owner == '{org}' }}
     steps:
-      - uses: godofredoc/no-response@0ce2dc0e63e1c7d2b87752ceed091f6d32c9df09
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84
         with:
-          responseRequiredLabel: "needs-info"
-          responseRequiredColor: 4774bc
-          daysUntilClose: 14
-          # Comment to post when closing an Issue for lack of response.
-          closeComment: >
-            Without additional information we're not able to resolve this issue,
-            so it will be closed at this time. You're still free to add more
-            info and respond to any questions above, though. We'll reopen the
-            issue if you do. Thanks for your contribution!
-          token: ${{ github.token }}
+          days-before-stale: -1
+          days-before-close: 14
+          stale-issue-label: "needs-info"
+          close-issue-message: >
+            Without additional information we're not able to resolve this issue.
+            Feel free to add more info or respond to any questions above and we
+            can reopen the case. Thanks for your contribution!
+          stale-pr-label: "needs-info"
+          close-pr-message: >
+            Without additional information we're not able to resolve this PR.
+            Feel free to add more info or respond to any questions above.
+            Thanks for your contribution!
 ''';

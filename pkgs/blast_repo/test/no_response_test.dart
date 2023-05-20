@@ -6,11 +6,37 @@ import 'dart:io' as io;
 
 import 'package:blast_repo/src/tweaks/no_reponse_tweak.dart';
 import 'package:test/test.dart';
+import 'package:test_descriptor/test_descriptor.dart' as d;
 
 void main() {
-  test('isDartLangOrgRepo', () {
-    final result = isDartLangOrgRepo(io.Directory.current.parent.parent);
+  late NoResponseTweak tweak;
+  late io.Directory dir;
 
-    expect(result, true);
+  setUp(() async {
+    tweak = NoResponseTweak();
+    await d.dir('foo', [
+      d.file('README.md', '# package name\n\n'),
+      d.dir('.github', [
+        d.dir('workflows', [
+          d.file('build.yaml', '# hello world'),
+        ]),
+      ])
+    ]).create();
+    dir = d.dir('foo').io;
+  });
+
+  test('creates file', () async {
+    var results = await tweak.fix(dir, 'my_org/my_repo');
+    expect(results.fixes, isNotEmpty);
+
+    await d.dir('foo', [
+      d.dir('.github', [
+        d.dir('workflows', [
+          d.file('no-response.yml', contains('my_org')),
+          d.file('no-response.yml', contains('actions/stale')),
+          d.file('no-response.yml', contains('"needs-info"')),
+        ]),
+      ])
+    ]).validate();
   });
 }
