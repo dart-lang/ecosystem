@@ -14,7 +14,11 @@ abstract class RepoTweak {
   final String id;
   final String description;
 
-  bool get stable => true;
+  /// Returns whether this tweak should run for the given repository by default.
+  ///
+  /// Some tweaks may only run by default in the presence of a file in the repo,
+  /// or only if the repo is a mono repo.
+  bool shouldRunByDefault(Directory checkout, String repoSlug);
 
   /// Checks to see if the [checkout] needs to be fixed.
   ///

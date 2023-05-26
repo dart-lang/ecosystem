@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:blast_repo/src/tweaks/mono_repo_tweak.dart';
 import 'package:git/git.dart';
 
 import 'repo_tweak.dart';
@@ -19,13 +20,13 @@ final allTweaks = Set<RepoTweak>.unmodifiable([
   AutoPublishTweak(),
   DependabotTweak(),
   GitHubActionTweak(),
+  MonoRepoTweak(),
   NoResponseTweak(),
 ]);
 
 Future<void> runFix({
   required String slug,
   required bool deleteTemp,
-  required bool onlyStable,
   required String? prReviewer,
   Iterable<RepoTweak>? tweaks,
 }) async {
@@ -38,7 +39,6 @@ Future<void> runFix({
         slug,
         tempDir,
         tweaks: tweaks,
-        onlyStable: onlyStable,
       );
 
       final fixes = result.entries
@@ -109,9 +109,9 @@ Future<Map<RepoTweak, FixResult>> fixAll(
   String repoSlug,
   Directory checkout, {
   Iterable<RepoTweak>? tweaks,
-  required bool onlyStable,
 }) async {
-  tweaks ??= allTweaks.orAll(onlyStable: onlyStable);
+  tweaks ??=
+      allTweaks.where((tweak) => tweak.shouldRunByDefault(checkout, repoSlug));
 
   return {
     for (var tweak in tweaks)
@@ -132,9 +132,4 @@ Future<T> _safeRun<T>(
     printError('  Error running $id');
     rethrow;
   }
-}
-
-extension on Iterable<RepoTweak>? {
-  Iterable<RepoTweak> orAll({required bool onlyStable}) =>
-      (this ?? allTweaks).where((element) => !onlyStable || element.stable);
 }

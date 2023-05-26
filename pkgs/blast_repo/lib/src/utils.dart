@@ -130,3 +130,19 @@ bool singlePackageRepo(Directory repoDir) {
   var pubspec = File(p.join(repoDir.path, 'pubspec.yaml'));
   return pubspec.existsSync();
 }
+
+/// Returns whether the given repo follows some conventions for our monorepos.
+///
+/// Currently this checks for either the presense of a `mono_repo.yaml` file or
+/// of a top-level `pkgs/` directory.
+bool monoRepo(Directory dir, String repoSlug) {
+  if (File(p.join(dir.path, 'mono_repo.yaml')).existsSync()) {
+    return true;
+  }
+
+  if (Directory(p.join(dir.path, 'pkgs')).existsSync()) {
+    return true;
+  }
+
+  return false;
+}

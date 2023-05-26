@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import '../exact_file_tweak.dart';
+import '../utils.dart';
 
 final _instance = NoResponseTweak._();
 
@@ -20,7 +21,9 @@ class NoResponseTweak extends ExactFileTweak {
         );
 
   @override
-  bool get stable => false;
+  bool shouldRunByDefault(Directory checkout, String repoSlug) {
+    return monoRepo(checkout, repoSlug);
+  }
 
   @override
   String expectedContent(Directory checkout, String repoSlug) {
