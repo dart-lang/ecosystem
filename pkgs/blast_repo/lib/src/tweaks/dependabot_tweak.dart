@@ -24,6 +24,9 @@ class DependabotTweak extends RepoTweak {
         );
 
   @override
+  bool shouldRunByDefault(Directory checkout, String repoSlug) => true;
+
+  @override
   FutureOr<FixResult> fix(Directory checkout, String repoSlug) {
     final file = _dependabotFile(checkout);
 

@@ -19,16 +19,12 @@ Future<void> main(List<String> args) async {
     )
     ..addMultiOption('tweaks',
         help: 'Optionally list the specific tweaks to run (defaults to all '
-            'stable tweaks).',
+            'applicable tweaks).',
         allowed: allTweaks.map((t) => t.id),
         valueHelp: 'tweak1,tweak2')
-    ..addFlag(
-      'include-unstable',
-      help: 'Run tweaks that are not stable.',
-      negatable: false,
-    )
     ..addOption(
-      'pr-reviewer',
+      'reviewer',
+      aliases: ['pr-reviewer'],
       valueHelp: 'github-id',
       help: 'Specify the GitHub handle for the desired reviewer.',
     )
@@ -44,8 +40,7 @@ Future<void> main(List<String> args) async {
     print(parser.usage);
     print('\navailable tweaks:');
     for (var tweak in allTweaks) {
-      var unstable = tweak.stable ? '' : ' (unstable)';
-      print('  ${tweak.id}: ${tweak.description}$unstable');
+      print('  ${tweak.id}: ${tweak.description}');
     }
   }
 
@@ -68,8 +63,7 @@ Future<void> main(List<String> args) async {
 
   final keepTemp = argResults['keep-temp'] as bool;
 
-  final includeUnstable = argResults['include-unstable'] as bool;
-  final prReviewer = argResults['pr-reviewer'] as String?;
+  final prReviewer = argResults['reviewer'] as String?;
   final explicitTweakIds = argResults['tweaks'] as List<String>;
   final explicitTweaks = explicitTweakIds.isEmpty
       ? null
@@ -82,7 +76,6 @@ Future<void> main(List<String> args) async {
       slug: slug,
       deleteTemp: !keepTemp,
       tweaks: explicitTweaks,
-      onlyStable: !includeUnstable,
       prReviewer: prReviewer,
     );
   } catch (error, stack) {
