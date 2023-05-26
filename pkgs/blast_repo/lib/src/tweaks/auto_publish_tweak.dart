@@ -21,9 +21,8 @@ class AutoPublishTweak extends ExactFileTweak {
         );
 
   @override
-  bool shouldRunByDefault(Directory checkout, String repoSlug) {
-    return monoRepo(checkout, repoSlug);
-  }
+  bool shouldRunByDefault(Directory checkout, String repoSlug) =>
+      monoRepo(checkout, repoSlug);
 
   @override
   String expectedContent(Directory checkout, String repoSlug) {

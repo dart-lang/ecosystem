@@ -28,9 +28,7 @@ class GitHubActionTweak extends RepoTweak {
         );
 
   @override
-  bool shouldRunByDefault(Directory checkout, String repoSlug) {
-    return true;
-  }
+  bool shouldRunByDefault(Directory checkout, String repoSlug) => true;
 
   @override
   FutureOr<FixResult> fix(Directory checkout, String repoSlug) async {
