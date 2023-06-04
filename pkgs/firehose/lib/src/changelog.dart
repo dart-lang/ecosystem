@@ -36,6 +36,7 @@ class Changelog {
 
   String? get latestHeading {
     var sections = _parseSections();
+    // Remove all leading "#"
     return sections.firstOrNull?.title.replaceAll(RegExp(r'^#*'), '').trim();
   }
 
