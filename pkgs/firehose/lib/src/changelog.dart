@@ -14,8 +14,29 @@ class Changelog {
   bool get exists => file.existsSync();
 
   String? get latestVersion {
+    var input = latestHeading;
+
+    if (input == null) {
+      return null;
+    }
+
+    final versionRegex = RegExp(r'[0-9]+\.[0-9]+\.[0-9]+(\+[0-9]+)?');
+
+    var match = versionRegex.firstMatch(input);
+
+    if (match != null) {
+      var version = match.group(0);
+      print('Version: $version');
+      return version;
+    } else {
+      print('No version number found.');
+    }
+    return null;
+  }
+
+  String? get latestHeading {
     var sections = _parseSections();
-    return sections.firstOrNull?.title.substring(3).trim();
+    return sections.firstOrNull?.title.replaceAll(RegExp(r'^#*'), '').trim();
   }
 
   List<String> get latestChangeEntries {

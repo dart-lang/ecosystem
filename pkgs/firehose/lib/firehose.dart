@@ -130,7 +130,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       print('changelog:');
       print(package.changelog.describeLatestChanges.trimRight());
 
-      if (!changelogVersion.toString().contains(pubspecVersion)) {
+      if (pubspecVersion != changelogVersion) {
         var result = Result.fail(
           package,
           'pubspec version ($pubspecVersion) and changelog ($changelogVersion) '
