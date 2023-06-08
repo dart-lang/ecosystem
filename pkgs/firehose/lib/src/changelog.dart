@@ -26,10 +26,7 @@ class Changelog {
 
     if (match != null) {
       var version = match.group(0);
-      print('Version: $version');
       return version;
-    } else {
-      print('No version number found.');
     }
     return null;
   }

@@ -93,18 +93,6 @@ void main() {
       });
     });
 
-    // This text will extract 25.05.23 which in fact
-    // is not the version. This heading order will fail
-    test('xx.xx.xx date format before version', () {
-      withChangelog('''
-## 25.05.23 [4.7.0](https://github.com/.../.../compare/v4.6.0...v4.7.0) 
-''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
-        expect(version, '25.05.23');
-      });
-    });
-
     test('missing versions', () {
       withChangelog('''
 - no
@@ -112,7 +100,7 @@ void main() {
 - mentioned here
 ''', (file) {
         var changelog = Changelog(file);
-        var version = changelog.latestHeading;
+        var version = changelog.latestVersion;
         expect(version, isNull);
       });
     });
@@ -120,7 +108,7 @@ void main() {
     test('no changelog file', () {
       var changelog = Changelog(File('missing_changelog.md'));
       expect(changelog.exists, false);
-      expect(changelog.latestHeading, isNull);
+      expect(changelog.latestVersion, isNull);
       expect(changelog.latestChangeEntries, isEmpty);
     });
 

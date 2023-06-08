@@ -1,3 +1,7 @@
+## 0.3.16
+
+- More robust version checking, now more diverse changelog formats are accepted.
+
 ## 0.3.15
 
 - Make publish tags link to the new release page for that tag, with
