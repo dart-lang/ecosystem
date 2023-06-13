@@ -17,11 +17,79 @@ void main() {
       });
     });
 
+    test('latestHeading', () {
+      withChangelog(_defaultContents, (file) {
+        var changelog = Changelog(file);
+        var heading = changelog.latestHeading;
+        expect(heading, '0.3.7+1');
+      });
+    });
+
+    test('Custom heading extraction', () {
+      withChangelog('''
+## 1.2.3+4 is the new version ## :) 
+''', (file) {
+        var changelog = Changelog(file);
+        var heading = changelog.latestHeading;
+        expect(heading, '1.2.3+4 is the new version ## :)');
+      });
+    });
+
     test('latestVersion', () {
       withChangelog(_defaultContents, (file) {
         var changelog = Changelog(file);
         var version = changelog.latestVersion;
-        expect(version, isNotNull);
+        expect(version, '0.3.7+1');
+      });
+    });
+
+    test('on digit version + x', () {
+      withChangelog('''
+## 1.2.3+4
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '1.2.3+4');
+      });
+    });
+
+    test('multi digit version + x', () {
+      withChangelog('''
+## 123.456.789+123456789
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '123.456.789+123456789');
+      });
+    });
+
+    test('no "+ x" at the end', () {
+      withChangelog('''
+## 123.456.789
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '123.456.789');
+      });
+    });
+
+    test('custom heading version', () {
+      withChangelog('''
+## [4.7.0](https://github.com/...) (2023-05-06)
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '4.7.0');
+      });
+    });
+
+    test('multiple versions mentioned', () {
+      withChangelog('''
+## [4.7.0](https://github.com/.../.../compare/v4.6.0...v4.7.0) (25.05.23)
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '4.7.0');
       });
     });
 
