@@ -73,6 +73,16 @@ void main() {
       });
     });
 
+    test('with prerelease tag', () {
+      withChangelog('''
+## 123.456.789-wip
+''', (file) {
+        var changelog = Changelog(file);
+        var version = changelog.latestVersion;
+        expect(version, '123.456.789-wip');
+      });
+    });
+
     test('custom heading version', () {
       withChangelog('''
 ## [4.7.0](https://github.com/...) (2023-05-06)
