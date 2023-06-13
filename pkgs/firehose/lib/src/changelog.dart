@@ -20,7 +20,7 @@ class Changelog {
       return null;
     }
 
-    final versionRegex = RegExp(r'[0-9]+\.[0-9]+\.[0-9]+(\+[0-9]+)?');
+    final versionRegex = RegExp(r'[0-9]+\.[0-9]+\.[0-9]+([-\+]\w+)?');
 
     var match = versionRegex.firstMatch(input);
 

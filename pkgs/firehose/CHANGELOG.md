@@ -1,3 +1,7 @@
+## 0.3.17
+
+- Correctly parse pre-release versions from the CHANGELOG.
+
 ## 0.3.16
 
 - More robust version checking, now more diverse changelog formats are accepted.
