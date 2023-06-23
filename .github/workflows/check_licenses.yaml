@@ -1,4 +1,4 @@
-# A CI configuration to auto-publish pub packages.
+# A CI configuration to check for licenses in Dart files.
 
 name: Licensecheck
 
@@ -13,31 +13,7 @@ name: Licensecheck
 #     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
 # jobs:
 #   licensecheck:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
-
-# Callers may optionally specify the version of the SDK to use when publishing a
-# package. This can be useful if your package has a very recent minimum SDK
-# constraint. This is done via the `sdk` input parameter. Note that this
-# parameter is not required; it defaults to `stable` - using the most recent
-# stable release of the Dart SDK. To pass this value:
-#
-# jobs:
-#   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
-#     with:
-#       sdk: beta
-
-on:
-  workflow_call:
-    inputs:
-      sdk:
-        description: >-
-          The channel, or a specific version from a channel, to install
-          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
-          will give you the latest version published to that channel.
-        default: "stable"
-        required: false
-        type: string
+#     uses: dart-lang/ecosystem/.github/workflows/check_licenses.yml@main
 
 jobs:
   licensecheck:
@@ -52,7 +28,7 @@ jobs:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
-          sdk: ${{ inputs.sdk }}
+          sdk: stable
 
       - name: Install firehose
         run: dart pub global activate firehose

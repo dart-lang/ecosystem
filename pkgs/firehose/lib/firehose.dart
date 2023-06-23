@@ -321,6 +321,8 @@ Add the following to all listed files:
     github.appendStepSummary(markdownResult);
 
     if (results.isNotEmpty) {
+      exitCode = 1;
+
       var existingCommentId = await allowFailure(
         github.findCommentId(
           github.repoSlug!,
