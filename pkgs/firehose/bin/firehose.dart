@@ -88,5 +88,10 @@ ArgParser _createArgs() {
       'check_licenses',
       negatable: false,
       help: 'Check dart files for a license header.',
+    )
+    ..addFlag(
+      'changelog',
+      negatable: false,
+      help: 'Check for file changes not accounted for in the CHANGELOG.md.',
     );
 }
