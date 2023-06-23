@@ -309,11 +309,15 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     var markdownResult = results.isNotEmpty
         ? '''
+Some files where found to not have licenses.
+
 | Filename |
 | :--- |
 ${results.describeAsMarkdown}\n\n
-Add the following to all listed files:
-```$license```
+Add the following header to all listed files:
+```
+$license
+```
 '''
         : 'All dart files have licenses!';
 
