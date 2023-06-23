@@ -2,8 +2,8 @@
 [![package publisher](https://img.shields.io/pub/publisher/firehose.svg)](https://pub.dev/packages/firehose/publisher)
 
 ## What's this?
-
-This is a tool to automate publishing of pub packages from GitHub actions.
+<!-- TODO: Update to accomodate for other Github CI actions? -->
+This is a tool to automate publishing of pub packages from GitHub actions. 
 
 ## Conventions and setup
 
