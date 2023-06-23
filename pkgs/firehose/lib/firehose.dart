@@ -9,6 +9,7 @@ import 'package:firehose/src/repo.dart';
 import 'src/github.dart';
 import 'src/pub.dart';
 import 'src/utils.dart';
+import 'package:path/path.dart' as path;
 
 const String _botSuffix = '[bot]';
 
@@ -325,14 +326,12 @@ $license
     github.appendStepSummary(markdownResult);
 
     if (results.isNotEmpty) {
-      exitCode = 1;
-
       var existingCommentId = await allowFailure(
         github.findCommentId(
           github.repoSlug!,
           github.issueNumber!,
           user: _githubActionsUser,
-          searchTerm: _publishBotTag,
+          searchTerm: _licenseBotTag,
         ),
         logError: print,
       );
@@ -368,7 +367,7 @@ $license
           var fileContainsCopyright =
               File(file.path).readAsStringSync().contains('// Copyright (c)');
           if (!fileContainsCopyright) {
-            return file.path;
+            return path.relative(file.path, from: Directory.current.path);
           }
         })
         .whereType<String>()
