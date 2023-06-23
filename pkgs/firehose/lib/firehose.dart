@@ -277,8 +277,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   final license = '''
 // Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-''';
+// BSD-style license that can be found in the LICENSE file.''';
 
   Future<void> checkLicenses() async {
     var github = Github();
@@ -305,8 +304,7 @@ $license
 
 | Files |
 | :--- |
-${filePaths.map((e) => '|$e|').join('\n')}\n\n
-
+${filePaths.map((e) => '|$e|').join('\n')}
 '''
         : 'Great, all files have license headers!';
 
