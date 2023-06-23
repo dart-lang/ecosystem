@@ -5,11 +5,11 @@
 import 'dart:io';
 
 import 'package:firehose/src/repo.dart';
+import 'package:path/path.dart' as path;
 
 import 'src/github.dart';
 import 'src/pub.dart';
 import 'src/utils.dart';
-import 'package:path/path.dart' as path;
 
 const String _botSuffix = '[bot]';
 
