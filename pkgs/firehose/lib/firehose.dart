@@ -310,7 +310,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     var markdownResult = results.isNotEmpty
         ? '''
-Some files where found to not have licenses.
+Some files were found to not have licenses.
 
 | Filename |
 | :--- |
