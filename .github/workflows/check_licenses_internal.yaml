@@ -37,7 +37,7 @@ jobs:
           sdk: stable
 
       - name: Install firehose
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=53fcfcfb8781452858eb542d612a4d6ee41e4611 #TODO remove, just for testing
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=a58b1c54d130d6a1845c112192fd3af067c384f7 #TODO remove, just for testing
 
       - name: Check package file licenses
         if: ${{ github.event_name == 'pull_request' }}
