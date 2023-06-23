@@ -391,12 +391,12 @@ ${filePaths.map((e) => '|$e|').join('\n')}
     if (filePaths.isNotEmpty) {
       if (Repository().isSinglePackageRepo) {
         markdownResult = '''
-Changes to the files ${filePaths.values.first} need to be accounted for in the changelog''';
+Changes to the files ${filePaths.values.first.map((e) => path.relative(e, from: Directory.current.path)).join(', ')} need to be accounted for in the changelog''';
       } else {
         markdownResult = '''
 Changes to the files in need to be accounted for in the changelog:
 
-${filePaths.entries.map((e) => '${e.key}: ${e.value}').join('\n')}
+${filePaths.entries.map((e) => '${e.key.name}: ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join(', ')}').join('\n')}
 ''';
       }
     } else {
@@ -412,7 +412,7 @@ ${filePaths.entries.map((e) => '${e.key}: ${e.value}').join('\n')}
           github.repoSlug!,
           github.issueNumber!,
           user: _githubActionsUser,
-          searchTerm: _licenseBotTag,
+          searchTerm: _changelogBotTag,
         ),
         logError: print,
       );
