@@ -200,6 +200,19 @@ class Github {
   void notice({required String message}) {
     print('::notice ::$message');
   }
+
+  Future<List<String>> listFilesForPR() async {
+    var result = await callRestApiGet(
+      Uri.parse(
+          'https://api.github.com/repos/$repoSlug/pulls/$issueNumber/files'),
+    );
+    var json = jsonDecode(result) as List;
+    var filenames = json
+        .map((e) => e as Map<String, dynamic>)
+        .map((e) => e['filename'] as String)
+        .toList();
+    return filenames;
+  }
 }
 
 class RpcException implements Exception {

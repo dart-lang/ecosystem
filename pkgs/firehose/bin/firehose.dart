@@ -21,6 +21,7 @@ void main(List<String> arguments) async {
     var validate = argResults['validate'] == true;
     var publish = argResults['publish'] == true;
     var checkLicenses = argResults['check_licenses'] == true;
+    var changelog = argResults['changelog'] == true;
 
     if (!validate && !publish && !checkLicenses) {
       _usage(argParser, error: '''
@@ -44,6 +45,8 @@ Error: one of --validate, --publish, or --check_licenses must be specified.''');
       await firehose.publish();
     } else if (checkLicenses) {
       await firehose.checkLicenses();
+    } else if (changelog) {
+      await firehose.changelog();
     }
   } on ArgParserException catch (e) {
     _usage(argParser, error: e.message);

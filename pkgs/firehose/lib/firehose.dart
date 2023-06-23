@@ -19,6 +19,8 @@ const String _publishBotTag = '## Package publishing';
 
 const String _licenseBotTag = '## License Check';
 
+const String _changelogBotTag = '## Changelog Check';
+
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
@@ -366,6 +368,93 @@ ${filePaths.map((e) => '|$e|').join('\n')}
         logError: print,
       );
     }
+  }
+
+  Future<void> changelog() async {
+    var github = Github();
+
+    // Do basic validation of our expected env var.
+    if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
+    if (!_expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
+    if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
+
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping license check for ${github.actor} PRs.');
+      return;
+    }
+
+    var filePaths = await _packagesWithoutChangelog(github);
+
+    String markdownResult;
+
+    if (filePaths.isNotEmpty) {
+      if (Repository().isSinglePackageRepo) {
+        markdownResult = '''
+Changes to the files ${filePaths.values.first} need to be accounted for in the changelog''';
+      } else {
+        markdownResult = '''
+Changes to the files in need to be accounted for in the changelog:
+
+${filePaths.entries.map((e) => '${e.key}: ${e.value}').join('\n')}
+''';
+      }
+    } else {
+      markdownResult = 'No unrecorded changes found.';
+    }
+
+    // Write the publish info status to the job summary.
+    github.appendStepSummary(markdownResult);
+
+    if (filePaths.isNotEmpty) {
+      var existingCommentId = await allowFailure(
+        github.findCommentId(
+          github.repoSlug!,
+          github.issueNumber!,
+          user: _githubActionsUser,
+          searchTerm: _licenseBotTag,
+        ),
+        logError: print,
+      );
+
+      var commentText = '$_changelogBotTag\n\n$markdownResult';
+
+      await createOrUpdateComment(github, existingCommentId, commentText);
+    }
+
+    github.close();
+  }
+
+  Future<Map<Package, List<String>>> _packagesWithoutChangelog(
+      Github github) async {
+    var repo = Repository();
+    var packages = repo.locatePackages();
+
+    var files = await github.listFilesForPR();
+    var packagesWithoutChangelog = packages
+        .where((package) => !files.contains(package.changelog.file.path))
+        .toList();
+
+    var packagesWithChanges = <Package, List<String>>{};
+    for (var file in files) {
+      for (var package in packagesWithoutChangelog) {
+        if (hasChanges(package, file)) {
+          packagesWithChanges.update(
+            package,
+            (changedFiles) => [...changedFiles, file],
+            ifAbsent: () => [file],
+          );
+          break;
+        }
+      }
+    }
+    return packagesWithChanges;
+  }
+
+  bool hasChanges(Package package, String file) {
+    //TODO: Add conditions, such as file is not a markdown etc. Find out what is
+    //sensible.
+    return path.isWithin(package.directory.path, file);
   }
 }
 
