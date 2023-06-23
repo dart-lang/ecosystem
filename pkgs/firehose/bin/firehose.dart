@@ -23,9 +23,9 @@ void main(List<String> arguments) async {
     var checkLicenses = argResults['check_licenses'] == true;
     var changelog = argResults['changelog'] == true;
 
-    if (!validate && !publish && !checkLicenses) {
+    if (!validate && !publish && !checkLicenses && !changelog) {
       _usage(argParser, error: '''
-Error: one of --validate, --publish, or --check_licenses must be specified.''');
+Error: one of --validate, --publish, --check_licenses, or --changelog must be specified.''');
       exit(1);
     }
 
