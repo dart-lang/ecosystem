@@ -20,10 +20,11 @@ void main(List<String> arguments) async {
 
     var validate = argResults['validate'] == true;
     var publish = argResults['publish'] == true;
+    var checkLicenses = argResults['check_licenses'] == true;
 
-    if (!validate && !publish) {
-      _usage(argParser,
-          error: 'Error: one of --validate or --publish must be specified.');
+    if (!validate && !publish && !checkLicenses) {
+      _usage(argParser, error: '''
+Error: one of --validate, --publish, or --check_licenses must be specified.''');
       exit(1);
     }
 
@@ -41,6 +42,8 @@ void main(List<String> arguments) async {
       await firehose.validate();
     } else if (publish) {
       await firehose.publish();
+    } else if (checkLicenses) {
+      await firehose.checkLicenses();
     }
   } on ArgParserException catch (e) {
     _usage(argParser, error: e.message);
@@ -77,5 +80,10 @@ ArgParser _createArgs() {
       'publish',
       negatable: false,
       help: 'Publish any changed packages.',
+    )
+    ..addFlag(
+      'check_licenses',
+      negatable: false,
+      help: 'Check dart files for a license header.',
     );
 }

@@ -16,6 +16,8 @@ const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
 
+const String _licenseBotTag = '## License Check';
+
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
@@ -282,6 +284,102 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       return true;
     }
   }
+
+  final license = '''
+// Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+''';
+
+  Future<void> checkLicenses() async {
+    var github = Github();
+
+    // Do basic validation of our expected env var.
+    if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
+    if (!_expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
+    if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
+
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping license check for ${github.actor} PRs.');
+      return;
+    }
+
+    var results = await _getFilesWithoutLicenses(github);
+
+    var markdownResult = results.isNotEmpty
+        ? '''
+| Filename |
+| :--- |
+${results.describeAsMarkdown}\n\n
+Add the following to all listed files:
+```$license```
+'''
+        : 'All dart files have licenses!';
+
+    // Write the publish info status to the job summary.
+    github.appendStepSummary(markdownResult);
+
+    if (results.isNotEmpty) {
+      var existingCommentId = await allowFailure(
+        github.findCommentId(
+          github.repoSlug!,
+          github.issueNumber!,
+          user: _githubActionsUser,
+          searchTerm: _publishBotTag,
+        ),
+        logError: print,
+      );
+
+      var commentText = '$_licenseBotTag\n\n$markdownResult';
+
+      if (existingCommentId == null) {
+        await allowFailure(
+          github.createComment(
+              github.repoSlug!, github.issueNumber!, commentText),
+          logError: print,
+        );
+      } else {
+        await allowFailure(
+          github.updateComment(
+              github.repoSlug!, existingCommentId, commentText),
+          logError: print,
+        );
+      }
+    }
+
+    github.close();
+  }
+
+  Future<LicenseCheckResult> _getFilesWithoutLicenses(Github github) async {
+    var dir = Directory.current;
+    var dartFiles = await dir
+        .list(recursive: true)
+        .where((f) => f.path.endsWith('.dart'))
+        .toList();
+    var filesWithoutLicenses = dartFiles
+        .map((file) {
+          var fileContainsCopyright =
+              File(file.path).readAsStringSync().contains('// Copyright (c)');
+          if (!fileContainsCopyright) {
+            return file.path;
+          }
+        })
+        .whereType<String>()
+        .toList();
+    return LicenseCheckResult(filesWithoutLicenses);
+  }
+}
+
+class LicenseCheckResult {
+  final List<String> filesWithMissingLicenses;
+
+  LicenseCheckResult(this.filesWithMissingLicenses);
+
+  String get describeAsMarkdown =>
+      filesWithMissingLicenses.map((e) => '|$e|').join('\n');
+
+  bool get isNotEmpty => filesWithMissingLicenses.isNotEmpty;
 }
 
 class VerificationResults {
