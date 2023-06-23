@@ -1,19 +1,7 @@
 # A CI configuration to check for licenses in Dart files.
 
-name: Licensecheck
+name: License Check
 
-# Callers of this workflow should use it as follows:
-#
-# name: Licensecheck
-# on:
-#   pull_request:
-#     branches: [ main ]
-#     types: [opened, synchronize, reopened, labeled, unlabeled]
-#   push:
-#     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
-# jobs:
-#   licensecheck:
-#     uses: dart-lang/ecosystem/.github/workflows/check_licenses.yml@main
 on:
   pull_request:
     branches: [ main ]
@@ -22,7 +10,7 @@ on:
     tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
 
 jobs:
-  licensecheck:
+  check_licenses:
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
     permissions:

@@ -73,19 +73,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     if (results.hasSuccess) {
       var commentText = '$_publishBotTag\n\n$markdownTable';
 
-      if (existingCommentId == null) {
-        await allowFailure(
-          github.createComment(
-              github.repoSlug!, github.issueNumber!, commentText),
-          logError: print,
-        );
-      } else {
-        await allowFailure(
-          github.updateComment(
-              github.repoSlug!, existingCommentId, commentText),
-          logError: print,
-        );
-      }
+      await createOrUpdateComment(github, existingCommentId, commentText);
     } else {
       if (results.hasError && exitCode == 0) {
         exitCode = 1;
@@ -306,26 +294,26 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       return;
     }
 
-    var results = await _getFilesWithoutLicenses(github);
+    var filePaths = await _getFilesWithoutLicenses(github);
 
-    var markdownResult = results.isNotEmpty
+    var markdownResult = filePaths.isNotEmpty
         ? '''
-Some files were found to not have licenses.
-
-| Filename |
-| :--- |
-${results.describeAsMarkdown}\n\n
-Add the following header to all listed files:
+Some `.dart` files were found to not have license headers. Please add the following header to all listed files:
 ```
 $license
 ```
+
+| Files |
+| :--- |
+${filePaths.map((e) => '|$e|').join('\n')}\n\n
+
 '''
-        : 'All dart files have licenses!';
+        : 'Great, all files have license headers!';
 
     // Write the publish info status to the job summary.
     github.appendStepSummary(markdownResult);
 
-    if (results.isNotEmpty) {
+    if (filePaths.isNotEmpty) {
       var existingCommentId = await allowFailure(
         github.findCommentId(
           github.repoSlug!,
@@ -338,25 +326,13 @@ $license
 
       var commentText = '$_licenseBotTag\n\n$markdownResult';
 
-      if (existingCommentId == null) {
-        await allowFailure(
-          github.createComment(
-              github.repoSlug!, github.issueNumber!, commentText),
-          logError: print,
-        );
-      } else {
-        await allowFailure(
-          github.updateComment(
-              github.repoSlug!, existingCommentId, commentText),
-          logError: print,
-        );
-      }
+      await createOrUpdateComment(github, existingCommentId, commentText);
     }
 
     github.close();
   }
 
-  Future<LicenseCheckResult> _getFilesWithoutLicenses(Github github) async {
+  Future<List<String>> _getFilesWithoutLicenses(Github github) async {
     var dir = Directory.current;
     var dartFiles = await dir
         .list(recursive: true)
@@ -364,27 +340,35 @@ $license
         .toList();
     var filesWithoutLicenses = dartFiles
         .map((file) {
-          var fileContainsCopyright =
-              File(file.path).readAsStringSync().contains('// Copyright (c)');
+          var fileContents = File(file.path).readAsStringSync();
+          var fileContainsCopyright = fileContents.contains('// Copyright (c)');
           if (!fileContainsCopyright) {
             return path.relative(file.path, from: Directory.current.path);
           }
         })
         .whereType<String>()
         .toList();
-    return LicenseCheckResult(filesWithoutLicenses);
+    return filesWithoutLicenses;
   }
-}
 
-class LicenseCheckResult {
-  final List<String> filesWithMissingLicenses;
-
-  LicenseCheckResult(this.filesWithMissingLicenses);
-
-  String get describeAsMarkdown =>
-      filesWithMissingLicenses.map((e) => '|$e|').join('\n');
-
-  bool get isNotEmpty => filesWithMissingLicenses.isNotEmpty;
+  Future<void> createOrUpdateComment(
+    Github github,
+    int? existingCommentId,
+    String commentText,
+  ) async {
+    if (existingCommentId == null) {
+      await allowFailure(
+        github.createComment(
+            github.repoSlug!, github.issueNumber!, commentText),
+        logError: print,
+      );
+    } else {
+      await allowFailure(
+        github.updateComment(github.repoSlug!, existingCommentId, commentText),
+        logError: print,
+      );
+    }
+  }
 }
 
 class VerificationResults {
