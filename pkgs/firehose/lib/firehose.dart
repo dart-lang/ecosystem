@@ -283,8 +283,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     var commentText = results.map((e) {
       var markdown = e.markdown;
       var s = '''
-<details>
-<summary${e.severity == Severity.error ? ' open' : ''}>
+<details${e.severity == Severity.error ? ' open' : ''}>
+<summary>
 Details
 </summary>
 
