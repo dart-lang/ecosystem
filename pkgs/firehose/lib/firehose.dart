@@ -89,7 +89,15 @@ $license
 | Files |
 | :--- |
 ${filePaths.map((e) => '|$e|').join('\n')}
-''';
+
+Either manually or by running the following in your repository directory
+
+```
+dart pub global activate --source git https://github.com/mosuem/file_licenser
+dart pub global run file_licenser .
+```
+
+'''; //TODO: replace by pub.dev version
 
     return HealthCheckResult(
       _licenseBotTag,
