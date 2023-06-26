@@ -58,7 +58,8 @@ class Firehose {
     var markdownTable = '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
-    ${results.describeAsMarkdown}
+${results.describeAsMarkdown}
+
     ''';
 
     var healthCheckResult = HealthCheckResult(
