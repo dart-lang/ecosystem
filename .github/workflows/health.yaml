@@ -24,6 +24,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yml@main
 #     with:
 #       sdk: beta
+#       checks: "version,changelog,license"
 
 on:
   workflow_call:
