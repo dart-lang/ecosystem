@@ -21,6 +21,8 @@ const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
 
+const String _changelogBotTag = '### Changelog entry';
+
 const String _prHealthTag = '## PR Health';
 
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
@@ -46,8 +48,9 @@ class Firehose {
 
     var validate = await validateCheck(github);
     var license = await licenseCheck(github);
+    var changelog = await changelogCheck(github);
 
-    await writeInComment(github, [validate, license]);
+    await writeInComment(github, [validate, license, changelog]);
 
     github.close();
   }
@@ -62,12 +65,11 @@ ${results.describeAsMarkdown}
 
     ''';
 
-    var healthCheckResult = HealthCheckResult(
+    return HealthCheckResult(
       _publishBotTag2,
       results.severity,
       markdownTable,
     );
-    return healthCheckResult;
   }
 
   Future<HealthCheckResult> licenseCheck(Github github) async {
@@ -89,12 +91,62 @@ $license
 ${filePaths.map((e) => '|$e|').join('\n')}
 ''';
 
-    var healthCheckResult = HealthCheckResult(
+    return HealthCheckResult(
       _licenseBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
-    return healthCheckResult;
+  }
+
+  Future<HealthCheckResult> changelogCheck(Github github) async {
+    var filePaths = await _packagesWithoutChangelog(github);
+
+    final markdownResult = '''
+Changes to these files need to be accounted for in their respective changelogs:
+
+| Package | Files |
+| :--- | :--- |
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join(', ')} |').join('\n')}
+''';
+
+    return HealthCheckResult(
+      _changelogBotTag,
+      filePaths.isNotEmpty ? Severity.error : Severity.success,
+      markdownResult,
+    );
+  }
+
+  Future<Map<Package, List<String>>> _packagesWithoutChangelog(
+      Github github) async {
+    var repo = Repository();
+    var packages = repo.locatePackages();
+
+    var files = await github.listFilesForPR();
+    var packagesWithoutChangelog = packages
+        .where((package) => !files.contains(package.changelog.file
+            .path)) //TODO check that the paths are correct between gh api and local paths
+        .toList();
+
+    var packagesWithChanges = <Package, List<String>>{};
+    for (var file in files) {
+      for (var package in packagesWithoutChangelog) {
+        if (hasChanges(package, file)) {
+          packagesWithChanges.update(
+            package,
+            (changedFiles) => [...changedFiles, file],
+            ifAbsent: () => [file],
+          );
+          break;
+        }
+      }
+    }
+    return packagesWithChanges;
+  }
+
+  bool hasChanges(Package package, String file) {
+    //TODO: Add conditions, such as file is not a markdown etc. Find out what is
+    //sensible.
+    return path.isWithin(package.directory.path, file);
   }
 
   Future<List<String>> _getFilesWithoutLicenses(Github github) async {
