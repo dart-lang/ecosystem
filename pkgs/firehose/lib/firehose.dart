@@ -106,7 +106,7 @@ Changes to these files need to be accounted for in their respective changelogs:
 
 | Package | Files |
 | :--- | :--- |
-${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join(r'\')} |').join('\n')}
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join('<br />')} |').join('\n')}
 ''';
 
     return HealthCheckResult(
