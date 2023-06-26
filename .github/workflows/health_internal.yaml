@@ -1,10 +1,10 @@
 # A CI configuration to auto-publish pub packages.
 
-name: Health (Internal)
+name: Health
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 jobs:
-  health_internal:
-    uses: ./.github/workflows/health.yml
+  health:
+    uses: ./.github/workflows/health.yaml
