@@ -78,8 +78,7 @@ ${results.describeAsMarkdown}
 
     var filePaths = await _getFilesWithoutLicenses(github);
 
-    var markdownResult = filePaths.isNotEmpty
-        ? '''
+    var markdownResult = '''
 Some `.dart` files were found to not have license headers. Please add the following header to all listed files:
 ```
 $license
@@ -88,8 +87,7 @@ $license
 | Files |
 | :--- |
 ${filePaths.map((e) => '|$e|').join('\n')}
-'''
-        : 'Great, all files have license headers!';
+''';
 
     var healthCheckResult = HealthCheckResult(
       _licenseBotTag,
@@ -196,9 +194,13 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     Github github,
     List<HealthCheckResult> results,
   ) async {
-    var commentText = results
-        .map((e) => '${e.tag} ${e.severity.emoji}\n\n${e.markdown}')
-        .join('\n');
+    var commentText = results.map((e) {
+      var markdown = e.markdown;
+      var s = e.severity == Severity.success
+          ? '<details><summary>Details</summary>$markdown</details>'
+          : markdown;
+      return '${e.tag} ${e.severity.emoji}\n\n$s';
+    }).join('\n');
 
     var summary = '$_prHealthTag\n\n$commentText';
     github.appendStepSummary(summary);
@@ -491,8 +493,8 @@ enum Severity {
   error;
 
   String get emoji => switch (this) {
-        Severity.info => ':exclamation:',
-        Severity.error => ':heavy_multiplication_x:',
+        Severity.info => ':heavy_check_mark:',
+        Severity.error => ':exclamation:',
         success => ':heavy_check_mark:',
       };
 }
