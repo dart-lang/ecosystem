@@ -17,7 +17,7 @@ const String _botSuffix = '[bot]';
 const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
-const String _publishBotTag2 = '### Package publishing';
+const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
 
