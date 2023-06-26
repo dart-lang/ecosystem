@@ -123,8 +123,13 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
 
     var files = await github.listFilesForPR();
     var packagesWithoutChangelog = packages
-        .where((package) => !files.contains(package.changelog.file
-            .path)) //TODO check that the paths are correct between gh api and local paths
+        .map((e) {
+          print('Changelog path: ${e.changelog.file.path}');
+          print('Directory path: ${e.directory.path}');
+          print('Sample files paths: ${files.take(5).toList()}');
+          return e;
+        })
+        .where((package) => !files.contains(package.changelog.file.path))
         .toList();
 
     var packagesWithChanges = <Package, List<String>>{};
