@@ -122,15 +122,17 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
     var packages = repo.locatePackages();
 
     var files = await github.listFilesForPR();
-    var packagesWithoutChangelog = packages
-        .map((e) {
-          print('Changelog path: ${e.changelog.file.path}');
-          print('Directory path: ${e.directory.path}');
-          print('Sample files paths: ${files.take(5).toList()}');
-          return e;
-        })
-        .where((package) => !files.contains(package.changelog.file.path))
-        .toList();
+    var packagesWithoutChangelog = packages.map((e) {
+      print('Changelog path: ${e.changelog.file.path}');
+      print('Directory path: ${e.directory.path}');
+      print('Sample files paths: ${files.take(5).toList()}');
+      return e;
+    }).where((package) {
+      var changelogPath = package.changelog.file.path;
+      var relativePath =
+          path.relative(changelogPath, from: Directory.current.path);
+      return !files.contains(relativePath);
+    }).toList();
 
     var packagesWithChanges = <Package, List<String>>{};
     for (var file in files) {
@@ -151,7 +153,11 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
   bool hasChanges(Package package, String file) {
     //TODO: Add conditions, such as file is not a markdown etc. Find out what is
     //sensible.
-    return path.isWithin(package.directory.path, file);
+    var relative =
+        path.relative(package.directory.path, from: Directory.current.path);
+    print(
+        'Check if $file is within $relative: ${path.isWithin(relative, file)}');
+    return path.isWithin(relative, file);
   }
 
   Future<List<String>> _getFilesWithoutLicenses(Github github) async {
