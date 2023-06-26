@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:firehose/src/repo.dart';
 
@@ -22,6 +23,42 @@ class Firehose {
   final Directory directory;
 
   Firehose(this.directory);
+
+  Future<void> healthCheck() async {
+    var github = Github();
+
+    // Do basic validation of our expected env var.
+    if (!_expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
+    if (!_expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
+    if (!_expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!_expectEnv(github.sha, 'GITHUB_SHA')) return;
+
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping package validation for ${github.actor} PRs.');
+      return;
+    }
+
+    var validate = await validateCheck(github);
+
+    github.close();
+  }
+
+  Future<HealthCheckResult> validateCheck(Github github) async {
+    var results = await _validate(github);
+
+    var markdownTable = '''
+| Package | Version | Status | Publish tag (post-merge) |
+| :--- | ---: | :--- | ---: |
+    ${results.describeAsMarkdown}
+    ''';
+
+    var healthCheckResult = HealthCheckResult(
+      _publishBotTag,
+      results.severity,
+      markdownTable,
+    );
+    return healthCheckResult;
+  }
 
   /// Validate the packages in the repository.
   ///
@@ -54,49 +91,56 @@ ${results.describeAsMarkdown}
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
 
+    var healthCheckResult =
+        HealthCheckResult(_publishBotTag, results.severity, markdownTable);
     // Write the publish info status to the job summary.
-    github.appendStepSummary(markdownTable);
+    await writeInComment(github, healthCheckResult);
+
+    github.close();
+  }
+
+  Future<void> writeInComment(Github github, HealthCheckResult result) async {
+    github.appendStepSummary(result.markdown);
+
+    var repoSlug = github.repoSlug!;
+    var issueNumber = github.issueNumber!;
 
     var existingCommentId = await allowFailure(
       github.findCommentId(
-        github.repoSlug!,
-        github.issueNumber!,
+        repoSlug,
+        issueNumber,
         user: _githubActionsUser,
-        searchTerm: _publishBotTag,
+        searchTerm: result.tag,
       ),
       logError: print,
     );
 
-    if (results.hasSuccess) {
-      var commentText = '$_publishBotTag\n\n$markdownTable';
+    if (result.severity == Severity.success) {
+      var commentText = '${result.tag}\n\n${result.markdown}';
 
       if (existingCommentId == null) {
         await allowFailure(
-          github.createComment(
-              github.repoSlug!, github.issueNumber!, commentText),
+          github.createComment(repoSlug, issueNumber, commentText),
           logError: print,
         );
       } else {
         await allowFailure(
-          github.updateComment(
-              github.repoSlug!, existingCommentId, commentText),
+          github.updateComment(repoSlug, existingCommentId, commentText),
           logError: print,
         );
       }
     } else {
-      if (results.hasError && exitCode == 0) {
+      if (result.severity == Severity.error && exitCode == 0) {
         exitCode = 1;
       }
 
       if (existingCommentId != null) {
         await allowFailure(
-          github.deleteComment(github.repoSlug!, existingCommentId),
+          github.deleteComment(repoSlug, existingCommentId),
           logError: print,
         );
       }
     }
-
-    github.close();
   }
 
   Future<VerificationResults> _validate(Github github) async {
@@ -289,6 +333,9 @@ class VerificationResults {
 
   void addResult(Result result) => results.add(result);
 
+  Severity get severity =>
+      Severity.values[results.map((e) => e.severity.index).reduce(max)];
+
   bool get hasSuccess => results.any((r) => r.severity == Severity.success);
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
@@ -308,6 +355,14 @@ class VerificationResults {
           '$sev${r.message} | $tag |';
     }).join('\n');
   }
+}
+
+class HealthCheckResult {
+  final String tag;
+  final Severity severity;
+  final String markdown;
+
+  HealthCheckResult(this.tag, this.severity, this.markdown);
 }
 
 class Result {
