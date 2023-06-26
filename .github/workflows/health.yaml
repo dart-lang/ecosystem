@@ -52,7 +52,7 @@ jobs:
           sdk: ${{ inputs.sdk }}
 
       - name: Install firehose
-        run: dart pub global activate firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=unifiedWorkflow #TODO remove, just for testing
 
       - name: Validate packages
         if: ${{ github.event_name == 'pull_request' }}

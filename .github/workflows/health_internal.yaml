@@ -1,33 +1,10 @@
 # A CI configuration to auto-publish pub packages.
 
-name: Health (internal)
-
+name: Health
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-
 jobs:
   health:
-    # These permissions are required for authentication using OIDC and to enable
-    # us to create comments on PRs.
-    permissions:
-      pull-requests: write
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
-      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: ${{ inputs.sdk }}
-
-      - name: Install firehose
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=unifiedWorkflow #TODO remove, just for testing
-
-      - name: Validate packages
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.number }}
-          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --health
+    uses: dart-lang/ecosystem/.github/workflows/health.yml@unifiedWorkflow
