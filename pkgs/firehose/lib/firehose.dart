@@ -16,7 +16,8 @@ const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
 
-const String _publishBotTag = '### Package publishing';
+const String _publishBotTag = '## Package publishing';
+const String _publishBotTag2 = '### Package publishing';
 
 const String _licenseBotTag = '### License Headers';
 
@@ -61,7 +62,7 @@ class Firehose {
     ''';
 
     var healthCheckResult = HealthCheckResult(
-      _publishBotTag,
+      _publishBotTag2,
       results.severity,
       markdownTable,
     );
