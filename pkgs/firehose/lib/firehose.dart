@@ -35,6 +35,7 @@ class Firehose {
   Firehose(this.directory);
 
   Future<void> healthCheck(List argResult) async {
+    print('Start health check for the checks $argResult');
     var checks = <Future<HealthCheckResult> Function(Github)>[
       if (argResult.contains('version')) validateCheck,
       if (argResult.contains('license')) licenseCheck,
