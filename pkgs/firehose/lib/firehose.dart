@@ -198,13 +198,14 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var markdown = e.markdown;
       var s = '''
 <details>
-<summary ${e.severity == Severity.error ? 'open' : ''}>
-
+<summary${e.severity == Severity.error ? ' open' : ''}>
 Details
 </summary>
 
 $markdown
-</details>''';
+</details>
+
+''';
       return '${e.tag} ${e.severity.emoji}\n\n$s';
     }).join('\n');
 
