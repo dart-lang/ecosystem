@@ -198,7 +198,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         .map((e) => '${e.tag} ${e.severity.emoji}\n\n${e.markdown}')
         .join('\n');
 
-    github.appendStepSummary(commentText);
+    var summary = '$_prHealthTag\n\n$commentText';
+    github.appendStepSummary(summary);
 
     var repoSlug = github.repoSlug!;
     var issueNumber = github.issueNumber!;
@@ -215,12 +216,12 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     if (existingCommentId == null) {
       await allowFailure(
-        github.createComment(repoSlug, issueNumber, commentText),
+        github.createComment(repoSlug, issueNumber, summary),
         logError: print,
       );
     } else {
       await allowFailure(
-        github.updateComment(repoSlug, existingCommentId, commentText),
+        github.updateComment(repoSlug, existingCommentId, summary),
         logError: print,
       );
     }
