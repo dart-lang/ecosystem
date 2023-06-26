@@ -147,11 +147,9 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
   bool fileNeedsEntryInChangelog(Package package, String file) {
     //TODO: Add conditions, such as file is not a markdown etc. Find out what is
     //sensible.
-    var relative =
-        path.relative(package.directory.path, from: Directory.current.path);
-    print(
-        'Check if $file is within $relative: ${path.isWithin(relative, file)}');
-    return path.isWithin(relative, file);
+    var directoryPath = package.directory.path;
+    var directory = path.relative(directoryPath, from: Directory.current.path);
+    return path.isWithin(directory, file);
   }
 
   Future<List<String>> _getFilesWithoutLicenses(Github github) async {
