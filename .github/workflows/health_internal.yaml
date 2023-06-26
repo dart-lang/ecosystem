@@ -10,7 +10,7 @@ on:
     tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
 
 jobs:
-  publish:
+  health:
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
     permissions:

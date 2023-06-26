@@ -118,39 +118,33 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
 
   Future<Map<Package, List<String>>> _packagesWithoutChangelog(
       Github github) async {
-    var repo = Repository();
-    var packages = repo.locatePackages();
+    final repo = Repository();
+    final packages = repo.locatePackages();
 
-    var files = await github.listFilesForPR();
-    var packagesWithoutChangelog = packages.map((e) {
-      print('Changelog path: ${e.changelog.file.path}');
-      print('Directory path: ${e.directory.path}');
-      print('Sample files paths: ${files.take(5).toList()}');
-      return e;
-    }).where((package) {
+    final files = await github.listFilesForPR();
+    final packagesWithoutChangedChangelog = packages.where((package) {
       var changelogPath = package.changelog.file.path;
-      var relativePath =
+      var changelog =
           path.relative(changelogPath, from: Directory.current.path);
-      return !files.contains(relativePath);
+      return !files.contains(changelog);
     }).toList();
 
     var packagesWithChanges = <Package, List<String>>{};
-    for (var file in files) {
-      for (var package in packagesWithoutChangelog) {
-        if (hasChanges(package, file)) {
+    for (final file in files) {
+      for (final package in packagesWithoutChangedChangelog) {
+        if (fileNeedsEntryInChangelog(package, file)) {
           packagesWithChanges.update(
             package,
             (changedFiles) => [...changedFiles, file],
             ifAbsent: () => [file],
           );
-          break;
         }
       }
     }
     return packagesWithChanges;
   }
 
-  bool hasChanges(Package package, String file) {
+  bool fileNeedsEntryInChangelog(Package package, String file) {
     //TODO: Add conditions, such as file is not a markdown etc. Find out what is
     //sensible.
     var relative =
