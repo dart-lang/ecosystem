@@ -16,7 +16,11 @@ const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
 
-const String _publishBotTag = '## Package publishing';
+const String _publishBotTag = '### Package publishing';
+
+const String _licenseBotTag = '### License Headers';
+
+const String _prHealthTag = '## PR Health';
 
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
@@ -41,6 +45,8 @@ class Firehose {
 
     var validate = await validateCheck(github);
     var license = await licenseCheck(github);
+
+    await writeInComment(github, [validate, license]);
 
     github.close();
   }
@@ -84,7 +90,7 @@ ${filePaths.map((e) => '|$e|').join('\n')}
         : 'Great, all files have license headers!';
 
     var healthCheckResult = HealthCheckResult(
-      _publishBotTag,
+      _licenseBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
@@ -140,17 +146,59 @@ ${results.describeAsMarkdown}
 
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
+    github.appendStepSummary(markdownTable);
 
-    var healthCheckResult =
-        HealthCheckResult(_publishBotTag, results.severity, markdownTable);
-    // Write the publish info status to the job summary.
-    await writeInComment(github, healthCheckResult);
+    var existingCommentId = await allowFailure(
+      github.findCommentId(
+        github.repoSlug!,
+        github.issueNumber!,
+        user: _githubActionsUser,
+        searchTerm: _publishBotTag,
+      ),
+      logError: print,
+    );
+
+    if (results.hasSuccess) {
+      var commentText = '$_publishBotTag\n\n$markdownTable';
+
+      if (existingCommentId == null) {
+        await allowFailure(
+          github.createComment(
+              github.repoSlug!, github.issueNumber!, commentText),
+          logError: print,
+        );
+      } else {
+        await allowFailure(
+          github.updateComment(
+              github.repoSlug!, existingCommentId, commentText),
+          logError: print,
+        );
+      }
+    } else {
+      if (results.hasError && exitCode == 0) {
+        exitCode = 1;
+      }
+
+      if (existingCommentId != null) {
+        await allowFailure(
+          github.deleteComment(github.repoSlug!, existingCommentId),
+          logError: print,
+        );
+      }
+    }
 
     github.close();
   }
 
-  Future<void> writeInComment(Github github, HealthCheckResult result) async {
-    github.appendStepSummary(result.markdown);
+  Future<void> writeInComment(
+    Github github,
+    List<HealthCheckResult> results,
+  ) async {
+    var commentText = results
+        .map((e) => '${e.tag} ${e.severity.emoji}\n\n${e.markdown}')
+        .join('\n');
+
+    github.appendStepSummary(commentText);
 
     var repoSlug = github.repoSlug!;
     var issueNumber = github.issueNumber!;
@@ -160,36 +208,26 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         repoSlug,
         issueNumber,
         user: _githubActionsUser,
-        searchTerm: result.tag,
+        searchTerm: _prHealthTag,
       ),
       logError: print,
     );
 
-    if (result.severity == Severity.success) {
-      var commentText = '${result.tag}\n\n${result.markdown}';
-
-      if (existingCommentId == null) {
-        await allowFailure(
-          github.createComment(repoSlug, issueNumber, commentText),
-          logError: print,
-        );
-      } else {
-        await allowFailure(
-          github.updateComment(repoSlug, existingCommentId, commentText),
-          logError: print,
-        );
-      }
+    if (existingCommentId == null) {
+      await allowFailure(
+        github.createComment(repoSlug, issueNumber, commentText),
+        logError: print,
+      );
     } else {
-      if (result.severity == Severity.error && exitCode == 0) {
-        exitCode = 1;
-      }
+      await allowFailure(
+        github.updateComment(repoSlug, existingCommentId, commentText),
+        logError: print,
+      );
+    }
 
-      if (existingCommentId != null) {
-        await allowFailure(
-          github.deleteComment(repoSlug, existingCommentId),
-          logError: print,
-        );
-      }
+    if (results.any((result) => result.severity == Severity.error) &&
+        exitCode == 0) {
+      exitCode = 1;
     }
   }
 
@@ -448,4 +486,10 @@ enum Severity {
   success,
   info,
   error;
+
+  String get emoji => switch (this) {
+        Severity.info => ':exclamation:',
+        Severity.error => ':heavy_multiplication_x:',
+        success => ':heavy_check_mark:',
+      };
 }
