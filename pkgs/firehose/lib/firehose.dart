@@ -130,17 +130,21 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
     final packages = repo.locatePackages();
 
     final files = await github.listFilesForPR();
+    print('Collecting packages without changed changelogs:');
     final packagesWithoutChangedChangelog = packages.where((package) {
       var changelogPath = package.changelog.file.path;
       var changelog =
           path.relative(changelogPath, from: Directory.current.path);
       return !files.contains(changelog);
     }).toList();
+    print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
 
+    print('Collecting files without license headers in those packages:');
     var packagesWithChanges = <Package, List<String>>{};
     for (final file in files) {
       for (final package in packagesWithoutChangedChangelog) {
         if (fileNeedsEntryInChangelog(package, file)) {
+          print(file);
           packagesWithChanges.update(
             package,
             (changedFiles) => [...changedFiles, file],
@@ -149,6 +153,8 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
         }
       }
     }
+    print('''
+Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
     return packagesWithChanges;
   }
 
@@ -166,16 +172,22 @@ ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => p
         .list(recursive: true)
         .where((f) => f.path.endsWith('.dart'))
         .toList();
+    print('Collecting files without license headers:');
     var filesWithoutLicenses = dartFiles
         .map((file) {
           var fileContents = File(file.path).readAsStringSync();
           var fileContainsCopyright = fileContents.contains('// Copyright (c)');
           if (!fileContainsCopyright) {
-            return path.relative(file.path, from: Directory.current.path);
+            var relativePath =
+                path.relative(file.path, from: Directory.current.path);
+            print(relativePath);
+            return relativePath;
           }
         })
         .whereType<String>()
         .toList();
+    print('''
+Done, found ${filesWithoutLicenses.length} files without license headers''');
     return filesWithoutLicenses;
   }
 
