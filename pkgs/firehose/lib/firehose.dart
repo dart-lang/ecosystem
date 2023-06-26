@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: always_declare_return_types
+
 import 'dart:io';
 import 'dart:math';
 
@@ -32,7 +34,17 @@ class Firehose {
 
   Firehose(this.directory);
 
-  Future<void> healthCheck() async {
+  Future<void> healthCheck(List argResult) async {
+    var checks = <Future<HealthCheckResult> Function(Github)>[
+      if (argResult.contains('version')) validateCheck,
+      if (argResult.contains('license')) licenseCheck,
+      if (argResult.contains('changelog')) changelogCheck,
+    ];
+    await _healthCheck(checks);
+  }
+
+  Future<void> _healthCheck(
+      List<Future<HealthCheckResult> Function(Github)> checks) async {
     var github = Github();
 
     // Do basic validation of our expected env var.
@@ -46,11 +58,9 @@ class Firehose {
       return;
     }
 
-    var validate = await validateCheck(github);
-    var license = await licenseCheck(github);
-    var changelog = await changelogCheck(github);
-
-    await writeInComment(github, [validate, license, changelog]);
+    var checked =
+        await Future.wait(checks.map((check) => check(github)).toList());
+    await writeInComment(github, checked);
 
     github.close();
   }

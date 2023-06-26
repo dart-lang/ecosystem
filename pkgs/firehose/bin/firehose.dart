@@ -20,7 +20,7 @@ void main(List<String> arguments) async {
 
     var validate = argResults['validate'] == true;
     var publish = argResults['publish'] == true;
-    var health = argResults['health'] == true;
+    var health = argResults['health'] != null;
 
     if (!validate && !publish && !health) {
       _usage(argParser, error: '''
@@ -43,7 +43,7 @@ Error: one of --validate, --publish, or --health must be specified.''');
     } else if (publish) {
       await firehose.publish();
     } else if (health) {
-      await firehose.healthCheck();
+      await firehose.healthCheck(argResults['health'] as List);
     }
   } on ArgParserException catch (e) {
     _usage(argParser, error: e.message);
@@ -76,9 +76,9 @@ ArgParser _createArgs() {
       help: 'Validate packages and indicate whether --publish would publish '
           'anything.',
     )
-    ..addFlag(
+    ..addMultiOption(
       'health',
-      negatable: false,
+      defaultsTo: ['version', 'license', 'changelog'],
       help: 'Check PR health.',
     )
     ..addFlag(

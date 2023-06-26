@@ -36,6 +36,11 @@ on:
         default: "stable"
         required: false
         type: string
+      checks:
+        description: What to check for in the PR health check - any subset of "version, changelog, license"
+        default: "version, changelog, license"
+        type: string
+        required: false
 
 jobs:
   health:
@@ -60,4 +65,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --health
+        run: dart pub global run firehose --health ${{ inputs.checks }}
