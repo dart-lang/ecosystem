@@ -6,15 +6,12 @@ on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
-  push:
-    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
 
 jobs:
   health:
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
     permissions:
-      id-token: write
       pull-requests: write
 
     runs-on: ubuntu-latest
