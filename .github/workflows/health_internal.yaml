@@ -1,0 +1,45 @@
+# A CI configuration to auto-publish pub packages.
+
+name: Health (internal)
+
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
+
+jobs:
+  publish:
+    # These permissions are required for authentication using OIDC and to enable
+    # us to create comments on PRs.
+    permissions:
+      id-token: write
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install firehose
+        run: dart pub global activate firehose
+
+      - name: Validate packages
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
+        run: dart pub global run firehose --validate
+
+      - name: Publish packages
+        if: ${{ github.event_name == 'push' }}
+        run: dart pub global run firehose --publish
