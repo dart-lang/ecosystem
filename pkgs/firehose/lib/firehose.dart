@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:firehose/src/repo.dart';
+import 'package:path/path.dart' as path;
 
 import 'src/github.dart';
 import 'src/pub.dart';
@@ -39,6 +40,7 @@ class Firehose {
     }
 
     var validate = await validateCheck(github);
+    var license = await licenseCheck(github);
 
     github.close();
   }
@@ -58,6 +60,54 @@ class Firehose {
       markdownTable,
     );
     return healthCheckResult;
+  }
+
+  Future<HealthCheckResult> licenseCheck(Github github) async {
+    final license = '''
+// Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.''';
+
+    var filePaths = await _getFilesWithoutLicenses(github);
+
+    var markdownResult = filePaths.isNotEmpty
+        ? '''
+Some `.dart` files were found to not have license headers. Please add the following header to all listed files:
+```
+$license
+```
+
+| Files |
+| :--- |
+${filePaths.map((e) => '|$e|').join('\n')}
+'''
+        : 'Great, all files have license headers!';
+
+    var healthCheckResult = HealthCheckResult(
+      _publishBotTag,
+      filePaths.isNotEmpty ? Severity.error : Severity.success,
+      markdownResult,
+    );
+    return healthCheckResult;
+  }
+
+  Future<List<String>> _getFilesWithoutLicenses(Github github) async {
+    var dir = Directory.current;
+    var dartFiles = await dir
+        .list(recursive: true)
+        .where((f) => f.path.endsWith('.dart'))
+        .toList();
+    var filesWithoutLicenses = dartFiles
+        .map((file) {
+          var fileContents = File(file.path).readAsStringSync();
+          var fileContainsCopyright = fileContents.contains('// Copyright (c)');
+          if (!fileContainsCopyright) {
+            return path.relative(file.path, from: Directory.current.path);
+          }
+        })
+        .whereType<String>()
+        .toList();
+    return filesWithoutLicenses;
   }
 
   /// Validate the packages in the repository.
