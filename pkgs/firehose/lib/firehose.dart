@@ -196,9 +196,15 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   ) async {
     var commentText = results.map((e) {
       var markdown = e.markdown;
-      var s = e.severity == Severity.error
-          ? markdown
-          : '<details><summary>Details</summary>$markdown</details>';
+      var s = '''
+<details>
+<summary ${e.severity == Severity.error ? 'open' : ''}>
+
+Details
+</summary>
+
+$markdown
+</details>''';
       return '${e.tag} ${e.severity.emoji}\n\n$s';
     }).join('\n');
 
