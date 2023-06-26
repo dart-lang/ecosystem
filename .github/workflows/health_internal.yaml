@@ -1,4 +1,4 @@
-# A CI configuration to auto-publish pub packages.
+# A CI configuration to check PR health.
 
 name: Health
 on:
