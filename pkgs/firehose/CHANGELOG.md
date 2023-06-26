@@ -1,6 +1,7 @@
 ## 0.3.17
 
 - Correctly parse pre-release versions from the CHANGELOG.
+- Add health checks.
 
 ## 0.3.16
 
