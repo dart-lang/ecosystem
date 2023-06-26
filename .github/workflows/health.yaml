@@ -11,17 +11,19 @@ name: Health
 #     types: [opened, synchronize, reopened, labeled, unlabeled]
 # jobs:
 #   health:
-#     uses: dart-lang/ecosystem/.github/workflows/health.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 
 # Callers may optionally specify the version of the SDK to use when publishing a
 # package. This can be useful if your package has a very recent minimum SDK
 # constraint. This is done via the `sdk` input parameter. Note that this
 # parameter is not required; it defaults to `stable` - using the most recent
-# stable release of the Dart SDK. To pass this value:
+# stable release of the Dart SDK.
+# The checks can also be restricted to any subset of version, changelog, and license,
+# if needed.
 #
 # jobs:
 #   health:
-#     uses: dart-lang/ecosystem/.github/workflows/health.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
 #       checks: "version,changelog,license"
