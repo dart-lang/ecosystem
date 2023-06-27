@@ -1,5 +1,6 @@
 ## 0.3.18-wip
 - Add Github workflow for PR health.
+- Refactorings to health workflow
 
 ## 0.3.17
 
