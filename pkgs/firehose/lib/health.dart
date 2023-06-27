@@ -302,6 +302,8 @@ $markdown
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
         double change;
+        print('''
+For file $file, the old coverage is $oldCoverage while the new one is $newCoverage''');
         if (oldCoverage == null && newCoverage == null) {
           change = 0.0;
         } else if (oldCoverage == null) {
