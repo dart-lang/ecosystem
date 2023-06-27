@@ -78,3 +78,12 @@ Future<T?> allowFailure<T>(
     return null;
   }
 }
+
+bool expectEnv(String? value, String name) {
+  if (value == null) {
+    print("Expected environment variable not found: '$name'");
+    return false;
+  } else {
+    return true;
+  }
+}

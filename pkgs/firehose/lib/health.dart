@@ -1,0 +1,265 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// ignore_for_file: always_declare_return_types
+
+import 'dart:io';
+
+import 'package:firehose/firehose.dart';
+import 'package:firehose/src/repo.dart';
+import 'package:path/path.dart' as path;
+
+import 'src/github.dart';
+import 'src/utils.dart';
+
+const String _botSuffix = '[bot]';
+
+const String _githubActionsUser = 'github-actions[bot]';
+
+const String _publishBotTag2 = '### Package publish validation';
+
+const String _licenseBotTag = '### License Headers';
+
+const String _changelogBotTag = '### Changelog entry';
+
+const String _prHealthTag = '## PR Health';
+
+class Health {
+  final Directory directory;
+
+  Health(this.directory);
+
+  Future<void> healthCheck(List argResult) async {
+    print('Start health check for the checks $argResult');
+    var checks = [
+      if (argResult.contains('version')) validateCheck,
+      if (argResult.contains('license')) licenseCheck,
+      if (argResult.contains('changelog')) changelogCheck,
+    ];
+    await _healthCheck(checks);
+  }
+
+  Future<void> _healthCheck(
+      List<Future<HealthCheckResult> Function(Github)> checks) async {
+    var github = Github();
+
+    // Do basic validation of our expected env var.
+    if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
+    if (!expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
+    if (!expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
+
+    if ((github.actor ?? '').endsWith(_botSuffix)) {
+      print('Skipping package validation for ${github.actor} PRs.');
+      return;
+    }
+
+    var checked =
+        await Future.wait(checks.map((check) => check(github)).toList());
+    await writeInComment(github, checked);
+
+    github.close();
+  }
+
+  Future<HealthCheckResult> validateCheck(Github github) async {
+    var results = await Firehose(directory).verify(github);
+
+    var markdownTable = '''
+| Package | Version | Status | Publish tag (post-merge) |
+| :--- | ---: | :--- | ---: |
+${results.describeAsMarkdown}
+
+    ''';
+
+    return HealthCheckResult(
+      _publishBotTag2,
+      results.severity,
+      markdownTable,
+    );
+  }
+
+  Future<HealthCheckResult> licenseCheck(Github github) async {
+    final license = '''
+// Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.''';
+
+    var filePaths = await _getFilesWithoutLicenses(github);
+
+    var markdownResult = '''
+Some `.dart` files were found to not have license headers. Please add the following header to all listed files:
+```
+$license
+```
+
+| Files |
+| :--- |
+${filePaths.map((e) => '|$e|').join('\n')}
+
+Either manually or by running the following in your repository directory
+
+```
+dart pub global activate --source git https://github.com/mosuem/file_licenser
+dart pub global run file_licenser .
+```
+
+'''; //TODO: replace by pub.dev version
+
+    return HealthCheckResult(
+      _licenseBotTag,
+      filePaths.isNotEmpty ? Severity.error : Severity.success,
+      markdownResult,
+    );
+  }
+
+  Future<HealthCheckResult> changelogCheck(Github github) async {
+    var filePaths = await _packagesWithoutChangelog(github);
+
+    final markdownResult = '''
+Changes to these files need to be accounted for in their respective changelogs:
+
+| Package | Files |
+| :--- | :--- |
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join('<br />')} |').join('\n')}
+''';
+
+    return HealthCheckResult(
+      _changelogBotTag,
+      filePaths.isNotEmpty ? Severity.error : Severity.success,
+      markdownResult,
+    );
+  }
+
+  Future<Map<Package, List<String>>> _packagesWithoutChangelog(
+      Github github) async {
+    final repo = Repository();
+    final packages = repo.locatePackages();
+
+    final files = await github.listFilesForPR();
+    print('Collecting packages without changed changelogs:');
+    final packagesWithoutChangedChangelog = packages.where((package) {
+      var changelogPath = package.changelog.file.path;
+      var changelog =
+          path.relative(changelogPath, from: Directory.current.path);
+      return !files.contains(changelog);
+    }).toList();
+    print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
+
+    print('Collecting files without license headers in those packages:');
+    var packagesWithChanges = <Package, List<String>>{};
+    for (final file in files) {
+      for (final package in packagesWithoutChangedChangelog) {
+        if (fileNeedsEntryInChangelog(package, file)) {
+          print(file);
+          packagesWithChanges.update(
+            package,
+            (changedFiles) => [...changedFiles, file],
+            ifAbsent: () => [file],
+          );
+        }
+      }
+    }
+    print('''
+Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
+    return packagesWithChanges;
+  }
+
+  bool fileNeedsEntryInChangelog(Package package, String file) {
+    final directoryPath = package.directory.path;
+    final directory =
+        path.relative(directoryPath, from: Directory.current.path);
+    final isInPackage = path.isWithin(directory, file);
+    final isInLib = path.isWithin(path.join(directory, 'lib'), file);
+    final isInBin = path.isWithin(path.join(directory, 'bin'), file);
+    final isPubspec = file.endsWith('pubspec.yaml');
+    final isReadme = file.endsWith('README.md');
+    return isInPackage && (isInLib || isInBin || isPubspec || isReadme);
+  }
+
+  Future<List<String>> _getFilesWithoutLicenses(Github github) async {
+    var dir = Directory.current;
+    var dartFiles = await dir
+        .list(recursive: true)
+        .where((f) => f.path.endsWith('.dart'))
+        .toList();
+    print('Collecting files without license headers:');
+    var filesWithoutLicenses = dartFiles
+        .map((file) {
+          var fileContents = File(file.path).readAsStringSync();
+          var fileContainsCopyright = fileContents.contains('// Copyright (c)');
+          if (!fileContainsCopyright) {
+            var relativePath =
+                path.relative(file.path, from: Directory.current.path);
+            print(relativePath);
+            return relativePath;
+          }
+        })
+        .whereType<String>()
+        .toList();
+    print('''
+Done, found ${filesWithoutLicenses.length} files without license headers''');
+    return filesWithoutLicenses;
+  }
+
+  Future<void> writeInComment(
+    Github github,
+    List<HealthCheckResult> results,
+  ) async {
+    var commentText = results.map((e) {
+      var markdown = e.markdown;
+      var s = '''
+<details${e.severity == Severity.error ? ' open' : ''}>
+<summary>
+Details
+</summary>
+
+$markdown
+</details>
+
+''';
+      return '${e.tag} ${e.severity.emoji}\n\n$s';
+    }).join('\n');
+
+    var summary = '$_prHealthTag\n\n$commentText';
+    github.appendStepSummary(summary);
+
+    var repoSlug = github.repoSlug!;
+    var issueNumber = github.issueNumber!;
+
+    var existingCommentId = await allowFailure(
+      github.findCommentId(
+        repoSlug,
+        issueNumber,
+        user: _githubActionsUser,
+        searchTerm: _prHealthTag,
+      ),
+      logError: print,
+    );
+
+    if (existingCommentId == null) {
+      await allowFailure(
+        github.createComment(repoSlug, issueNumber, summary),
+        logError: print,
+      );
+    } else {
+      await allowFailure(
+        github.updateComment(repoSlug, existingCommentId, summary),
+        logError: print,
+      );
+    }
+
+    if (results.any((result) => result.severity == Severity.error) &&
+        exitCode == 0) {
+      exitCode = 1;
+    }
+  }
+}
+
+class HealthCheckResult {
+  final String tag;
+  final Severity severity;
+  final String markdown;
+
+  HealthCheckResult(this.tag, this.severity, this.markdown);
+}

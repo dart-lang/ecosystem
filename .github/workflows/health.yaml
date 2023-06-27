@@ -41,8 +41,8 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "version,changelog,license"
-        default: "version,changelog,license"
+        description: What to check for in the PR health check - any subset of "version changelog license"
+        default: "version changelog license"
         type: string
         required: false
 
