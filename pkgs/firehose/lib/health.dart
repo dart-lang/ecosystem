@@ -23,6 +23,8 @@ const String _licenseBotTag = '### License Headers';
 
 const String _changelogBotTag = '### Changelog Entry';
 
+const String _coverageBotTag = '### Coverage';
+
 const String _prHealthTag = '## PR Health';
 
 class Health {
@@ -57,7 +59,7 @@ class Health {
         changelogCheck,
       if (args.contains('coverage') &&
           !github.prLabels.contains('skip-coverage-check'))
-        changelogCheck,
+        coverageCheck,
     ];
 
     var checked =
@@ -172,11 +174,11 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
 | :--- | :--- |
 ${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value * 100} % |').join('\n')}
 
-All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
+Try to increase coverage.
 ''';
 
     return HealthCheckResult(
-      _licenseBotTag,
+      _coverageBotTag,
       coverage.coveragePerFile.values.any((element) => element < 0)
           ? Severity.error
           : Severity.success,
@@ -306,11 +308,13 @@ $markdown
   }
 
   CoverageResult parseLCOV(String lcovPath) {
+    print('Parsing LCOV at $lcovPath');
     var file = File(lcovPath);
     List<String> lines;
     if (file.existsSync()) {
       lines = file.readAsLinesSync();
     } else {
+      print('Not found');
       return CoverageResult({});
     }
     var coveragePerFile = <String, double>{};
@@ -328,6 +332,7 @@ $markdown
         coveragePerFile[fileName!] = coveredLines! / numberLines!;
       }
     }
+    print('Found coverage for ${coveragePerFile.length} files');
     return CoverageResult(coveragePerFile);
   }
 }
