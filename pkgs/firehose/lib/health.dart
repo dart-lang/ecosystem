@@ -329,7 +329,8 @@ $markdown
       } else if (line.startsWith('LH:')) {
         numberLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
-        coveragePerFile[fileName!] = coveredLines! / numberLines!;
+        coveragePerFile[fileName!] =
+            numberLines != null ? (coveredLines ?? 0) / numberLines : 0;
       }
     }
     print('Found coverage for ${coveragePerFile.length} files');
