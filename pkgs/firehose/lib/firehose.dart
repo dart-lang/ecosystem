@@ -335,13 +335,11 @@ class Result {
 }
 
 enum Severity {
-  success,
-  info,
-  error;
+  success(':heavy_check_mark:'),
+  info(':heavy_check_mark:'),
+  error(':exclamation:');
 
-  String get emoji => switch (this) {
-        info => ':heavy_check_mark:',
-        error => ':exclamation:',
-        success => ':heavy_check_mark:',
-      };
+  final String emoji;
+
+  const Severity(this.emoji);
 }
