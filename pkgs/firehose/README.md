@@ -1,11 +1,12 @@
 [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose)
 [![package publisher](https://img.shields.io/pub/publisher/firehose.svg)](https://pub.dev/packages/firehose/publisher)
 
-## What's this?
+## firehose
+### What's this?
 
 This is a tool to automate publishing of pub packages from GitHub actions.
 
-## Conventions and setup
+### Conventions and setup
 
 When run from a PR, this tool will validate the package pubspecs and
 changelogs and indicate whether the criteria for publishing has been met.
@@ -15,18 +16,18 @@ version, and the changelog version and pubspec version should agree.
 When run in response to a git tag event (a tag with a pattern like `v1.2.3` or
 `name_v1.2.3` for monorepos), this tool will publish the indicated package.
 
-## Pre-release versions
+### Pre-release versions
 
 Pre-release versions (aka, `'1.2.3-dev'`) are handled specially; this tool will
 validate the package but will not auto-publish it. This can be used to
 accumulate several changes and later publish them as a group.
 
-## Disabling auto-publishing
+### Disabling auto-publishing
 
 In order to disable package validation and auto-publishing, add the
 `publish_to: none` key to your pubspec.
 
-## PR branch actions
+### PR branch actions
 
 For PRs, this tool:
 
@@ -34,7 +35,7 @@ For PRs, this tool:
 - validates that the changelog version equals the pubspec version
 - performs a `dart pub publish --dry-run`
 
-## Git tag actions
+### Git tag actions
 
 In response to a git tag event, this tool:
 
@@ -42,7 +43,7 @@ In response to a git tag event, this tool:
 - determines the indicated package
 - attempts to publish that package (`dart pub publish --force`)
 
-## Mono-repos
+### Mono-repos
 
 This tool can work with either single package repos or with mono-repos (repos
 containing several packages). It will scan for and detect packages in a mono
@@ -52,7 +53,7 @@ repo; to omit packages from validation and auto-publishing, add a
 For single package repos, the tag pattern should be `v1.2.3`. For mono-repos,
 the tag pattern must be prefixed with the package name, e.g. `foo-v1.2.3`.
 
-## Integrating this tool into a repo
+### Integrating this tool into a repo
 
 - copy the yaml below into a `.github/workflows/publish.yaml` file in your repo
 - update the target branch below if necessary (currently, `main`)
@@ -78,7 +79,7 @@ jobs:
     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ```
 
-## Publishing from a specific version of the SDK
+### Publishing from a specific version of the SDK
 
 Callers may optionally specify the version of the SDK to use when publishing a
 package. This can be useful if your package has a very recent minimum SDK
@@ -94,7 +95,49 @@ jobs:
       sdk: beta
 ```
 
-## Workflow docs
+### Workflow docs
 
 The description of the common workflow for repos using this tool can be found at
 https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+
+<br/>
+
+## health
+
+### What's this?
+
+This is a Github workflow to check PR health.
+
+### Conventions and setup
+
+When run from a PR, this tool will check a configurable subset of the following
+
+* If the package versioning is correct and consistent, see `firehose` description above.
+* If a changelog entry has been added.
+* If all `.dart` files have a license header.
+
+This tool can work with either single package repos or with mono-repos (repos
+containing several packages).
+
+### Integrating this tool into a repo
+
+- copy the yaml below into a `.github/workflows/health.yaml` file in your repo
+- update the target branch below if necessary (currently, `main`)
+
+```yaml
+name: Health
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+jobs:
+  health:
+    uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+#   with:
+#     checks: "version,changelog,license" 
+```
+
+### Workflow docs
+
+The description of the common workflow for repos using this tool can be found at
+https://github.com/dart-lang/ecosystem/wiki/Pull-Request-Health.
