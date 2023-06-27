@@ -297,12 +297,18 @@ $markdown
       var newCoverages = parseLCOV(newPath);
 
       for (var file in relativeFiles
+          .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
         var oldCoverage = oldCoverages[file];
-        var newCoverage = newCoverages[file] ?? 0;
-        var change = oldCoverage == null
-            ? 1.0
-            : (newCoverage - oldCoverage) / oldCoverage.abs();
+        var newCoverage = newCoverages[file];
+        double change;
+        if (oldCoverage == null && newCoverage == null) {
+          change = 0.0;
+        } else if (oldCoverage == null) {
+          change = 1.0;
+        } else {
+          change = ((newCoverage ?? 0) - oldCoverage) / oldCoverage.abs();
+        }
         coverageResult[file] = change;
       }
     }
