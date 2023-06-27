@@ -78,7 +78,7 @@ jobs:
       #   run: mv .coverage_base/coverage/lcov.info coverage/old_lcov.info; mv coverage/lcov.info coverage/new_lcov.info
 
       - name: Install firehose
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=refinePrComment #TODO remove, just for testing
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=addCoverageWorkflow #TODO remove, just for testing
 
       - name: Validate packages
         if: ${{ github.event_name == 'pull_request' }}

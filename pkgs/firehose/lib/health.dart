@@ -306,7 +306,13 @@ $markdown
   }
 
   CoverageResult parseLCOV(String lcovPath) {
-    var lines = File(lcovPath).readAsLinesSync();
+    var file = File(lcovPath);
+    List<String> lines;
+    if (file.existsSync()) {
+      lines = file.readAsLinesSync();
+    } else {
+      return CoverageResult({});
+    }
     var coveragePerFile = <String, double>{};
     String? fileName;
     int? numberLines;
