@@ -25,21 +25,23 @@ Future<int> runCommand(
 
   process.stdout
       .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => stdout.writeln('  $line'));
+      .transform(const LineSplitter())
+      .listen((line) => stdout
+        ..write('  ')
+        ..writeln(line));
   process.stderr
       .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => stderr.writeln('  $line'));
+      .transform(const LineSplitter())
+      .listen((line) => stderr
+        ..write('  ')
+        ..writeln(line));
 
   return process.exitCode;
 }
 
 class Tag {
   static final RegExp packageVersionTag =
-      RegExp(r'^(\S+)-v(\d+\.\d+\.\d+(\+.*)?)');
-
-  static final RegExp versionTag = RegExp(r'^v(\d+\.\d+\.\d+(\+.*)?)');
+      RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:\+.*)?)');
 
   final String tag;
 
@@ -47,19 +49,9 @@ class Tag {
 
   bool get valid => version != null;
 
-  String? get package {
-    var match = packageVersionTag.firstMatch(tag);
-    return match?.group(1);
-  }
+  String? get package => packageVersionTag.firstMatch(tag)?[1];
 
-  String? get version {
-    var match = packageVersionTag.firstMatch(tag);
-    if (match != null) {
-      return match.group(2);
-    }
-    match = versionTag.firstMatch(tag);
-    return match?.group(1);
-  }
+  String? get version => packageVersionTag.firstMatch(tag)?[2];
 
   @override
   String toString() => tag;

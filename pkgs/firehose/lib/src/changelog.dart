@@ -4,69 +4,64 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
-
 class Changelog {
+  static const _headerLinePrefix = '## ';
+
   final File file;
 
   Changelog(this.file);
 
   bool get exists => file.existsSync();
 
+  static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[\-+]\w+)?');
+
   String? get latestVersion {
     var input = latestHeading;
 
-    if (input == null) {
-      return null;
+    if (input != null) {
+      var match = _versionRegex.firstMatch(input);
+      if (match != null) {
+        var version = match[0];
+        return version;
+      }
     }
 
-    final versionRegex = RegExp(r'[0-9]+\.[0-9]+\.[0-9]+([-\+]\w+)?');
-
-    var match = versionRegex.firstMatch(input);
-
-    if (match != null) {
-      var version = match.group(0);
-      return version;
-    }
     return null;
   }
 
   String? get latestHeading {
     var sections = _parseSections();
-    // Remove all leading "#"
-    return sections.firstOrNull?.title.replaceAll(RegExp(r'^#*'), '').trim();
+    var section = sections.firstOrNull;
+    if (section == null) return null;
+    // Remove the leading `_headerLinePrefix`, then trim left-over whitespace.
+    var title = section.title;
+    assert(title.startsWith(_headerLinePrefix));
+    return title.substring(_headerLinePrefix.length).trim();
   }
 
-  List<String> get latestChangeEntries {
-    var sections = _parseSections();
-    return sections.isEmpty ? [] : sections.first.entries;
-  }
+  List<String> get latestChangeEntries =>
+      _parseSections().firstOrNull?.entries ?? [];
 
   Iterable<_Section> _parseSections() sync* {
     if (!exists) return;
 
     _Section? section;
 
-    for (var line in file.readAsLinesSync().where((line) => line.isNotEmpty)) {
-      if (line.startsWith('## ')) {
+    for (var line in file.readAsLinesSync()) {
+      if (line.isEmpty) continue;
+      if (line.startsWith(_headerLinePrefix)) {
         if (section != null) yield section;
 
         section = _Section(line);
-      } else if (section != null) {
-        section.entries.add(line);
+      } else {
+        section?.entries.add(line);
       }
     }
 
     if (section != null) yield section;
   }
 
-  String get describeLatestChanges {
-    var buf = StringBuffer();
-    for (var entry in latestChangeEntries) {
-      buf.writeln(entry);
-    }
-    return buf.toString();
-  }
+  String get describeLatestChanges => latestChangeEntries.join();
 }
 
 class _Section {
