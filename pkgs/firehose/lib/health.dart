@@ -275,22 +275,32 @@ $markdown
   }
 
   Future<CoverageResult> _compareCoverages(Github github) async {
-    var oldCoverages = parseLCOV('coverage/old_lcov.info');
-    var newCoverages = parseLCOV('coverage/new_lcov.info');
-
     final files = await github.listFilesForPR();
     var relativeFiles = files
         .map((file) => path.relative(file, from: Directory.current.path))
         .toList();
 
     var coverageResult = CoverageResult({});
-    for (var file in relativeFiles) {
-      var oldCoverage = oldCoverages[file];
-      var newCoverage = newCoverages[file] ?? 0;
-      var change = oldCoverage == null
-          ? 1.0
-          : (newCoverage - oldCoverage) / oldCoverage.abs();
-      coverageResult[file] = change;
+    for (var package in Repository().locatePackages()) {
+      var oldCoverages = parseLCOV(path.join(
+        '.coverage_base',
+        package.directory.path,
+        'coverage/lcov.info',
+      ));
+      var newCoverages = parseLCOV(path.join(
+        package.directory.path,
+        'coverage/lcov.info',
+      ));
+
+      for (var file in relativeFiles
+          .where((file) => path.isWithin(package.directory.path, file))) {
+        var oldCoverage = oldCoverages[file];
+        var newCoverage = newCoverages[file] ?? 0;
+        var change = oldCoverage == null
+            ? 1.0
+            : (newCoverage - oldCoverage) / oldCoverage.abs();
+        coverageResult[file] = change;
+      }
     }
     return coverageResult;
   }
