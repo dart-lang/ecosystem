@@ -8,5 +8,3 @@ on:
 jobs:
   health:
     uses: ./.github/workflows/health.yaml
-    with:
-      checks: "changelog,license"
