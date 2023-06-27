@@ -68,11 +68,11 @@ jobs:
         run: dart pub global activate coverage
 
       - name: Get old coverage
-        run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do pushd .;echo $line;cd $line; dart pub get; dart pub global run coverage:test_with_coverage; popd; done 
+        run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do pushd .;echo $line;cd $line; dart pub get; [ -d test ] && dart pub global run coverage:test_with_coverage; popd; done 
         working-directory: ./.coverage_base/
 
       - name: Get new coverage
-        run: find . -name "pubspec.yaml" -not -path "./.coverage_base/*" -exec dirname {} \; | while read -r line; do pushd .; echo $line; cd $line; dart pub get; dart pub global run coverage:test_with_coverage; popd; done 
+        run: find . -name "pubspec.yaml" -not -path "./.coverage_base/*" -exec dirname {} \; | while read -r line; do pushd .; echo $line; cd $line; dart pub get; [ -d test ] && dart pub global run coverage:test_with_coverage; popd; done 
 
       # - name: Move coverage files
       #   run: mv .coverage_base/coverage/lcov.info coverage/old_lcov.info; mv coverage/lcov.info coverage/new_lcov.info
