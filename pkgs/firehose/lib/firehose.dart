@@ -52,7 +52,7 @@ class Firehose {
     var markdownTable = '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
-${results.describeAsMarkdown}
+${results.describeAsMarkdown()}
 
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 ''';
@@ -288,7 +288,7 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String get describeAsMarkdown {
+  String describeAsMarkdown([bool withTag = true]) {
     results.sort((a, b) => Enum.compareByIndex(a.severity, b.severity));
 
     return results.map((r) {
@@ -299,8 +299,9 @@ class VerificationResults {
         tag = '[$tag]($publishReleaseUri)';
       }
 
+      var tagColumn = withTag ? ' | $tag' : '';
       return '| package:${r.package.name} | ${r.package.version} | '
-          '$sev${r.message} | $tag |';
+          '$sev${r.message}$tagColumn |';
     }).join('\n');
   }
 }

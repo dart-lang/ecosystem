@@ -4,20 +4,19 @@
 
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:firehose/health.dart';
 
 void main(List<String> arguments) async {
-  var health = Health(Directory.current);
+  var argParser = ArgParser()
+    ..addMultiOption(
+      'checks',
+      defaultsTo: ['version', 'license', 'changelog'],
+      allowed: ['version', 'license', 'changelog'],
+      help: 'Check PR health.',
+    );
+  var parsedArgs = argParser.parse(arguments);
 
-  if (arguments.any(
-      (element) => !['version', 'license', 'changelog'].contains(element))) {
-    print('''
-Pass only "version", "license", and/or "changelog" as arguments. Example: 
-
-  dart run bin/health.dart version license
-''');
-    exit(1);
-  }
-
-  await health.healthCheck(arguments);
+  await Health(Directory.current)
+      .healthCheck(parsedArgs['checks'] as List<String>);
 }
