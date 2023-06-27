@@ -284,15 +284,17 @@ $markdown
 
     var coverageResult = CoverageResult({});
     for (var package in Repository().locatePackages()) {
-      var oldCoverages = parseLCOV(path.join(
+      var oldPath = path.join(
+        Directory.current.path,
         '.coverage_base',
-        package.directory.path,
+        path.relative(package.directory.path, from: Directory.current.path),
         'coverage/lcov.info',
-      ));
-      var newCoverages = parseLCOV(path.join(
-        package.directory.path,
-        'coverage/lcov.info',
-      ));
+      );
+      print('Look at $oldPath');
+      var oldCoverages = parseLCOV(oldPath);
+      var newPath = path.join(package.directory.path, 'coverage/lcov.info');
+      print('Look at $newPath');
+      var newCoverages = parseLCOV(newPath);
 
       for (var file in relativeFiles
           .where((file) => path.isWithin(package.directory.path, file))) {
