@@ -30,18 +30,7 @@ class Health {
 
   Health(this.directory);
 
-  Future<void> healthCheck(List argResult) async {
-    print('Start health check for the checks $argResult');
-    var checks = [
-      if (argResult.contains('version')) validateCheck,
-      if (argResult.contains('license')) licenseCheck,
-      if (argResult.contains('changelog')) changelogCheck,
-    ];
-    await _healthCheck(checks);
-  }
-
-  Future<void> _healthCheck(
-      List<Future<HealthCheckResult> Function(Github)> checks) async {
+  Future<void> healthCheck(List args) async {
     var github = Github();
 
     // Do basic validation of our expected env var.
@@ -54,6 +43,19 @@ class Health {
       print('Skipping package validation for ${github.actor} PRs.');
       return;
     }
+
+    print('Start health check for the checks $args');
+    var checks = [
+      if (args.contains('version') &&
+          !github.prLabels.contains('skip-validate-check'))
+        validateCheck,
+      if (args.contains('license') &&
+          !github.prLabels.contains('skip-license-check'))
+        licenseCheck,
+      if (args.contains('changelog') &&
+          !github.prLabels.contains('skip-changelog-check'))
+        changelogCheck,
+    ];
 
     var checked =
         await Future.wait(checks.map((check) => check(github)).toList());
