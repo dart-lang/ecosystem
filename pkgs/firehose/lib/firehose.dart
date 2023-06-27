@@ -170,11 +170,15 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
   }
 
   bool fileNeedsEntryInChangelog(Package package, String file) {
-    //TODO: Add conditions, such as file is not a markdown etc. Find out what is
-    //sensible.
-    var directoryPath = package.directory.path;
-    var directory = path.relative(directoryPath, from: Directory.current.path);
-    return path.isWithin(directory, file);
+    final directoryPath = package.directory.path;
+    final directory =
+        path.relative(directoryPath, from: Directory.current.path);
+    final isInPackage = path.isWithin(directory, file);
+    final isInLib = path.isWithin(path.join(directory, 'lib'), file);
+    final isInBin = path.isWithin(path.join(directory, 'bin'), file);
+    final isPubspec = file.endsWith('pubspec.yaml');
+    final isReadme = file.endsWith('README.md');
+    return isInPackage && (isInLib || isInBin || isPubspec || isReadme);
   }
 
   Future<List<String>> _getFilesWithoutLicenses(Github github) async {

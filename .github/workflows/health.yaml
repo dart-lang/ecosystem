@@ -13,11 +13,12 @@ name: Health
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 
-# Callers may optionally specify the version of the SDK to use when publishing a
-# package. This can be useful if your package has a very recent minimum SDK
+# Callers may optionally specify the version of the SDK to use when running the
+# health check. This can be useful if your package has a very recent minimum SDK
 # constraint. This is done via the `sdk` input parameter. Note that this
 # parameter is not required; it defaults to `stable` - using the most recent
 # stable release of the Dart SDK.
+# 
 # The checks can also be restricted to any subset of version, changelog, and license,
 # if needed.
 #
@@ -47,8 +48,7 @@ on:
 
 jobs:
   health:
-    # These permissions are required for authentication using OIDC and to enable
-    # us to create comments on PRs.
+    # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
 
