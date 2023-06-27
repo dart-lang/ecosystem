@@ -55,6 +55,9 @@ class Health {
       if (args.contains('changelog') &&
           !github.prLabels.contains('skip-changelog-check'))
         changelogCheck,
+      if (args.contains('coverage') &&
+          !github.prLabels.contains('skip-coverage-check'))
+        changelogCheck,
     ];
 
     var checked =
@@ -161,6 +164,26 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
     return packagesWithChanges;
   }
 
+  Future<HealthCheckResult> coverageCheck(Github github) async {
+    var coverage = await _compareCoverages(github);
+
+    var markdownResult = '''
+| File | Coverage change |
+| :--- | :--- |
+${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value * 100} % |').join('\n')}
+
+All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
+''';
+
+    return HealthCheckResult(
+      _licenseBotTag,
+      coverage.coveragePerFile.values.any((element) => element < 0)
+          ? Severity.error
+          : Severity.success,
+      markdownResult,
+    );
+  }
+
   bool fileNeedsEntryInChangelog(Package package, String file) {
     final directoryPath = package.directory.path;
     final directory =
@@ -250,6 +273,47 @@ $markdown
       exitCode = 1;
     }
   }
+
+  Future<CoverageResult> _compareCoverages(Github github) async {
+    var oldCoverages = parseLCOV('coverage/old_lcov.info');
+    var newCoverages = parseLCOV('coverage/new_lcov.info');
+
+    final files = await github.listFilesForPR();
+    var relativeFiles = files
+        .map((file) => path.relative(file, from: Directory.current.path))
+        .toList();
+
+    var coverageResult = CoverageResult({});
+    for (var file in relativeFiles) {
+      var oldCoverage = oldCoverages[file];
+      var newCoverage = newCoverages[file] ?? 0;
+      var change = oldCoverage == null
+          ? 1.0
+          : (newCoverage - oldCoverage) / oldCoverage.abs();
+      coverageResult[file] = change;
+    }
+    return coverageResult;
+  }
+
+  CoverageResult parseLCOV(String lcovPath) {
+    var lines = File(lcovPath).readAsLinesSync();
+    var coveragePerFile = <String, double>{};
+    String? fileName;
+    int? numberLines;
+    int? coveredLines;
+    for (var line in lines) {
+      if (line.startsWith('SF:')) {
+        fileName = line.substring('SF:'.length);
+      } else if (line.startsWith('LF:')) {
+        numberLines = int.parse(line.substring('LF:'.length));
+      } else if (line.startsWith('LH:')) {
+        numberLines = int.parse(line.substring('LH:'.length));
+      } else if (line.startsWith('end_of_record')) {
+        coveragePerFile[fileName!] = coveredLines! / numberLines!;
+      }
+    }
+    return CoverageResult(coveragePerFile);
+  }
 }
 
 class HealthCheckResult {
@@ -258,4 +322,17 @@ class HealthCheckResult {
   final String markdown;
 
   HealthCheckResult(this.tag, this.severity, this.markdown);
+}
+
+class CoverageResult {
+  final Map<String, double> coveragePerFile;
+
+  CoverageResult(this.coveragePerFile);
+
+  CoverageResult operator +(CoverageResult other) {
+    return CoverageResult({...coveragePerFile, ...other.coveragePerFile});
+  }
+
+  double? operator [](String s) => coveragePerFile[s];
+  void operator []=(String s, double d) => coveragePerFile[s] = d;
 }

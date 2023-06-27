@@ -55,12 +55,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: .coverage_base
+          
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
           sdk: ${{ inputs.sdk }}
 
+      - name: Install coverage
+        run: dart pub global activate coverage
+
+      - name: Get old coverage
+        run: dart pub global run coverage:test_with_coverage
+        working-directory: ./.coverage_base
+
+      - name: Get new coverage
+        run: dart pub global run coverage:test_with_coverage
+        working-directory: ./.coverage_base
+
+      - name: Move coverage files
+        run: mv .coverage_base/coverage/lcov.info coverage/old_lcov.info; mv coverage/lcov.info coverage/new_lcov.info
+
       - name: Install firehose
-        run: dart pub global activate firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=refinePrComment #TODO remove, just for testing
 
       - name: Validate packages
         if: ${{ github.event_name == 'pull_request' }}

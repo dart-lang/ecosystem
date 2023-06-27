@@ -6,13 +6,21 @@ import 'dart:io';
 
 import 'package:firehose/health.dart';
 
+final possibleArgs = [
+  'version',
+  'license',
+  'changelog',
+  'coverage',
+];
+
 void main(List<String> arguments) async {
   var health = Health(Directory.current);
 
-  if (arguments.any(
-      (element) => !['version', 'license', 'changelog'].contains(element))) {
+  if (arguments.any((element) {
+    return !possibleArgs.contains(element);
+  })) {
     print('''
-Pass only "version", "license", and/or "changelog" as arguments. Example: 
+Pass only a subset of $possibleArgs as arguments. Example: 
 
   dart run bin/health.dart version license
 ''');
