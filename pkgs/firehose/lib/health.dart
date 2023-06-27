@@ -70,6 +70,7 @@ class Health {
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown}
 
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
     ''';
 
     return HealthCheckResult(
