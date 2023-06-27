@@ -21,7 +21,7 @@ const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
 
-const String _changelogBotTag = '### Changelog entry';
+const String _changelogBotTag = '### Changelog Entry';
 
 const String _prHealthTag = '## PR Health';
 
@@ -88,7 +88,6 @@ ${results.describeAsMarkdown}
     var filePaths = await _getFilesWithoutLicenses(github);
 
     var markdownResult = '''
-Some `.dart` files were found to not have license headers. Please add the following header to all listed files:
 ```
 $license
 ```
@@ -97,14 +96,8 @@ $license
 | :--- |
 ${filePaths.map((e) => '|$e|').join('\n')}
 
-Either manually or by running the following in your repository directory
-
-```
-dart pub global activate --source git https://github.com/mosuem/file_licenser
-dart pub global run file_licenser .
-```
-
-'''; //TODO: replace by pub.dev version
+All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
+''';
 
     return HealthCheckResult(
       _licenseBotTag,
@@ -117,11 +110,11 @@ dart pub global run file_licenser .
     var filePaths = await _packagesWithoutChangelog(github);
 
     final markdownResult = '''
-Changes to these files need to be accounted for in their respective changelogs:
-
-| Package | Files |
+| Package | Changed Files |
 | :--- | :--- |
 ${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join('<br />')} |').join('\n')}
+
+Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 ''';
 
     return HealthCheckResult(
