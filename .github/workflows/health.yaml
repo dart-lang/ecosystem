@@ -42,7 +42,7 @@ on:
         type: string
       checks:
         description: What to check for in the PR health check - any subset of "version changelog license"
-        default: "version changelog license"
+        default: "version changelog license coverage"
         type: string
         required: false
 
