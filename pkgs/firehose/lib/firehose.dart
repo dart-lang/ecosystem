@@ -340,8 +340,8 @@ enum Severity {
   error;
 
   String get emoji => switch (this) {
-        Severity.info => ':heavy_check_mark:',
-        Severity.error => ':exclamation:',
+        info => ':heavy_check_mark:',
+        error => ':exclamation:',
         success => ':heavy_check_mark:',
       };
 }
