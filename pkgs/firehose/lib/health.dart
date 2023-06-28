@@ -310,14 +310,14 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
           change = Change(existedBefore: false, existsNow: false);
         } else if (oldCoverage == null) {
           change = Change(
-            changed: newCoverage!.changed!,
+            value: newCoverage!.value!,
             existedBefore: false,
             existsNow: true,
           );
         } else {
           change = Change(
-            changed: ((newCoverage?.changed ?? 0) - oldCoverage.changed!) /
-                oldCoverage.changed!.abs(),
+            value: ((newCoverage?.value ?? 0) - oldCoverage.value!) /
+                oldCoverage.value!.abs(),
           );
         }
         coverageResult[file] = change;
@@ -326,14 +326,16 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  static CoverageResult parseLCOV(String lcovPath,
-      {required String relativeTo}) {
+  static CoverageResult parseLCOV(
+    String lcovPath, {
+    required String relativeTo,
+  }) {
     var file = File(lcovPath);
     List<String> lines;
     if (file.existsSync()) {
       lines = file.readAsLinesSync();
     } else {
-      print('Not found');
+      print('LCOV file not found at $lcovPath.');
       return CoverageResult({});
     }
     var coveragePerFile = <String, Change>{};
@@ -342,7 +344,6 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     int? coveredLines;
     for (var line in lines) {
       if (line.startsWith('SF:')) {
-        print('Getting coverage for $fileName');
         fileName = line.substring('SF:'.length);
       } else if (line.startsWith('LF:')) {
         numberLines = int.parse(line.substring('LF:'.length));
@@ -350,13 +351,13 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
         coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
         var change = Change(
-          changed: numberLines != null ? (coveredLines ?? 0) / numberLines : 0,
+          value: numberLines != null ? (coveredLines ?? 0) / numberLines : 0,
           existsNow: numberLines != null,
         );
         coveragePerFile[path.relative(fileName!, from: relativeTo)] = change;
       }
     }
-    print('Found coverage for ${coveragePerFile.length} files');
+    print('Found coverage for ${coveragePerFile.length} files.');
     return CoverageResult(coveragePerFile);
   }
 }
@@ -383,15 +384,15 @@ class CoverageResult {
 }
 
 class Change {
-  final double? changed;
+  final double? value;
   final bool existedBefore;
   final bool existsNow;
 
-  Change({this.changed, this.existedBefore = true, this.existsNow = true});
+  Change({this.value, this.existedBefore = true, this.existsNow = true});
 
   Severity get severity {
     if (existedBefore) {
-      return changed! < 0 ? Severity.info : Severity.success;
+      return value! < 0 ? Severity.info : Severity.success;
     } else if (existsNow && !existedBefore) {
       return Severity.success;
     } else if (!existsNow && !existedBefore) {
@@ -403,9 +404,9 @@ class Change {
 
   String toMarkdown() {
     if (existedBefore) {
-      return '${(changed! * 100).toStringAsFixed(1)} %';
+      return '${(value! * 100).toStringAsFixed(1)} %';
     } else if (existsNow && !existedBefore) {
-      return 'New coverage: $changed';
+      return 'New coverage: $value';
     } else if (!existsNow && !existedBefore) {
       return 'No coverage for this file';
     } else {
