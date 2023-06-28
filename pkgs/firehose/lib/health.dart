@@ -298,7 +298,6 @@ $markdown
       print('Coverage new: ${newCoverages.coveragePerFile}');
       for (var file in files
           .map((file) => file.relativePath)
-          .map((file) => path.relative(file, from: package.directory.path))
           .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
         var oldCoverage = oldCoverages[file];
