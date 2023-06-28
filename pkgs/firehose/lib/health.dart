@@ -280,17 +280,18 @@ $markdown
   Future<CoverageResult> compareCoverages(List<GitFile> files) async {
     var coverageResult = CoverageResult({});
     for (var package in Repository().locatePackages()) {
+      var currentPath = Directory.current.path;
       var oldPath = path.join(
         Directory.current.path,
         '.coverage_base',
-        path.relative(package.directory.path, from: Directory.current.path),
+        path.relative(package.directory.path, from: currentPath),
         'coverage/lcov.info',
       );
       print('Look at $oldPath');
-      var oldCoverages = parseLCOV(oldPath);
+      var oldCoverages = parseLCOV(oldPath, currentPath);
       var newPath = path.join(package.directory.path, 'coverage/lcov.info');
       print('Look at $newPath');
-      var newCoverages = parseLCOV(newPath);
+      var newCoverages = parseLCOV(newPath, currentPath);
       print('Coverage old: ${oldCoverages.coveragePerFile}');
       print('Coverage new: ${newCoverages.coveragePerFile}');
       for (var file in files
@@ -315,7 +316,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  static CoverageResult parseLCOV(String lcovPath) {
+  static CoverageResult parseLCOV(String lcovPath, String currentPath) {
     print('Parsing LCOV at $lcovPath');
     var file = File(lcovPath);
     List<String> lines;
@@ -337,7 +338,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
       } else if (line.startsWith('LH:')) {
         coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
-        coveragePerFile[fileName!] =
+        coveragePerFile[path.relative(fileName!, from: currentPath)] =
             numberLines != null ? (coveredLines ?? 0) / numberLines : 0;
       }
     }
