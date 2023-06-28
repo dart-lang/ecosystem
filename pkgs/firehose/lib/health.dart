@@ -120,7 +120,7 @@ All source files should start with a [license header](https://github.com/dart-la
     final markdownResult = '''
 | Package | Changed Files |
 | :--- | :--- |
-${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join('<br />')} |').join('\n')}
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.relativePath).join('<br />')} |').join('\n')}
 
 Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 ''';
@@ -132,7 +132,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     );
   }
 
-  Future<Map<Package, List<String>>> _packagesWithoutChangelog(
+  Future<Map<Package, List<GitFile>>> _packagesWithoutChangelog(
       Github github) async {
     final repo = Repository();
     final packages = repo.locatePackages();
@@ -143,15 +143,15 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
       var changelogPath = package.changelog.file.path;
       var changelog =
           path.relative(changelogPath, from: Directory.current.path);
-      return !files.contains(changelog);
+      return !files.map((e) => e.relativePath).contains(changelog);
     }).toList();
     print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
 
     print('Collecting files without license headers in those packages:');
-    var packagesWithChanges = <Package, List<String>>{};
+    var packagesWithChanges = <Package, List<GitFile>>{};
     for (final file in files) {
       for (final package in packagesWithoutChangedChangelog) {
-        if (fileNeedsEntryInChangelog(package, file)) {
+        if (fileNeedsEntryInChangelog(package, file.relativePath)) {
           print(file);
           packagesWithChanges.update(
             package,
@@ -167,7 +167,8 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
   }
 
   Future<HealthCheckResult> coverageCheck(Github github) async {
-    var coverage = await _compareCoverages(github);
+    final files = await github.listFilesForPR();
+    var coverage = await compareCoverages(files);
 
     var markdownResult = '''
 | File | Coverage change |
@@ -276,12 +277,7 @@ $markdown
     }
   }
 
-  Future<CoverageResult> _compareCoverages(Github github) async {
-    final files = await github.listFilesForPR();
-    var relativeFiles = files
-        .map((file) => path.relative(file, from: Directory.current.path))
-        .toList();
-
+  Future<CoverageResult> compareCoverages(List<GitFile> files) async {
     var coverageResult = CoverageResult({});
     for (var package in Repository().locatePackages()) {
       var oldPath = path.join(
@@ -297,7 +293,8 @@ $markdown
       var newCoverages = parseLCOV(newPath);
       print('Coverage old: ${oldCoverages.coveragePerFile}');
       print('Coverage new: ${newCoverages.coveragePerFile}');
-      for (var file in relativeFiles
+      for (var file in files
+          .map((file) => file.relativePath)
           .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
         var oldCoverage = oldCoverages[file];
@@ -318,7 +315,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  CoverageResult parseLCOV(String lcovPath) {
+  static CoverageResult parseLCOV(String lcovPath) {
     print('Parsing LCOV at $lcovPath');
     var file = File(lcovPath);
     List<String> lines;
@@ -338,7 +335,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
       } else if (line.startsWith('LF:')) {
         numberLines = int.parse(line.substring('LF:'.length));
       } else if (line.startsWith('LH:')) {
-        numberLines = int.parse(line.substring('LH:'.length));
+        coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
         coveragePerFile[fileName!] =
             numberLines != null ? (coveredLines ?? 0) / numberLines : 0;

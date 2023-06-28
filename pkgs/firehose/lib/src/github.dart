@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 // TODO:(devoncarew): Consider replacing some of this class with package:github.
 
@@ -192,17 +193,22 @@ class Github {
         'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'));
   }
 
-  Future<List<String>> listFilesForPR() async {
+  Future<List<GitFile>> listFilesForPR() async {
     var result = await callRestApiGet(
       Uri.parse(
           'https://api.github.com/repos/$repoSlug/pulls/$issueNumber/files'),
     );
     var json = jsonDecode(result) as List;
-    var filenames = json
+    var files = json
         .map((e) => e as Map<String, dynamic>)
-        .map((e) => e['filename'] as String)
+        .map((e) => GitFile(
+              e['filename'] as String,
+              FileStatus.values.firstWhere(
+                (element) => element.name == e['status'] as String,
+              ),
+            ))
         .toList();
-    return filenames;
+    return files;
   }
 
   void close() {
@@ -222,4 +228,24 @@ class RpcException implements Exception {
 
   @override
   String toString() => 'RpcException: $message';
+}
+
+class GitFile {
+  final String filename;
+  final FileStatus status;
+
+  GitFile(this.filename, this.status);
+
+  String get relativePath =>
+      path.relative(filename, from: Directory.current.path);
+}
+
+enum FileStatus {
+  added,
+  removed,
+  modified,
+  renamed,
+  copied,
+  changed,
+  unchanged;
 }
