@@ -414,7 +414,8 @@ class Change {
         if (value! > 0) {
           return ':green_heart: Total coverage $valueAsPercentage';
         } else {
-          return ':broken_heart: Total coverage $valueAsPercentage';
+          // As the file did not exist before, there cannot be coverage...
+          return ':broken_heart: No coverage for this file';
         }
       }
     } else {
