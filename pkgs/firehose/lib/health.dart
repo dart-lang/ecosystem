@@ -389,37 +389,38 @@ class Change {
 
   Change({this.value, this.existedBefore = true, this.existsNow = true});
 
-  Severity get severity {
-    if (existedBefore) {
-      return value! < 0 ? Severity.warning : Severity.success;
-    } else if (existsNow && !existedBefore) {
-      return Severity.success;
-    } else if (!existsNow && !existedBefore) {
-      return Severity.info;
-    } else {
-      return Severity.error;
-    }
-  }
+  Severity get severity => _severityWithMessage().$1;
 
-  String toMarkdown() {
+  String toMarkdown() => _severityWithMessage().$2;
+
+  (Severity, String) _severityWithMessage() {
     if (existedBefore || existsNow) {
       var valueAsPercentage = '${(value! * 100).abs().toStringAsFixed(1)} %';
       if (existedBefore) {
         if (value! > 0) {
-          return ':green_heart: Increased by $valueAsPercentage';
+          return (
+            Severity.success,
+            ':green_heart: Increased by $valueAsPercentage'
+          );
         } else {
-          return ':broken_heart: Decreased by $valueAsPercentage';
+          return (
+            Severity.warning,
+            ':broken_heart: Decreased by $valueAsPercentage'
+          );
         }
       } else {
         if (value! > 0) {
-          return ':green_heart: Total coverage $valueAsPercentage';
+          return (
+            Severity.success,
+            ':green_heart: Total coverage $valueAsPercentage'
+          );
         } else {
           // As the file did not exist before, there cannot be coverage...
-          return ':broken_heart: No coverage for this file';
+          return (Severity.warning, ':broken_heart: No coverage for this file');
         }
       }
     } else {
-      return ':broken_heart: No coverage for this file';
+      return (Severity.warning, ':broken_heart: No coverage for this file');
     }
   }
 
