@@ -73,9 +73,9 @@ class Health {
     var results = await Firehose(directory).verify(github);
 
     var markdownTable = '''
-| Package | Version | Status | Publish tag (post-merge) |
-| :--- | ---: | :--- | ---: |
-${results.describeAsMarkdown}
+| Package | Version | Status |
+| :--- | ---: | :--- |
+${results.describeAsMarkdown(false)}
 
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
     ''';
@@ -102,7 +102,7 @@ $license
 
 | Files |
 | :--- |
-${filePaths.map((e) => '|$e|').join('\n')}
+${filePaths.isNotEmpty ? filePaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
 ''';
