@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -304,8 +305,6 @@ $markdown
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
         Change change;
-        print('''
-For file $file, the old coverage is $oldCoverage while the new one is $newCoverage''');
         if (oldCoverage == null && newCoverage == null) {
           change = Change(existedBefore: false, existsNow: false);
         } else if (oldCoverage == null) {
@@ -326,7 +325,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  static CoverageResult parseLCOV(
+  CoverageResult parseLCOV(
     String lcovPath, {
     required String relativeTo,
   }) {
@@ -403,14 +402,28 @@ class Change {
   }
 
   String toMarkdown() {
+    var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
     if (existedBefore) {
-      return '${(value! * 100).toStringAsFixed(1)} %';
+      return valueAsPercentage;
     } else if (existsNow && !existedBefore) {
-      return 'New coverage: $value';
+      return 'New coverage: $valueAsPercentage';
     } else if (!existsNow && !existedBefore) {
       return 'No coverage for this file';
     } else {
       return '';
     }
   }
+
+  @override
+  bool operator ==(covariant Change other) {
+    if (identical(this, other)) return true;
+
+    return other.value == value &&
+        other.existedBefore == existedBefore &&
+        other.existsNow == existsNow;
+  }
+
+  @override
+  int get hashCode =>
+      value.hashCode ^ existedBefore.hashCode ^ existsNow.hashCode;
 }
