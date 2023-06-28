@@ -402,15 +402,15 @@ class Change {
   }
 
   String toMarkdown() {
-    var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
-    if (existedBefore) {
-      return ':green_heart: $valueAsPercentage';
-    } else if (existsNow && !existedBefore) {
-      return ':green_heart: New coverage: $valueAsPercentage';
-    } else if (!existsNow && !existedBefore) {
-      return ':broken_heart: No coverage for this file';
+    if (existedBefore || existsNow) {
+      var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
+      if (existedBefore) {
+        return ':green_heart: $valueAsPercentage';
+      } else {
+        return ':green_heart: New coverage: $valueAsPercentage';
+      }
     } else {
-      return '';
+      return ':broken_heart: No coverage for this file';
     }
   }
 
