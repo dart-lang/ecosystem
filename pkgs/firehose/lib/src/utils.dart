@@ -40,17 +40,46 @@ Future<int> runCommand(
 }
 
 class Tag {
+  /// RegExp matching a version tag at the start of a line.
+  ///
+  /// A version tag is an optional starting seqeuence
+  /// of non-whitespace, which is the package name,
+  /// followed by a `v` and a simplified SemVer version
+  /// number.
+  /// The version number accepted is
+  /// > digits '.' digits '.' digits
+  ///
+  /// and if followed by a `+`, then it includes the
+  /// rest of the line.
   static final RegExp packageVersionTag =
       RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:\+.*)?)');
 
+  /// A package version tag.
+  ///
+  /// Is expected to have the format:
+  /// > (package-name)? 'v' SemVer-version
+  ///
+  /// If not, the tag is not [valid], and the [package] and [version]
+  /// will both be `null`.
   final String tag;
 
   Tag(this.tag);
 
   bool get valid => version != null;
 
+  /// The package name before the `v` in the version [tag], if any.
+  ///
+  /// Is `null` if there is no package name before the `v`,
+  /// or if the tag is not [valid].
   String? get package => packageVersionTag.firstMatch(tag)?[1];
 
+  /// The SemVer version string of the version [tag], if any.
+  ///
+  /// This is the part after the `v` of the [tag] string,
+  /// of the form, which is a major/minor/patch version string
+  /// optionally followed by a `+` and more characters.
+  ///
+  /// Is `null` if the tag is not [valid].
   String? get version => packageVersionTag.firstMatch(tag)?[2];
 
   @override

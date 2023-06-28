@@ -13,6 +13,21 @@ class Changelog {
 
   bool get exists => file.existsSync();
 
+  /// Pattern recognizing some SemVer formats.
+  ///
+  /// Accepts:
+  /// >  digits '.' digits '.' digits
+  ///
+  /// optionally followed by `-` or `+` character
+  /// and one or more "word characters", which are
+  /// ASCII letters (`a`-`z`, `A`-`Z`), digits (`0`-`9`),
+  /// underscore (`_`) and dollar-sign (`$`).
+  ///
+  /// This is not all complete SemVer version strings,
+  /// since it doesn't allow `.` in the continuation,
+  /// or a `+...` sequence after a `-` sequence.
+  /// It should be enough for the user-cases we need it for
+  /// in this package.
   static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[\-+]\w+)?');
 
   String? get latestVersion {
