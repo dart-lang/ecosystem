@@ -233,7 +233,7 @@ Done, found ${filesWithoutLicenses.length} files without license headers''');
     var commentText = results.map((e) {
       var markdown = e.markdown;
       var s = '''
-<details${e.severity == Severity.error ? ' open' : ''}>
+<details${e.severity.index >= Severity.warning.index ? ' open' : ''}>
 <summary>
 Details
 </summary>
@@ -391,7 +391,7 @@ class Change {
 
   Severity get severity {
     if (existedBefore) {
-      return value! < 0 ? Severity.info : Severity.success;
+      return value! < 0 ? Severity.warning : Severity.success;
     } else if (existsNow && !existedBefore) {
       return Severity.success;
     } else if (!existsNow && !existedBefore) {
@@ -404,11 +404,11 @@ class Change {
   String toMarkdown() {
     var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
     if (existedBefore) {
-      return valueAsPercentage;
+      return ':green_heart: $valueAsPercentage';
     } else if (existsNow && !existedBefore) {
-      return 'New coverage: $valueAsPercentage';
+      return ':green_heart: New coverage: $valueAsPercentage';
     } else if (!existsNow && !existedBefore) {
-      return 'No coverage for this file';
+      return ':broken_heart: No coverage for this file';
     } else {
       return '';
     }
