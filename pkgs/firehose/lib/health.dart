@@ -5,6 +5,7 @@
 // ignore_for_file: always_declare_return_types
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/repo.dart';
@@ -173,16 +174,16 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
     var markdownResult = '''
 | File | Coverage change |
 | :--- | :--- |
-${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value * 100} % |').join('\n')}
+${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 
 Try to increase coverage.
 ''';
 
     return HealthCheckResult(
       _coverageBotTag,
-      coverage.coveragePerFile.values.any((element) => element < 0)
-          ? Severity.error
-          : Severity.success,
+      Severity.values[coverage.coveragePerFile.values
+          .map((change) => change.severity.index)
+          .reduce(max)],
       markdownResult,
     );
   }
@@ -294,23 +295,30 @@ $markdown
         path.join(package.directory.path, 'coverage/lcov.info'),
         relativeTo: Directory.current.path,
       );
-      print('Coverage old: ${oldCoverages.coveragePerFile}');
-      print('Coverage new: ${newCoverages.coveragePerFile}');
+      print('Old coverage: ${oldCoverages.coveragePerFile}');
+      print('New coverage: ${newCoverages.coveragePerFile}');
       for (var file in files
           .map((file) => file.relativePath)
           .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
-        double change;
+        Change change;
         print('''
 For file $file, the old coverage is $oldCoverage while the new one is $newCoverage''');
         if (oldCoverage == null && newCoverage == null) {
-          change = 0.0;
+          change = Change(existedBefore: false, existsNow: false);
         } else if (oldCoverage == null) {
-          change = 1.0;
+          change = Change(
+            changed: newCoverage!.changed!,
+            existedBefore: false,
+            existsNow: true,
+          );
         } else {
-          change = ((newCoverage ?? 0) - oldCoverage) / oldCoverage.abs();
+          change = Change(
+            changed: ((newCoverage?.changed ?? 0) - oldCoverage.changed!) /
+                oldCoverage.changed!.abs(),
+          );
         }
         coverageResult[file] = change;
       }
@@ -328,7 +336,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
       print('Not found');
       return CoverageResult({});
     }
-    var coveragePerFile = <String, double>{};
+    var coveragePerFile = <String, Change>{};
     String? fileName;
     int? numberLines;
     int? coveredLines;
@@ -341,8 +349,11 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
       } else if (line.startsWith('LH:')) {
         coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
-        coveragePerFile[path.relative(fileName!, from: relativeTo)] =
-            numberLines != null ? (coveredLines ?? 0) / numberLines : 0;
+        var change = Change(
+          changed: numberLines != null ? (coveredLines ?? 0) / numberLines : 0,
+          existsNow: numberLines != null,
+        );
+        coveragePerFile[path.relative(fileName!, from: relativeTo)] = change;
       }
     }
     print('Found coverage for ${coveragePerFile.length} files');
@@ -359,7 +370,7 @@ class HealthCheckResult {
 }
 
 class CoverageResult {
-  final Map<String, double> coveragePerFile;
+  final Map<String, Change> coveragePerFile;
 
   CoverageResult(this.coveragePerFile);
 
@@ -367,6 +378,38 @@ class CoverageResult {
     return CoverageResult({...coveragePerFile, ...other.coveragePerFile});
   }
 
-  double? operator [](String s) => coveragePerFile[s];
-  void operator []=(String s, double d) => coveragePerFile[s] = d;
+  Change? operator [](String s) => coveragePerFile[s];
+  void operator []=(String s, Change d) => coveragePerFile[s] = d;
+}
+
+class Change {
+  final double? changed;
+  final bool existedBefore;
+  final bool existsNow;
+
+  Change({this.changed, this.existedBefore = true, this.existsNow = true});
+
+  Severity get severity {
+    if (existedBefore) {
+      return changed! < 0 ? Severity.info : Severity.success;
+    } else if (existsNow && !existedBefore) {
+      return Severity.success;
+    } else if (!existsNow && !existedBefore) {
+      return Severity.info;
+    } else {
+      return Severity.error;
+    }
+  }
+
+  String toMarkdown() {
+    if (existedBefore) {
+      return '${(changed! * 100).toStringAsFixed(1)} %';
+    } else if (existsNow && !existedBefore) {
+      return 'New coverage: $changed';
+    } else if (!existsNow && !existedBefore) {
+      return 'No coverage for this file';
+    } else {
+      return '';
+    }
+  }
 }
