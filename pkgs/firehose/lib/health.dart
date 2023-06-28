@@ -403,9 +403,13 @@ class Change {
 
   String toMarkdown() {
     if (existedBefore || existsNow) {
-      var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
+      var valueAsPercentage = '${(value! * 100).abs().toStringAsFixed(1)} %';
       if (existedBefore) {
-        return ':green_heart: Increased by $valueAsPercentage';
+        if (value! > 0) {
+          return ':green_heart: Increased by $valueAsPercentage';
+        } else {
+          return ':broken_heart: Decreased by $valueAsPercentage';
+        }
       } else {
         return ':green_heart: Total coverage $valueAsPercentage';
       }
