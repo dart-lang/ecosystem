@@ -295,7 +295,8 @@ $markdown
       var newPath = path.join(package.directory.path, 'coverage/lcov.info');
       print('Look at $newPath');
       var newCoverages = parseLCOV(newPath);
-
+      print('Coverage old: ${oldCoverages.coveragePerFile}');
+      print('Coverage new: ${newCoverages.coveragePerFile}');
       for (var file in relativeFiles
           .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
