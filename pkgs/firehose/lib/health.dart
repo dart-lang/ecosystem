@@ -405,9 +405,9 @@ class Change {
     if (existedBefore || existsNow) {
       var valueAsPercentage = '${(value! * 100).toStringAsFixed(1)} %';
       if (existedBefore) {
-        return ':green_heart: $valueAsPercentage';
+        return ':green_heart: Increased by $valueAsPercentage';
       } else {
-        return ':green_heart: New coverage: $valueAsPercentage';
+        return ':green_heart: Total coverage $valueAsPercentage';
       }
     } else {
       return ':broken_heart: No coverage for this file';
