@@ -281,17 +281,24 @@ $markdown
     var coverageResult = CoverageResult({});
     for (var package in Repository().locatePackages()) {
       var currentPath = Directory.current.path;
-      var oldPath = path.join(
-        Directory.current.path,
-        '.coverage_base',
+      var relative = path.join(Directory.current.path, '.coverage_base');
+      var oldPackageDirectory = path.join(
+        relative,
         path.relative(package.directory.path, from: currentPath),
       );
-      var oldCoverages = parseLCOV(oldPath);
-      var newCoverages = parseLCOV(package.directory.path);
+      var oldCoverages = parseLCOV(
+        path.join(oldPackageDirectory, 'coverage/lcov.info'),
+        relativeTo: relative,
+      );
+      var newCoverages = parseLCOV(
+        path.join(package.directory.path, 'coverage/lcov.info'),
+        relativeTo: Directory.current.path,
+      );
       print('Coverage old: ${oldCoverages.coveragePerFile}');
       print('Coverage new: ${newCoverages.coveragePerFile}');
       for (var file in files
           .map((file) => file.relativePath)
+          .map((file) => path.relative(file, from: package.directory.path))
           .where((file) => path.extension(file) == '.dart')
           .where((file) => path.isWithin(package.directory.path, file))) {
         var oldCoverage = oldCoverages[file];
@@ -312,9 +319,8 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  static CoverageResult parseLCOV(String directory) {
-    var lcovPath = path.join(directory, 'coverage/lcov.info');
-    print('Parsing LCOV at $lcovPath');
+  static CoverageResult parseLCOV(String lcovPath,
+      {required String relativeTo}) {
     var file = File(lcovPath);
     List<String> lines;
     if (file.existsSync()) {
@@ -336,7 +342,7 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
       } else if (line.startsWith('LH:')) {
         coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
-        coveragePerFile[path.relative(fileName!, from: directory)] =
+        coveragePerFile[path.relative(fileName!, from: relativeTo)] =
             numberLines != null ? (coveredLines ?? 0) / numberLines : 0;
       }
     }
