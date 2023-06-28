@@ -285,13 +285,9 @@ $markdown
         Directory.current.path,
         '.coverage_base',
         path.relative(package.directory.path, from: currentPath),
-        'coverage/lcov.info',
       );
-      print('Look at $oldPath');
-      var oldCoverages = parseLCOV(oldPath, currentPath);
-      var newPath = path.join(package.directory.path, 'coverage/lcov.info');
-      print('Look at $newPath');
-      var newCoverages = parseLCOV(newPath, currentPath);
+      var oldCoverages = parseLCOV(oldPath);
+      var newCoverages = parseLCOV(package.directory.path);
       print('Coverage old: ${oldCoverages.coveragePerFile}');
       print('Coverage new: ${newCoverages.coveragePerFile}');
       for (var file in files
@@ -316,7 +312,8 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     return coverageResult;
   }
 
-  static CoverageResult parseLCOV(String lcovPath, String currentPath) {
+  static CoverageResult parseLCOV(String directory) {
+    var lcovPath = path.join(directory, 'coverage/lcov.info');
     print('Parsing LCOV at $lcovPath');
     var file = File(lcovPath);
     List<String> lines;
@@ -332,13 +329,14 @@ For file $file, the old coverage is $oldCoverage while the new one is $newCovera
     int? coveredLines;
     for (var line in lines) {
       if (line.startsWith('SF:')) {
+        print('Getting coverage for $fileName');
         fileName = line.substring('SF:'.length);
       } else if (line.startsWith('LF:')) {
         numberLines = int.parse(line.substring('LF:'.length));
       } else if (line.startsWith('LH:')) {
         coveredLines = int.parse(line.substring('LH:'.length));
       } else if (line.startsWith('end_of_record')) {
-        coveragePerFile[path.relative(fileName!, from: currentPath)] =
+        coveragePerFile[path.relative(fileName!, from: directory)] =
             numberLines != null ? (coveredLines ?? 0) / numberLines : 0;
       }
     }
