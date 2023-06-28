@@ -411,7 +411,11 @@ class Change {
           return ':broken_heart: Decreased by $valueAsPercentage';
         }
       } else {
-        return ':green_heart: Total coverage $valueAsPercentage';
+        if (value! > 0) {
+          return ':green_heart: Total coverage $valueAsPercentage';
+        } else {
+          return ':broken_heart: Total coverage $valueAsPercentage';
+        }
       }
     } else {
       return ':broken_heart: No coverage for this file';
