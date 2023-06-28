@@ -1,3 +1,6 @@
+## 0.3.19-wip
+- Add code coverage to checks.
+
 ## 0.3.18
 - Add Github workflow for PR health.
 - Refactorings to health workflow.
