@@ -438,4 +438,8 @@ class Change {
   @override
   int get hashCode =>
       value.hashCode ^ existedBefore.hashCode ^ existsNow.hashCode;
+
+  @override
+  String toString() => '''
+Change(value: $value, existedBefore: $existedBefore, existsNow: $existsNow)''';
 }
