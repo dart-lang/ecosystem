@@ -1,6 +1,9 @@
+## 0.3.20
+- Cache file contents and parsed data in `ChangeLog` class.
+
 ## 0.3.19
 - Clean-up and optimizations.
-- Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.
+- Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.git
 
 ## 0.3.18
 - Add Github workflow for PR health.
