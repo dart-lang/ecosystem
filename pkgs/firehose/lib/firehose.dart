@@ -288,18 +288,21 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String describeAsMarkdown([bool withTag = true]) {
+  String describeAsMarkdown({bool withTag = true}) {
     results.sort((a, b) => Enum.compareByIndex(a.severity, b.severity));
 
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
-      var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
-      var publishReleaseUri = r.publishReleaseUri;
-      if (publishReleaseUri != null) {
-        tag = '[$tag]($publishReleaseUri)';
-      }
+      var tagColumn = '';
+      if (withTag) {
+        var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
+        var publishReleaseUri = r.publishReleaseUri;
+        if (publishReleaseUri != null) {
+          tag = '[$tag]($publishReleaseUri)';
+        }
 
-      var tagColumn = withTag ? ' | $tag' : '';
+        tagColumn = ' | $tag';
+      }
       return '| package:${r.package.name} | ${r.package.version} | '
           '$sev${r.message}$tagColumn |';
     }).join('\n');
