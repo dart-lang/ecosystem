@@ -3,7 +3,7 @@
 
 ## 0.3.19
 - Clean-up and optimizations.
-- Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.git
+- Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.
 
 ## 0.3.18
 - Add Github workflow for PR health.
