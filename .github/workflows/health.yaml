@@ -68,7 +68,7 @@ jobs:
         run: dart pub global activate coverage
 
       - name: Get coverage for base and head of branch
-        run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do (set -x; cd "$line"; dart pub get; if [ -d test ]; then dart pub global run coverage:test_with_coverage; fi; done
+        run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do (set -x; cd "$line"; dart pub get; [ -d test ] && dart pub global run coverage:test_with_coverage) || exit 0; done
 
       - name: Install firehose
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=addCoverageWorkflow #TODO remove, just for testing
