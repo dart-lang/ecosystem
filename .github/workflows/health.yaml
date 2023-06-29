@@ -27,7 +27,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version,changelog,license"
+#       checks: "version changelog license coverage"
 
 on:
   workflow_call:
@@ -67,13 +67,13 @@ jobs:
       - name: Install coverage
         run: dart pub global activate coverage
 
-      - name: Get new coverage
+      - name: Get coverage for base and head of branch
         run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do (set -x; cd "$line"; dart pub get; [ -d test ] && dart pub global run coverage:test_with_coverage) || exit 0; done
 
       - name: Install firehose
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=addCoverageWorkflow #TODO remove, just for testing
 
-      - name: Validate packages
+      - name: Check PR health
         if: ${{ github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
