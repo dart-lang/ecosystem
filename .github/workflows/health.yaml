@@ -80,3 +80,11 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
         run: dart pub global run firehose:health ${{ inputs.checks }}
+
+      - name: Remove base branch
+        run: rm -rf .coverage_base
+    
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
+        with:
+          format: lcov
