@@ -70,7 +70,7 @@ class Health {
     var markdownTable = '''
 | Package | Version | Status |
 | :--- | ---: | :--- |
-${results.describeAsMarkdown(false)}
+${results.describeAsMarkdown(withTag: false)}
 
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
     ''';
