@@ -143,7 +143,7 @@ class Change {
       String format(double? value) =>
           '${((value ?? 0) * 100).abs().toStringAsFixed(0)} %';
       var totalString = format(absoluteCoverage);
-      if (existedBefore) {
+      if (existedBefore && relativeChange != 0) {
         var relativeString = '''
 ${relativeChange! >= 0 ? ':arrow_up:' : ':arrow_down:'} ${format(relativeChange)}''';
         if (relativeChange! > 0) {
