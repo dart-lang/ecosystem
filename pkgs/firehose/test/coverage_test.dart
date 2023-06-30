@@ -36,13 +36,8 @@ void main() {
       'base_path_does_not_exist',
     );
 
-    expect(coverages.coveragePerFile, {
-      'testfile.dart': Change(
-        value: (0.7 - 0.5) / 0.5,
-        existedBefore: true,
-        existsNow: true,
-      )
-    });
+    expect(coverages.coveragePerFile,
+        {'testfile.dart': Change(newCoverage: 0.7, oldCoverage: 0.5)});
   });
 }
 

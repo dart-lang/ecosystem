@@ -136,7 +136,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     var coverage = await Coverage().compareCoverages();
 
     var markdownResult = '''
-| File | Coverage change |
+| File | Coverage |
 | :--- | :--- |
 ${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 

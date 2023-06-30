@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -56,21 +57,10 @@ class Coverage {
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
         print('Compage coverage for $file: $oldCoverage vs $newCoverage');
-        Change change;
-        if (oldCoverage == null && newCoverage == null) {
-          change = Change(existedBefore: false, existsNow: false);
-        } else if (oldCoverage == null) {
-          change = Change(
-            value: newCoverage!,
-            existedBefore: false,
-            existsNow: true,
-          );
-        } else {
-          change = Change(
-            value: ((newCoverage ?? 0) - oldCoverage) / oldCoverage.abs(),
-          );
-        }
-        coverageResult[file] = change;
+        coverageResult[file] = Change(
+          oldCoverage: oldCoverage,
+          newCoverage: newCoverage,
+        );
       }
     }
     return coverageResult;
@@ -129,61 +119,64 @@ class CoverageResult {
 }
 
 class Change {
-  final double? value;
-  final bool existedBefore;
-  final bool existsNow;
+  final double? newCoverage;
+  final double? oldCoverage;
 
-  Change({this.value, this.existedBefore = true, this.existsNow = true});
+  Change({this.newCoverage, this.oldCoverage});
+
+  double? get relativeChange => oldCoverage != null
+      ? ((newCoverage ?? 0) - oldCoverage!) / oldCoverage!.abs()
+      : null;
+
+  double? get absoluteCoverage => newCoverage;
 
   Severity get severity => _severityWithMessage().$1;
+
+  bool get existsNow => newCoverage != null;
+
+  bool get existedBefore => oldCoverage != null;
 
   String toMarkdown() => _severityWithMessage().$2;
 
   (Severity, String) _severityWithMessage() {
     if (existedBefore || existsNow) {
-      var valueAsPercentage = '${(value! * 100).abs().toStringAsFixed(1)} %';
+      String format(double? value) =>
+          '${((value ?? 0) * 100).abs().toStringAsFixed(1)} %';
+      var totalString = 'coverage ${format(absoluteCoverage)}';
       if (existedBefore) {
-        if (value! > 0) {
+        var relativeString = '''
+${relativeChange! >= 0 ? ':arrow_up:' : ':arrow_down:'} ${format(relativeChange)}''';
+        if (relativeChange! > 0) {
           return (
             Severity.success,
-            ':green_heart: Increased by $valueAsPercentage'
+            ':green_heart: $totalString $relativeString',
           );
         } else {
           return (
             Severity.warning,
-            ':broken_heart: Decreased by $valueAsPercentage'
+            ':broken_heart: $totalString $relativeString'
           );
         }
       } else {
-        if (value! > 0) {
-          return (
-            Severity.success,
-            ':green_heart: Total coverage $valueAsPercentage'
-          );
-        } else {
-          // As the file did not exist before, there cannot be coverage...
-          return (Severity.warning, ':broken_heart: No coverage for this file');
+        if (absoluteCoverage! > 0) {
+          return (Severity.success, ':green_heart: $totalString}');
         }
       }
-    } else {
-      return (Severity.warning, ':broken_heart: No coverage for this file');
     }
+    return (Severity.warning, ':broken_heart: Not covered');
   }
 
   @override
   bool operator ==(covariant Change other) {
     if (identical(this, other)) return true;
 
-    return other.value == value &&
-        other.existedBefore == existedBefore &&
-        other.existsNow == existsNow;
+    return other.newCoverage == newCoverage && other.oldCoverage == oldCoverage;
   }
 
   @override
-  int get hashCode =>
-      value.hashCode ^ existedBefore.hashCode ^ existsNow.hashCode;
+  int get hashCode => newCoverage.hashCode ^ oldCoverage.hashCode;
 
   @override
-  String toString() => '''
-Change(value: $value, existedBefore: $existedBefore, existsNow: $existsNow)''';
+  String toString() =>
+      'Change(newCoverage: $newCoverage, oldCoverage: $oldCoverage)';
 }
