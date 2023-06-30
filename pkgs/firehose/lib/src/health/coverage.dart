@@ -14,7 +14,7 @@ import 'lcov.dart';
 class Coverage {
   Future<CoverageResult> compareCoverages() async {
     var files = await Github().listFilesForPR();
-    var basePath = '../base_repo/';
+    var basePath = path.join(Directory.current.path, '../base_repo/');
 
     return compareCoveragesFor(files, basePath);
   }
