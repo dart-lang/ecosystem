@@ -1,4 +1,4 @@
-## 0.3.20
+## 0.3.20-wip
 - Cache file contents and parsed data in `ChangeLog` class.
 
 ## 0.3.19
