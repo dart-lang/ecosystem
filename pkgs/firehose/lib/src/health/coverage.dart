@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import '../../firehose.dart';
 import '../github.dart';
 import '../repo.dart';
+import '../utils.dart';
 import 'lcov.dart';
 
 class Coverage {

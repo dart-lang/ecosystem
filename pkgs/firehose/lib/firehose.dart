@@ -337,14 +337,3 @@ class Result {
         : '$message$details';
   }
 }
-
-enum Severity {
-  success(':heavy_check_mark:'),
-  info(':heavy_check_mark:'),
-  warning(':warning:'),
-  error(':exclamation:');
-
-  final String emoji;
-
-  const Severity(this.emoji);
-}
