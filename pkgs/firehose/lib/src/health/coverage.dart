@@ -29,6 +29,7 @@ class Coverage {
         .where((file) => isInSomePackage(packages, file.relativePath))
         .where((file) => isNotATest(packages, file.relativePath))
         .toList();
+    print('The files of interest are $filesOfInterest');
 
     var base = Directory(basePath);
 
@@ -41,6 +42,8 @@ class Coverage {
             filesOfInterest.any((file) => file.isInPackage(package)))
         .toList();
 
+    print('The packages of interest are $changedPackages');
+
     var coverageResult = CoverageResult({});
     for (var package in changedPackages) {
       final newCoverages = getCoverage(package);
@@ -52,6 +55,7 @@ class Coverage {
       for (var file in filesOfInterest.map((file) => file.relativePath)) {
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
+        print('Compage coverage for $file: $oldCoverage vs $newCoverage');
         Change change;
         if (oldCoverage == null && newCoverage == null) {
           change = Change(existedBefore: false, existsNow: false);
