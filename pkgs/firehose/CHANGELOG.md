@@ -1,3 +1,6 @@
+## 0.3.20-wip
+- Cache file contents and parsed data in `ChangeLog` class.
+
 ## 0.3.19
 - Clean-up and optimizations.
 - Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.
