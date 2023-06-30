@@ -80,7 +80,7 @@ jobs:
         if:  ${{ !inputs.local_debug }} 
 
       - name: Install local firehose
-        run: dart pub global activate --source path ../../pkgs/firehose/
+        run: dart pub global activate --source path pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
 
       - name: Check PR health
