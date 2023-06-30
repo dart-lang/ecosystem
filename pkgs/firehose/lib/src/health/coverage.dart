@@ -87,9 +87,15 @@ class Coverage {
       var hasTests =
           Directory(path.join(package.directory.path, 'test')).existsSync();
       if (hasTests) {
-        print('Get coverage for $package');
-        Process.runSync('dart',
-            ['dart', 'pub', 'global', 'run', 'coverage:test_with_coverage']);
+        print('''
+Get coverage for ${package.name} by running coverage in ${package.directory.path}''');
+        var result = Process.runSync(
+          'dart',
+          ['dart', 'pub', 'global', 'run', 'coverage:test_with_coverage'],
+          workingDirectory: package.directory.path,
+        );
+        print(result.stdout);
+        print(result.stderr);
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,
