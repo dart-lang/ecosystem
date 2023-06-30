@@ -83,6 +83,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     ''';
 
     return HealthCheckResult(
+      'validate',
       _publishBotTag2,
       results.severity,
       markdownTable,
@@ -110,6 +111,7 @@ All source files should start with a [license header](https://github.com/dart-la
 ''';
 
     return HealthCheckResult(
+      'license',
       _licenseBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
@@ -128,6 +130,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 ''';
 
     return HealthCheckResult(
+      'changelog',
       _changelogBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
@@ -181,6 +184,7 @@ Try to increase coverage.
 ''';
 
     return HealthCheckResult(
+      'coverage',
       _coverageBotTag,
       Severity.values[coverage.coveragePerFile.values
           .map((change) => change.severity.index)
@@ -230,19 +234,22 @@ Done, found ${filesWithoutLicenses.length} files without license headers''');
     Github github,
     List<HealthCheckResult> results,
   ) async {
-    var commentText = results.map((e) {
-      var markdown = e.markdown;
+    var commentText = results.map((result) {
+      var markdown = result.markdown;
+      var isWorseThanInfo = result.severity.index >= Severity.warning.index;
       var s = '''
-<details${e.severity.index >= Severity.warning.index ? ' open' : ''}>
+<details${isWorseThanInfo ? ' open' : ''}>
 <summary>
 Details
 </summary>
 
 $markdown
+
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.name}-check`' : ''};
 </details>
 
 ''';
-      return '${e.tag} ${e.severity.emoji}\n\n$s';
+      return '${result.tag} ${result.severity.emoji}\n\n$s';
     }).join('\n');
 
     var summary = '$_prHealthTag\n\n$commentText';
@@ -329,11 +336,12 @@ $markdown
 }
 
 class HealthCheckResult {
+  final String name;
   final String tag;
   final Severity severity;
   final String markdown;
 
-  HealthCheckResult(this.tag, this.severity, this.markdown);
+  HealthCheckResult(this.name, this.tag, this.severity, this.markdown);
 }
 
 class CoverageResult {
