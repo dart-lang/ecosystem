@@ -55,7 +55,7 @@ class Health {
         validateCheck,
       if (args.contains('license') &&
           !github.prLabels.contains('skip-license-check'))
-        licenseCheck,
+        (Github _) => licenseCheck(),
       if (args.contains('changelog') &&
           !github.prLabels.contains('skip-changelog-check'))
         changelogCheck,
@@ -90,8 +90,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
   }
 
-  Future<HealthCheckResult> licenseCheck(Github github) async {
-    var filePaths = await getFilesWithoutLicenses(github);
+  Future<HealthCheckResult> licenseCheck() async {
+    var filePaths = await getFilesWithoutLicenses();
 
     var markdownResult = '''
 ```
