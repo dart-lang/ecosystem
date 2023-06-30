@@ -140,7 +140,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 | :--- | :--- |
 ${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 
-Try to increase coverage.
+This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-Coverage) is informational (issues shown here will not fail the PR).
 ''';
 
     return HealthCheckResult(

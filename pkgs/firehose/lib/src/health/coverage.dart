@@ -141,8 +141,8 @@ class Change {
   (Severity, String) _severityWithMessage() {
     if (existedBefore || existsNow) {
       String format(double? value) =>
-          '${((value ?? 0) * 100).abs().toStringAsFixed(1)} %';
-      var totalString = 'coverage ${format(absoluteCoverage)}';
+          '${((value ?? 0) * 100).abs().toStringAsFixed(0)} %';
+      var totalString = format(absoluteCoverage);
       if (existedBefore) {
         var relativeString = '''
 ${relativeChange! >= 0 ? ':arrow_up:' : ':arrow_down:'} ${format(relativeChange)}''';
@@ -159,7 +159,7 @@ ${relativeChange! >= 0 ? ':arrow_up:' : ':arrow_down:'} ${format(relativeChange)
         }
       } else {
         if (absoluteCoverage! > 0) {
-          return (Severity.success, ':green_heart: $totalString}');
+          return (Severity.success, ':green_heart: $totalString');
         }
       }
     }
