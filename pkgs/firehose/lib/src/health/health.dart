@@ -91,7 +91,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var filePaths = await getFilesWithoutLicenses();
+    var filePaths = await getFilesWithoutLicenses(Directory.current);
 
     var markdownResult = '''
 ```

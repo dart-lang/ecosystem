@@ -7,9 +7,8 @@ final license = '''
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.''';
 
-Future<List<String>> getFilesWithoutLicenses() async {
-  var dir = Directory.current;
-  var dartFiles = await dir
+Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir) async {
+  var dartFiles = await repositoryDir
       .list(recursive: true)
       .where((f) => f.path.endsWith('.dart'))
       .toList();
