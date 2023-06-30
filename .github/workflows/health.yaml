@@ -45,6 +45,11 @@ on:
         default: "version changelog license coverage"
         type: string
         required: false
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: bool
+        required: false
 
 jobs:
   health:
@@ -71,7 +76,12 @@ jobs:
         run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do (set -x; cd "$line"; dart pub get; if [ -d test ]; then dart pub global run coverage:test_with_coverage; fi); done
 
       - name: Install firehose
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem.git --git-path pkgs/firehose/ --git-ref=addCoverageWorkflow #TODO remove, just for testing
+        run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }} 
+
+      - name: Install local firehose
+        run: dart pub global activate --source path ../../pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
 
       - name: Check PR health
         if: ${{ github.event_name == 'pull_request' }}
