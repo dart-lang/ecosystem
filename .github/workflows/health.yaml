@@ -76,9 +76,6 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
 
-      - name: cd current_repo
-        run: cd current_repo/
-
       - name: Install coverage
         run: dart pub global activate coverage
 
@@ -87,7 +84,7 @@ jobs:
         if:  ${{ !inputs.local_debug }}
 
       - name: Install local firehose
-        run: dart pub global activate --source path pkgs/firehose/
+        run: dart pub global activate --source path current_repo/pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
 
       - name: Check PR health
@@ -96,9 +93,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose:health --checks ${{ inputs.checks }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }}
 
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
         with:
           format: lcov
+          base-path: current_repo/
+          compare-sha: ${{ github.event.pull_request.base.ref }}
