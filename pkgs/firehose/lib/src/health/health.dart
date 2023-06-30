@@ -5,13 +5,15 @@
 // ignore_for_file: always_declare_return_types
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:firehose/firehose.dart';
-import 'package:firehose/src/repo.dart';
-import 'package:path/path.dart' as path;
 
-import 'src/github.dart';
-import 'src/utils.dart';
+import '../github.dart';
+import '../utils.dart';
+import 'changelog.dart';
+import 'coverage.dart';
+import 'license.dart';
 
 const String _botSuffix = '[bot]';
 
@@ -22,6 +24,8 @@ const String _publishBotTag2 = '### Package publish validation';
 const String _licenseBotTag = '### License Headers';
 
 const String _changelogBotTag = '### Changelog Entry';
+
+const String _coverageBotTag = '### Coverage';
 
 const String _prHealthTag = '## PR Health';
 
@@ -51,10 +55,13 @@ class Health {
         validateCheck,
       if (args.contains('license') &&
           !github.prLabels.contains('skip-license-check'))
-        licenseCheck,
+        (Github _) => licenseCheck(),
       if (args.contains('changelog') &&
           !github.prLabels.contains('skip-changelog-check'))
         changelogCheck,
+      if (args.contains('coverage') &&
+          !github.prLabels.contains('skip-coverage-check'))
+        coverageCheck,
     ];
 
     var checked =
@@ -76,19 +83,15 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     ''';
 
     return HealthCheckResult(
+      'validate',
       _publishBotTag2,
       results.severity,
       markdownTable,
     );
   }
 
-  Future<HealthCheckResult> licenseCheck(Github github) async {
-    final license = '''
-// Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.''';
-
-    var filePaths = await _getFilesWithoutLicenses(github);
+  Future<HealthCheckResult> licenseCheck() async {
+    var filePaths = await getFilesWithoutLicenses(Directory.current);
 
     var markdownResult = '''
 ```
@@ -103,6 +106,7 @@ All source files should start with a [license header](https://github.com/dart-la
 ''';
 
     return HealthCheckResult(
+      'license',
       _licenseBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
@@ -110,111 +114,65 @@ All source files should start with a [license header](https://github.com/dart-la
   }
 
   Future<HealthCheckResult> changelogCheck(Github github) async {
-    var filePaths = await _packagesWithoutChangelog(github);
+    var filePaths = await packagesWithoutChangelog(github);
 
     final markdownResult = '''
 | Package | Changed Files |
 | :--- | :--- |
-${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => path.relative(e, from: Directory.current.path)).join('<br />')} |').join('\n')}
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.relativePath).join('<br />')} |').join('\n')}
 
 Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 ''';
 
     return HealthCheckResult(
+      'changelog',
       _changelogBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
   }
 
-  Future<Map<Package, List<String>>> _packagesWithoutChangelog(
-      Github github) async {
-    final repo = Repository();
-    final packages = repo.locatePackages();
+  Future<HealthCheckResult> coverageCheck(Github github) async {
+    var coverage = await Coverage().compareCoverages();
 
-    final files = await github.listFilesForPR();
-    print('Collecting packages without changed changelogs:');
-    final packagesWithoutChangedChangelog = packages.where((package) {
-      var changelogPath = package.changelog.file.path;
-      var changelog =
-          path.relative(changelogPath, from: Directory.current.path);
-      return !files.contains(changelog);
-    }).toList();
-    print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
+    var markdownResult = '''
+| File | Coverage |
+| :--- | :--- |
+${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 
-    print('Collecting files without license headers in those packages:');
-    var packagesWithChanges = <Package, List<String>>{};
-    for (final file in files) {
-      for (final package in packagesWithoutChangedChangelog) {
-        if (fileNeedsEntryInChangelog(package, file)) {
-          print(file);
-          packagesWithChanges.update(
-            package,
-            (changedFiles) => [...changedFiles, file],
-            ifAbsent: () => [file],
-          );
-        }
-      }
-    }
-    print('''
-Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
-    return packagesWithChanges;
-  }
+This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-Coverage) is informational (issues shown here will not fail the PR).
+''';
 
-  bool fileNeedsEntryInChangelog(Package package, String file) {
-    final directoryPath = package.directory.path;
-    final directory =
-        path.relative(directoryPath, from: Directory.current.path);
-    final isInPackage = path.isWithin(directory, file);
-    final isInLib = path.isWithin(path.join(directory, 'lib'), file);
-    final isInBin = path.isWithin(path.join(directory, 'bin'), file);
-    final isPubspec = file.endsWith('pubspec.yaml');
-    final isReadme = file.endsWith('README.md');
-    return isInPackage && (isInLib || isInBin || isPubspec || isReadme);
-  }
-
-  Future<List<String>> _getFilesWithoutLicenses(Github github) async {
-    var dir = Directory.current;
-    var dartFiles = await dir
-        .list(recursive: true)
-        .where((f) => f.path.endsWith('.dart'))
-        .toList();
-    print('Collecting files without license headers:');
-    var filesWithoutLicenses = dartFiles
-        .map((file) {
-          var fileContents = File(file.path).readAsStringSync();
-          var fileContainsCopyright = fileContents.contains('// Copyright (c)');
-          if (!fileContainsCopyright) {
-            var relativePath =
-                path.relative(file.path, from: Directory.current.path);
-            print(relativePath);
-            return relativePath;
-          }
-        })
-        .whereType<String>()
-        .toList();
-    print('''
-Done, found ${filesWithoutLicenses.length} files without license headers''');
-    return filesWithoutLicenses;
+    return HealthCheckResult(
+      'coverage',
+      _coverageBotTag,
+      Severity.values[coverage.coveragePerFile.values
+          .map((change) => change.severity.index)
+          .reduce(max)],
+      markdownResult,
+    );
   }
 
   Future<void> writeInComment(
     Github github,
     List<HealthCheckResult> results,
   ) async {
-    var commentText = results.map((e) {
-      var markdown = e.markdown;
+    var commentText = results.map((result) {
+      var markdown = result.markdown;
+      var isWorseThanInfo = result.severity.index >= Severity.warning.index;
       var s = '''
-<details${e.severity == Severity.error ? ' open' : ''}>
+<details${isWorseThanInfo ? ' open' : ''}>
 <summary>
 Details
 </summary>
 
 $markdown
+
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.name}-check`' : ''}
 </details>
 
 ''';
-      return '${e.tag} ${e.severity.emoji}\n\n$s';
+      return '${result.tag} ${result.severity.emoji}\n\n$s';
     }).join('\n');
 
     var summary = '$_prHealthTag\n\n$commentText';
@@ -253,9 +211,10 @@ $markdown
 }
 
 class HealthCheckResult {
+  final String name;
   final String tag;
   final Severity severity;
   final String markdown;
 
-  HealthCheckResult(this.tag, this.severity, this.markdown);
+  HealthCheckResult(this.name, this.tag, this.severity, this.markdown);
 }

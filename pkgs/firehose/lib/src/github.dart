@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -5,7 +6,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firehose/src/repo.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 // TODO:(devoncarew): Consider replacing some of this class with package:github.
 
@@ -44,6 +47,9 @@ class Github {
   /// This value matches the branch or tag name shown on GitHub. For example,
   /// `feature-branch-1`.
   String? get refName => _env['GITHUB_REF_NAME'];
+
+  /// The ref name of the base where the PR branched off of.
+  String? get baseRef => _env['base_ref'];
 
   http.Client get httpClient => _httpClient ??= http.Client();
 
@@ -192,17 +198,22 @@ class Github {
         'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'));
   }
 
-  Future<List<String>> listFilesForPR() async {
+  Future<List<GitFile>> listFilesForPR() async {
     var result = await callRestApiGet(
       Uri.parse(
           'https://api.github.com/repos/$repoSlug/pulls/$issueNumber/files'),
     );
     var json = jsonDecode(result) as List;
-    var filenames = json
+    var files = json
         .map((e) => e as Map<String, dynamic>)
-        .map((e) => e['filename'] as String)
+        .map((e) => GitFile(
+              e['filename'] as String,
+              FileStatus.values.firstWhere(
+                (element) => element.name == e['status'] as String,
+              ),
+            ))
         .toList();
-    return filenames;
+    return files;
   }
 
   void close() {
@@ -222,4 +233,32 @@ class RpcException implements Exception {
 
   @override
   String toString() => 'RpcException: $message';
+}
+
+class GitFile {
+  final String filename;
+  final FileStatus status;
+
+  bool isInPackage(Package package) {
+    print('Check if $relativePath is in ${package.directory.path}');
+    return path.isWithin(package.directory.path, relativePath);
+  }
+
+  GitFile(this.filename, this.status);
+
+  String get relativePath =>
+      path.relative(filename, from: Directory.current.path);
+
+  @override
+  String toString() => '$filename: $status';
+}
+
+enum FileStatus {
+  added,
+  removed,
+  modified,
+  renamed,
+  copied,
+  changed,
+  unchanged;
 }

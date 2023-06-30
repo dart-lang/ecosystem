@@ -5,18 +5,17 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:firehose/health.dart';
+import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
   var argParser = ArgParser()
     ..addMultiOption(
       'checks',
-      defaultsTo: ['version', 'license', 'changelog'],
-      allowed: ['version', 'license', 'changelog'],
+      allowed: ['version', 'license', 'changelog', 'coverage'],
       help: 'Check PR health.',
     );
   var parsedArgs = argParser.parse(arguments);
+  var checks = parsedArgs['checks'] as List<String>;
 
-  await Health(Directory.current)
-      .healthCheck(parsedArgs['checks'] as List<String>);
+  await Health(Directory.current).healthCheck(checks);
 }

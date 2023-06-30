@@ -115,6 +115,7 @@ When run from a PR, this tool will check a configurable subset of the following
 * If the package versioning is correct and consistent, see `firehose` description above.
 * If a changelog entry has been added.
 * If all `.dart` files have a license header.
+* How the test coverage is affected by the PR.
 
 This tool can work with either single package repos or with mono-repos (repos
 containing several packages).
@@ -134,7 +135,7 @@ jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
-#     checks: "version,changelog,license" 
+#     checks: "version,changelog,license,coverage" 
 ```
 
 ### Workflow docs

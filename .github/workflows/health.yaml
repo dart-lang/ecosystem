@@ -27,7 +27,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version,changelog,license"
+#       checks: "version changelog license coverage"
 
 on:
   workflow_call:
@@ -42,8 +42,13 @@ on:
         type: string
       checks:
         description: What to check for in the PR health check - any subset of "version changelog license"
-        default: "version changelog license"
+        default: "version,changelog,license,coverage"
         type: string
+        required: false
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
         required: false
 
 jobs:
@@ -53,19 +58,43 @@ jobs:
       pull-requests: write
 
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+        with:
+          path: current_repo/
+      
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base_repo/
+          
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
           sdk: ${{ inputs.sdk }}
 
+      - name: Install coverage
+        run: dart pub global activate coverage
+
       - name: Install firehose
         run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }}
 
-      - name: Validate packages
+      - name: Install local firehose
+        run: dart pub global activate --source path current_repo/pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
+
+      - name: Check PR health
         if: ${{ github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose:health ${{ inputs.checks }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }}
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
+        with:
+          format: lcov
+          base-path: current_repo/
+          compare-sha: ${{ github.event.pull_request.base.ref }}

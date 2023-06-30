@@ -12,6 +12,10 @@ import 'github.dart';
 import 'pubspec.dart';
 
 class Repository {
+  final Directory baseDirectory;
+
+  Repository([Directory? base]) : baseDirectory = base ?? Directory.current;
+
   /// Returns true if this repository hosts only a single package, and that
   /// package lives at the top level of the repo.
   bool get isSinglePackageRepo {
@@ -21,7 +25,7 @@ class Repository {
     }
 
     var dir = packages.single.directory;
-    return dir.absolute.path == Directory.current.absolute.path;
+    return dir.absolute.path == baseDirectory.absolute.path;
   }
 
   /// Returns all the potentially publishable packages for the current
@@ -35,7 +39,7 @@ class Repository {
   ///
   /// Once we find a package, we don't look for packages in sub-directories.
   List<Package> locatePackages() {
-    return _recurseAndGather(Directory.current, []);
+    return _recurseAndGather(baseDirectory, []);
   }
 
   List<Package> _recurseAndGather(Directory directory, List<Package> packages) {
@@ -45,13 +49,15 @@ class Repository {
       var pubspec = yaml.loadYaml(pubspecFile.readAsStringSync()) as Map;
       var publishTo = pubspec['publish_to'] as String?;
       if (publishTo != 'none') {
-        packages.add(Package(directory));
+        packages.add(Package(directory, this));
       }
     } else {
-      for (var child in directory.listSync().whereType<Directory>()) {
-        var name = path.basename(child.path);
-        if (!name.startsWith('.')) {
-          _recurseAndGather(child, packages);
+      if (directory.existsSync()) {
+        for (var child in directory.listSync().whereType<Directory>()) {
+          var name = path.basename(child.path);
+          if (!name.startsWith('.')) {
+            _recurseAndGather(child, packages);
+          }
         }
       }
     }
@@ -78,11 +84,12 @@ class Repository {
 
 class Package {
   final Directory directory;
+  final Repository repository;
 
   late final Pubspec pubspec;
   late final Changelog changelog;
 
-  Package(this.directory) {
+  Package(this.directory, this.repository) {
     pubspec = Pubspec(directory);
     changelog = Changelog(File(path.join(directory.path, 'CHANGELOG.md')));
   }
