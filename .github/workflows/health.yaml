@@ -48,7 +48,7 @@ on:
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
-        type: bool
+        type: boolean
         required: false
 
 jobs:
