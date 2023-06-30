@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:firehose/health.dart';
+import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
   var argParser = ArgParser()
