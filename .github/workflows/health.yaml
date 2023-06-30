@@ -76,15 +76,15 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
 
+      - name: cd current_repo
+        run: cd current_repo/
+
       - name: Install coverage
         run: dart pub global activate coverage
 
       - name: Install firehose
         run: dart pub global activate firehose
         if:  ${{ !inputs.local_debug }}
-
-      - name: cd current_repo
-        run: cd current_repo/
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
