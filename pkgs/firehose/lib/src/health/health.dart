@@ -168,7 +168,7 @@ Details
 
 $markdown
 
-${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.name}-check`' : ''};
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.name}-check`' : ''}
 </details>
 
 ''';
