@@ -14,7 +14,7 @@ import 'lcov.dart';
 class Coverage {
   Future<CoverageResult> compareCoverages() async {
     var files = await Github().listFilesForPR();
-    var basePath = path.join(Directory.current.path, '../base_repo/');
+    var basePath = '../base_repo/';
 
     return compareCoveragesFor(files, basePath);
   }
@@ -89,6 +89,11 @@ class Coverage {
       if (hasTests) {
         print('''
 Get coverage for ${package.name} by running coverage in ${package.directory.path}''');
+        Process.runSync(
+          'dart',
+          ['pub', 'get'],
+          workingDirectory: package.directory.path,
+        );
         var result = Process.runSync(
           'dart',
           ['pub', 'global', 'run', 'coverage:test_with_coverage'],
