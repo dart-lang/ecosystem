@@ -135,7 +135,7 @@ jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
-#     checks: "version changelog license coverage" 
+#     checks: "version,changelog,license,coverage" 
 ```
 
 ### Workflow docs

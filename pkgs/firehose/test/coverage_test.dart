@@ -6,14 +6,15 @@ import 'dart:io';
 
 import 'package:firehose/health.dart';
 import 'package:firehose/src/github.dart';
+import 'package:firehose/src/lcov.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('LCOV parser', () {
-    var parseLCOV = Health(Directory.current)
-        .parseLCOV('test/lcov.info', relativeTo: Directory.current.path);
+    var parsed =
+        parseLCOV('test/lcov.info', relativeTo: Directory.current.path);
     expect(
-      parseLCOV.coveragePerFile.values.map((e) => e.value),
+      parsed.values,
       orderedEquals([
         1.0,
         0.02857142857142857,
@@ -45,12 +46,12 @@ class FakeHealth extends Health {
   FakeHealth(super.directory);
 
   @override
-  CoverageResult parseLCOV(String lcovPath, {required String relativeTo}) {
-    CoverageResult result;
+  Map<String, double> parseLcov(String lcovPath, String relativeTo) {
+    Map<String, double> result;
     if (lcovPath.contains('.coverage_base')) {
-      result = CoverageResult({'testfile.dart': Change(value: 0.5)});
+      result = {'testfile.dart': 0.5};
     } else {
-      result = CoverageResult({'testfile.dart': Change(value: 0.7)});
+      result = {'testfile.dart': 0.7};
     }
     return result;
   }

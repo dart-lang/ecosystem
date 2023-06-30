@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13,6 +12,7 @@ import 'package:firehose/src/repo.dart';
 import 'package:path/path.dart' as path;
 
 import 'src/github.dart';
+import 'src/lcov.dart';
 import 'src/utils.dart';
 
 const String _botSuffix = '[bot]';
@@ -288,16 +288,10 @@ $markdown
         relative,
         path.relative(package.directory.path, from: currentPath),
       );
-      var oldCoverages = parseLCOV(
-        path.join(oldPackageDirectory, 'coverage/lcov.info'),
-        relativeTo: relative,
-      );
-      var newCoverages = parseLCOV(
-        path.join(package.directory.path, 'coverage/lcov.info'),
-        relativeTo: Directory.current.path,
-      );
-      print('Old coverage: ${oldCoverages.coveragePerFile}');
-      print('New coverage: ${newCoverages.coveragePerFile}');
+      var oldCoverages = parseLcov(oldPackageDirectory, relative);
+      var newCoverages = parseLcov(package.directory.path, currentPath);
+      print('Old coverage: $oldCoverages');
+      print('New coverage: $newCoverages');
       for (var file in files
           .map((file) => file.relativePath)
           .where((file) => path.extension(file) == '.dart')
@@ -311,14 +305,13 @@ $markdown
           change = Change(existedBefore: false, existsNow: false);
         } else if (oldCoverage == null) {
           change = Change(
-            value: newCoverage!.value!,
+            value: newCoverage!,
             existedBefore: false,
             existsNow: true,
           );
         } else {
           change = Change(
-            value: ((newCoverage?.value ?? 0) - oldCoverage.value!) /
-                oldCoverage.value!.abs(),
+            value: ((newCoverage ?? 0) - oldCoverage) / oldCoverage.abs(),
           );
         }
         coverageResult[file] = change;
@@ -327,39 +320,11 @@ $markdown
     return coverageResult;
   }
 
-  CoverageResult parseLCOV(
-    String lcovPath, {
-    required String relativeTo,
-  }) {
-    var file = File(lcovPath);
-    List<String> lines;
-    if (file.existsSync()) {
-      lines = file.readAsLinesSync();
-    } else {
-      print('LCOV file not found at $lcovPath.');
-      return CoverageResult({});
-    }
-    var coveragePerFile = <String, Change>{};
-    String? fileName;
-    int? numberLines;
-    int? coveredLines;
-    for (var line in lines) {
-      if (line.startsWith('SF:')) {
-        fileName = line.substring('SF:'.length);
-      } else if (line.startsWith('LF:')) {
-        numberLines = int.parse(line.substring('LF:'.length));
-      } else if (line.startsWith('LH:')) {
-        coveredLines = int.parse(line.substring('LH:'.length));
-      } else if (line.startsWith('end_of_record')) {
-        var change = Change(
-          value: numberLines != null ? (coveredLines ?? 0) / numberLines : 0,
-          existsNow: numberLines != null,
-        );
-        coveragePerFile[path.relative(fileName!, from: relativeTo)] = change;
-      }
-    }
-    print('Found coverage for ${coveragePerFile.length} files.');
-    return CoverageResult(coveragePerFile);
+  Map<String, double> parseLcov(String packageDirectory, String relativeTo) {
+    return parseLCOV(
+      path.join(packageDirectory, 'coverage/lcov.info'),
+      relativeTo: relativeTo,
+    );
   }
 }
 
