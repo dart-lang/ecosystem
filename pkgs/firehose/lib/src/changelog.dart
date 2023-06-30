@@ -8,10 +8,20 @@ class Changelog {
   static const _headerLinePrefix = '## ';
 
   final File file;
+  final bool exists;
+  final List<_Section> _sections;
 
-  Changelog(this.file);
+  /// Reads [file] and parses it into sections.
+  factory Changelog(File file) {
+    if (!file.existsSync()) {
+      return Changelog._(file, false, const <_Section>[]);
+    }
+    var lines = file.readAsLinesSync();
+    var sections = _parseSections(lines);
+    return Changelog._(file, true, sections);
+  }
 
-  bool get exists => file.existsSync();
+  Changelog._(this.file, this.exists, this._sections);
 
   /// Pattern recognizing some SemVer formats.
   ///
@@ -45,8 +55,7 @@ class Changelog {
   }
 
   String? get latestHeading {
-    var sections = _parseSections();
-    var section = sections.firstOrNull;
+    var section = _sections.firstOrNull;
     if (section == null) return null;
     // Remove the leading `_headerLinePrefix`, then trim left-over whitespace.
     var title = section.title;
@@ -55,25 +64,25 @@ class Changelog {
   }
 
   List<String> get latestChangeEntries =>
-      _parseSections().firstOrNull?.entries ?? [];
+      _sections.firstOrNull?.entries ?? const <String>[];
 
-  Iterable<_Section> _parseSections() sync* {
-    if (!exists) return;
+  static List<_Section> _parseSections(List<String> lines) {
+    var sections = <_Section>[];
 
     _Section? section;
 
-    for (var line in file.readAsLinesSync()) {
+    for (var line in lines) {
       if (line.isEmpty) continue;
       if (line.startsWith(_headerLinePrefix)) {
-        if (section != null) yield section;
-
+        if (section != null) sections.add(section);
         section = _Section(line);
       } else {
         section?.entries.add(line);
       }
     }
+    if (section != null) sections.add(section);
 
-    if (section != null) yield section;
+    return sections;
   }
 
   String get describeLatestChanges => latestChangeEntries.join();

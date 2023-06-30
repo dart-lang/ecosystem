@@ -1,4 +1,5 @@
 ## 0.3.20-wip
+- Cache file contents and parsed data in `ChangeLog` class.
 - Add code coverage to checks.
 
 ## 0.3.19
