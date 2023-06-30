@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/coverage.dart';
 import 'package:firehose/src/health/lcov.dart';
+import 'package:firehose/src/repo.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -28,9 +29,12 @@ void main() {
     );
   });
   test('Compare coverage', () async {
-    var coverages = await FakeHealth().compareCoverages([
-      GitFile('testfile.dart', FileStatus.modified),
-    ]);
+    var coverages = FakeHealth().compareCoveragesFor(
+      [
+        GitFile('testfile.dart', FileStatus.modified),
+      ],
+      'base_path_does_not_exist',
+    );
 
     expect(coverages.coveragePerFile, {
       'testfile.dart': Change(
@@ -44,9 +48,10 @@ void main() {
 
 class FakeHealth extends Coverage {
   @override
-  Map<String, double> parseLcov(String lcovPath, String relativeTo) {
+  Map<String, double> getCoverage(Package? package) {
     Map<String, double> result;
-    if (lcovPath.contains('.coverage_base')) {
+    if (package == null) {
+      // as 'base_path_does_not_exist'
       result = {'testfile.dart': 0.5};
     } else {
       result = {'testfile.dart': 0.7};

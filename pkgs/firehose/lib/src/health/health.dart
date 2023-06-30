@@ -133,8 +133,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
   }
 
   Future<HealthCheckResult> coverageCheck(Github github) async {
-    final files = await github.listFilesForPR();
-    var coverage = await Coverage().compareCoverages(files);
+    var coverage = await Coverage().compareCoverages();
 
     var markdownResult = '''
 | File | Coverage change |

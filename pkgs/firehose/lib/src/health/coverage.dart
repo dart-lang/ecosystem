@@ -12,25 +12,44 @@ import '../utils.dart';
 import 'lcov.dart';
 
 class Coverage {
-  Future<CoverageResult> compareCoverages(List<GitFile> files) async {
+  Future<CoverageResult> compareCoverages() async {
+    var files = await Github().listFilesForPR();
+    var basePath = '../base_repo/';
+
+    return compareCoveragesFor(files, basePath);
+  }
+
+  CoverageResult compareCoveragesFor(List<GitFile> files, String basePath) {
+    var repository = Repository();
+    var packages = repository.locatePackages();
+    print('Found packages $packages at ${Directory.current}');
+
+    var filesOfInterest = files
+        .where((file) => path.extension(file.filename) == '.dart')
+        .where((file) => isInSomePackage(packages, file.relativePath))
+        .where((file) => isNotATest(packages, file.relativePath))
+        .toList();
+
+    var base = Directory(basePath);
+
+    var baseRepository = Repository(base);
+    var basePackages = baseRepository.locatePackages();
+    print('Found packages $basePackages at $base');
+
+    var changedPackages = packages
+        .where((package) =>
+            filesOfInterest.any((file) => file.isInPackage(package)))
+        .toList();
+
     var coverageResult = CoverageResult({});
-    for (var package in Repository().locatePackages()) {
-      var currentPath = Directory.current.path;
-      var relative = path.join(Directory.current.path, '.coverage_base');
-      var oldPackageDirectory = path.join(
-        relative,
-        path.relative(package.directory.path, from: currentPath),
-      );
-      var oldCoverages = parseLcov(oldPackageDirectory, relative);
-      var newCoverages = parseLcov(package.directory.path, currentPath);
-      print('Old coverage: $oldCoverages');
-      print('New coverage: $newCoverages');
-      for (var file in files
-          .map((file) => file.relativePath)
-          .where((file) => path.extension(file) == '.dart')
-          .where((file) =>
-              !path.isWithin(path.join(package.directory.path, 'test'), file))
-          .where((file) => path.isWithin(package.directory.path, file))) {
+    for (var package in changedPackages) {
+      final newCoverages = getCoverage(package);
+
+      final basePackage = basePackages
+          .where((element) => element.name == package.name)
+          .firstOrNull;
+      final oldCoverages = getCoverage(basePackage);
+      for (var file in filesOfInterest.map((file) => file.relativePath)) {
         var oldCoverage = oldCoverages[file];
         var newCoverage = newCoverages[file];
         Change change;
@@ -53,11 +72,31 @@ class Coverage {
     return coverageResult;
   }
 
-  Map<String, double> parseLcov(String packageDirectory, String relativeTo) {
-    return parseLCOV(
-      path.join(packageDirectory, 'coverage/lcov.info'),
-      relativeTo: relativeTo,
-    );
+  bool isNotATest(List<Package> packages, String file) {
+    return packages.every((package) =>
+        !path.isWithin(path.join(package.directory.path, 'test'), file));
+  }
+
+  bool isInSomePackage(List<Package> packages, String file) {
+    return packages
+        .any((package) => path.isWithin(package.directory.path, file));
+  }
+
+  Map<String, double> getCoverage(Package? package) {
+    if (package != null) {
+      var hasTests =
+          Directory(path.join(package.directory.path, 'test')).existsSync();
+      if (hasTests) {
+        print('Get coverage for $package');
+        Process.runSync('dart',
+            ['dart', 'pub', 'global', 'run', 'coverage:test_with_coverage']);
+        return parseLCOV(
+          path.join(package.directory.path, 'coverage/lcov.info'),
+          relativeTo: package.repository.baseDirectory.path,
+        );
+      }
+    }
+    return {};
   }
 }
 

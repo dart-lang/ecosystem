@@ -58,12 +58,17 @@ jobs:
       pull-requests: write
 
     runs-on: ubuntu-latest
+
+    env:
+      base_ref: ${{ github.event.pull_request.base.ref }}
+
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
         with:
           ref: ${{ github.event.pull_request.base.ref }}
-          path: .coverage_base
+          path: ../base_repo/
           
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
@@ -71,9 +76,6 @@ jobs:
 
       - name: Install coverage
         run: dart pub global activate coverage
-
-      - name: Get coverage for base and head of branch
-        run: find . -name "pubspec.yaml" -exec dirname {} \; | while read -r line; do (set -x; cd "$line"; dart pub get; if [ -d test ]; then dart pub global run coverage:test_with_coverage; fi); done
 
       - name: Install firehose
         run: dart pub global activate firehose
@@ -89,11 +91,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose:health ${{ inputs.checks }}
+        run: dart pub global run firehose:health --checks ${{ inputs.checks }}
 
-      - name: Remove base branch
-        run: rm -rf .coverage_base
-    
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
         with:

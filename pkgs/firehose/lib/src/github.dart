@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firehose/src/repo.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -45,6 +46,9 @@ class Github {
   /// This value matches the branch or tag name shown on GitHub. For example,
   /// `feature-branch-1`.
   String? get refName => _env['GITHUB_REF_NAME'];
+
+  /// The ref name of the base where the PR branched off of.
+  String? get baseRef => _env['base_ref'];
 
   http.Client get httpClient => _httpClient ??= http.Client();
 
@@ -233,6 +237,11 @@ class RpcException implements Exception {
 class GitFile {
   final String filename;
   final FileStatus status;
+
+  bool isInPackage(Package package) {
+    print('Check if $relativePath is in ${package.directory.path}');
+    return path.isWithin(package.directory.path, relativePath);
+  }
 
   GitFile(this.filename, this.status);
 
