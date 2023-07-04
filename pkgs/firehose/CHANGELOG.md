@@ -1,3 +1,6 @@
+## 0.3.21
+- Allow empty coverage in PR health checks.
+
 ## 0.3.20
 - Cache file contents and parsed data in `ChangeLog` class.
 - Add code coverage to checks.
