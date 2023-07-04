@@ -1,4 +1,4 @@
-## 0.3.20-wip
+## 0.3.20
 - Cache file contents and parsed data in `ChangeLog` class.
 - Add code coverage to checks.
 - Fix [#125](https://github.com/dart-lang/ecosystem/issues/125).
