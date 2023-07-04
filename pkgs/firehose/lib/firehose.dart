@@ -282,7 +282,7 @@ class VerificationResults {
   void addResult(Result result) => results.add(result);
 
   Severity get severity =>
-      Severity.values[results.map((e) => e.severity.index).reduce(max)];
+      Severity.values[results.map((e) => e.severity.index).fold(0, max)];
 
   bool get hasSuccess => results.any((r) => r.severity == Severity.success);
 

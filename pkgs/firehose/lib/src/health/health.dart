@@ -148,7 +148,7 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
       _coverageBotTag,
       Severity.values[coverage.coveragePerFile.values
           .map((change) => change.severity.index)
-          .reduce(max)],
+          .fold(0, max)],
       markdownResult,
     );
   }

@@ -1,6 +1,7 @@
 ## 0.3.20-wip
 - Cache file contents and parsed data in `ChangeLog` class.
 - Add code coverage to checks.
+- Fix [#125](https://github.com/dart-lang/ecosystem/issues/125).
 
 ## 0.3.19
 - Clean-up and optimizations.
