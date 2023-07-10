@@ -98,3 +98,4 @@ jobs:
           format: lcov
           base-path: current_repo/
           compare-sha: ${{ github.event.pull_request.base.ref }}
+          allow-empty: true
