@@ -113,7 +113,7 @@ Make sure to also require this environment to be present in your package admin
 settings. See the [pub.dev documentation][github_environments] on this.
 
 
-[github_environments](https://dart.dev/tools/pub/automated-publishing#hardening-security-with-github-deployment-environments)
+[github_environments]: https://dart.dev/tools/pub/automated-publishing#hardening-security-with-github-deployment-environments
 
 ### Workflow docs
 
