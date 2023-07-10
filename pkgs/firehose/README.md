@@ -95,6 +95,26 @@ jobs:
       sdk: beta
 ```
 
+### Publishing from a protected Github environment
+
+Callers may optionally specify the name of a github environment for the publish
+job to use. This is useful if you want to require approvals for the publish job
+to run. To pass this value:
+
+```yaml
+jobs:
+  publish:
+    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+    with:
+      environment: pub.dev # Can be any name, this is the convention though.
+```
+
+Make sure to also require this environment to be present in your package admin
+settings. See the [pub.dev documentation][github_environments] on this.
+
+
+[github_environments]: https://dart.dev/tools/pub/automated-publishing#hardening-security-with-github-deployment-environments
+
 ### Workflow docs
 
 The description of the common workflow for repos using this tool can be found at
@@ -135,7 +155,7 @@ jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
-#     checks: "version,changelog,license,coverage" 
+#     checks: "version,changelog,license,coverage"
 ```
 
 ### Workflow docs

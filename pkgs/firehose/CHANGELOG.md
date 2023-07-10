@@ -1,3 +1,6 @@
+## 0.3.22-wip
+- Add docs for the new `environment` input to the publish action.
+
 ## 0.3.21
 - Allow empty coverage in PR health checks.
 

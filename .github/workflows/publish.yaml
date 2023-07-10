@@ -30,6 +30,14 @@ name: Publish
 on:
   workflow_call:
     inputs:
+      environment:
+        description: >-
+            If specified, publishes will be performed from this environment,
+            which will require additional approvals. See
+            https://dart.dev/tools/pub/automated-publishing for more
+            information.
+        required: false
+        type: string
       sdk:
         description: >-
           The channel, or a specific version from a channel, to install
@@ -40,11 +48,13 @@ on:
         type: string
 
 jobs:
-  publish:
+  # Note that this job does not require the specified environment.
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
     permissions:
-      id-token: write
       pull-requests: write
 
     runs-on: ubuntu-latest
@@ -58,13 +68,31 @@ jobs:
         run: dart pub global activate firehose
 
       - name: Validate packages
-        if: ${{ github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
         run: dart pub global run firehose --validate
 
+  publish:
+    if: ${{ github.event_name == 'push' }}
+
+    # Require the github deployment environment if supplied.
+    environment: ${{ inputs.environment }}
+
+    # This permission is required for authentication using OIDC.
+    permissions:
+      id-token: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install firehose
+        run: dart pub global activate firehose
+
       - name: Publish packages
-        if: ${{ github.event_name == 'push' }}
         run: dart pub global run firehose --publish
