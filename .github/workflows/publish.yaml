@@ -32,8 +32,10 @@ on:
     inputs:
       environment:
         description: >-
-            If specified, the publish job (but not validate job) is required to
-            be run in this environment (with additional approvals).
+            If specified, publishes will be performed from this environment,
+            which will require additional approvals. See
+            https://dart.dev/tools/pub/automated-publishing for more
+            information.
         required: false
         type: string
       sdk:
@@ -53,7 +55,6 @@ jobs:
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
     permissions:
-      id-token: write
       pull-requests: write
 
     runs-on: ubuntu-latest
