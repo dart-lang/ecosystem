@@ -4,9 +4,11 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 
 const packageName = 'blast_repo';
 
@@ -145,4 +147,9 @@ bool monoRepo(Directory dir, String repoSlug) {
   }
 
   return false;
+}
+
+Version? latestStableVersion(List<Version> versions) {
+  final sorted = versions.toList()..sort();
+  return sorted.whereNot((version) => version.preRelease.isNotEmpty).lastOrNull;
 }

@@ -7,6 +7,7 @@ import 'package:github/github.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import 'action_version.dart';
+import 'utils.dart';
 
 class GitHubActionResolver {
   GitHubActionResolver({required GitHub github}) : _github = github;
@@ -100,13 +101,12 @@ class GitHubActionResolver {
 
     final grouped = groupBy(versionTags, (p0) => _semVerExpando[p0]!);
 
-    final allVersions = grouped.keys.toList(growable: false)..sort();
+    final allVersions = grouped.keys.toList();
+    final latestVersion = latestStableVersion(allVersions);
 
-    if (allVersions.isEmpty) {
+    if (latestVersion == null) {
       throw Exception('Could not figure out "latest" for $repoOrg');
     }
-
-    final latestVersion = allVersions.last;
 
     final latestTags = grouped[latestVersion]!;
 
