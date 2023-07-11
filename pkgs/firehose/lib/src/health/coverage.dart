@@ -88,6 +88,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ['pub', 'get'],
           workingDirectory: package.directory.path,
         );
+        print('Get test coverage for web');
         var resultChrome = Process.runSync(
           'dart',
           ['test', '-p', 'chrome', '--coverage=coverage'],
@@ -95,6 +96,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         );
         print(resultChrome.stdout);
         print(resultChrome.stderr);
+        print('Get test coverage for vm');
         var resultVm = Process.runSync(
           'dart',
           ['test', '--coverage=coverage'],
