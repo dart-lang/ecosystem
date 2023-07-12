@@ -88,13 +88,41 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ['pub', 'get'],
           workingDirectory: package.directory.path,
         );
-        var result = Process.runSync(
+        print('Get test coverage for web');
+        var resultChrome = Process.runSync(
           'dart',
-          ['pub', 'global', 'run', 'coverage:test_with_coverage'],
+          ['test', '-p', 'chrome', '--coverage=coverage'],
           workingDirectory: package.directory.path,
         );
-        print(result.stdout);
-        print(result.stderr);
+        print(resultChrome.stdout);
+        print(resultChrome.stderr);
+        print('Get test coverage for vm');
+        var resultVm = Process.runSync(
+          'dart',
+          ['test', '--coverage=coverage'],
+          workingDirectory: package.directory.path,
+        );
+        print(resultVm.stdout);
+        print(resultVm.stderr);
+        var resultLcov = Process.runSync(
+          'dart',
+          [
+            'pub',
+            'global',
+            'run',
+            'coverage:format_coverage',
+            '--lcov',
+            '--check-ignore',
+            '--report-on lib/',
+            '-i',
+            'coverage/',
+            '-o',
+            'coverage/lcov.info'
+          ],
+          workingDirectory: package.directory.path,
+        );
+        print(resultLcov.stdout);
+        print(resultLcov.stderr);
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,

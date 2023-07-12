@@ -1,5 +1,6 @@
-## 0.3.22-wip
+## 0.3.22
 - Add docs for the new `environment` input to the publish action.
+- Add coverage for web tests.
 
 ## 0.3.21
 - Allow empty coverage in PR health checks.
