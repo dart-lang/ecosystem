@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:blast_repo/src/utils.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -14,4 +15,32 @@ void main() {
 
     expect(result, 'main');
   }, skip: io.Platform.environment['GITHUB_ACTIONS'] == 'true');
+
+  test('latestStableVersion', () {
+    expect(latestStableVersion([]), isNull);
+
+    expect(
+      latestStableVersion([Version.parse('1.0.0')]),
+      Version.parse('1.0.0'),
+    );
+
+    expect(
+      latestStableVersion([Version.parse('1.0.0'), Version.parse('2.0.0')]),
+      Version.parse('2.0.0'),
+    );
+
+    expect(
+      latestStableVersion([Version.parse('2.0.0'), Version.parse('1.0.0')]),
+      Version.parse('2.0.0'),
+    );
+
+    expect(
+      latestStableVersion([
+        Version.parse('1.0.0'),
+        Version.parse('2.0.0'),
+        Version.parse('3.0.0-dev'),
+      ]),
+      Version.parse('2.0.0'),
+    );
+  });
 }
