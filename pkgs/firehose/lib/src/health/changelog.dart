@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 
 import '../github.dart';
 import '../repo.dart';
+import '../utils.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
     Github github) async {
@@ -15,13 +16,9 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   final packages = repo.locatePackages();
 
   final files = await github.listFilesForPR();
-  print('Collecting packages without changed changelogs:');
-  final packagesWithoutChangedChangelog = packages.where((package) {
-    var changelogPath = package.changelog.file.path;
-    var changelog = path.relative(changelogPath, from: Directory.current.path);
-    return !files.map((e) => e.relativePath).contains(changelog);
-  }).toList();
-  print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
+
+  var packagesWithoutChangedChangelog =
+      collectPackagesWithoutChangelogChanges(packages, files);
 
   print('Collecting files without license headers in those packages:');
   var packagesWithChanges = <Package, List<GitFile>>{};
@@ -40,6 +37,19 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   print('''
 Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
   return packagesWithChanges;
+}
+
+List<Package> collectPackagesWithoutChangelogChanges(
+    List<Package> packages, List<GitFile> files) {
+  print('Collecting packages without changed changelogs:');
+  final packagesWithoutChangedChangelog = packages
+      .where((package) => package.changelog.exists)
+      .where((package) => !files
+          .map((e) => e.relativePath)
+          .contains(toRelative(package.changelog.file)))
+      .toList();
+  print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
+  return packagesWithoutChangedChangelog;
 }
 
 bool fileNeedsEntryInChangelog(Package package, String file) {

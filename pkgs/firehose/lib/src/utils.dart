@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as path;
 
 /// Execute the given CLI command asynchronously, streaming stdout and stderr to
 /// the console.
@@ -108,6 +109,9 @@ bool expectEnv(String? value, String name) {
     return true;
   }
 }
+
+String toRelative(File file) =>
+    path.relative(file.path, from: Directory.current.path);
 
 enum Severity {
   success(':heavy_check_mark:'),
