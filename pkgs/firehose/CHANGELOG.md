@@ -1,20 +1,29 @@
+## 0.3.23-wip
+
+- Shorten some text in the markdown summary table.
+
 ## 0.3.22
+
 - Add docs for the new `environment` input to the publish action.
 - Add coverage for web tests.
 
 ## 0.3.21
+
 - Allow empty coverage in PR health checks.
 
 ## 0.3.20
+
 - Cache file contents and parsed data in `ChangeLog` class.
 - Add code coverage to checks.
 - Fix [#125](https://github.com/dart-lang/ecosystem/issues/125).
 
 ## 0.3.19
+
 - Clean-up and optimizations.
 - Stop depending on `package:collection` now that SDK 3.0.0 has `firstOrNull`.
 
 ## 0.3.18
+
 - Add Github workflow for PR health.
 - Refactorings to health workflow.
 - Require Dart `3.0.0`.
