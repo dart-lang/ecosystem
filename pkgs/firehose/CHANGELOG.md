@@ -1,3 +1,6 @@
+## 0.3.23
+- Tweak PR health workflow.
+
 ## 0.3.22
 - Add docs for the new `environment` input to the publish action.
 - Add coverage for web tests.
