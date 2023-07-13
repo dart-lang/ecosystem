@@ -50,6 +50,16 @@ on:
         default: false
         type: boolean
         required: false
+      upload_coverage:
+        description: Whether to upload the coverage to coveralls
+        default: true
+        type: boolean
+        required: false
+      test_web:
+        description: Whether to run `dart test -p chrome` for coverage
+        default: true
+        type: boolean
+        required: false
 
 jobs:
   health:
@@ -90,9 +100,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--test_web","false":""}')[inputs.test_web] }}
 
       - name: Upload coverage to Coveralls
+        if: ${{ inputs.upload_coverage }}
         uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
         with:
           format: lcov

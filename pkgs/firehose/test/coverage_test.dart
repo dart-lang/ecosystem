@@ -44,6 +44,8 @@ void main() {
 }
 
 class FakeHealth extends Coverage {
+  FakeHealth() : super(true);
+
   @override
   Map<String, double> getCoverage(Package? package) {
     Map<String, double> result;
