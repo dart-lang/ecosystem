@@ -123,7 +123,7 @@ ${changedFilesPaths.isNotEmpty ? changedFilesPaths.map((e) => '|$e|').join('\n')
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
 
-$unchangedMarkdown
+${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
 
 ''';
 
