@@ -12,6 +12,7 @@ executables:
 
 dependencies:
   args: ^2.3.0
+  collection: ^1.17.2
   http: ^0.13.0
   path: ^1.8.0
   pub_semver: ^2.1.0

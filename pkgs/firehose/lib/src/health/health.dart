@@ -7,6 +7,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart';
 
 import '../github.dart';
@@ -55,7 +56,7 @@ class Health {
         validateCheck,
       if (args.contains('license') &&
           !github.prLabels.contains('skip-license-check'))
-        (Github _) => licenseCheck(),
+        licenseCheck,
       if (args.contains('changelog') &&
           !github.prLabels.contains('skip-changelog-check'))
         changelogCheck,
@@ -90,9 +91,27 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
   }
 
-  Future<HealthCheckResult> licenseCheck() async {
-    var filePaths = await getFilesWithoutLicenses(Directory.current);
+  Future<HealthCheckResult> licenseCheck(Github github) async {
+    var files = await Github().listFilesForPR();
+    var allFilePaths = await getFilesWithoutLicenses(Directory.current);
 
+    var groupedPaths = allFilePaths
+        .groupListsBy((path) => files.any((f) => f.relativePath == path));
+
+    var unchangedFilesPaths = groupedPaths[false] ?? [];
+    var unchangedMarkdown = '''
+<details>
+<summary>
+Unrelated files missing license headers
+</summary>
+
+| Files |
+| :--- |
+${unchangedFilesPaths.map((e) => '|$e|').join('\n')}
+</details>
+''';
+
+    var changedFilesPaths = groupedPaths[true] ?? [];
     var markdownResult = '''
 ```
 $license
@@ -100,15 +119,18 @@ $license
 
 | Files |
 | :--- |
-${filePaths.isNotEmpty ? filePaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}
+${changedFilesPaths.isNotEmpty ? changedFilesPaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
+
+$unchangedMarkdown
+
 ''';
 
     return HealthCheckResult(
       'license',
       _licenseBotTag,
-      filePaths.isNotEmpty ? Severity.error : Severity.success,
+      changedFilesPaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
   }
