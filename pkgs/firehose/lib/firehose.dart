@@ -149,7 +149,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       } else if (package.pubspec.isPreRelease) {
         var result = Result.info(
           package,
-          'version $pubspecVersion is pre-release; no publish necessary',
+          'pre-release version (no publish necessary)',
         );
         print(result);
         results.addResult(result);
