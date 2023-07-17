@@ -55,9 +55,9 @@ on:
         default: true
         type: boolean
         required: false
-      test_web:
+      coverage_web:
         description: Whether to run `dart test -p chrome` for coverage
-        default: true
+        default: false
         type: boolean
         required: false
 

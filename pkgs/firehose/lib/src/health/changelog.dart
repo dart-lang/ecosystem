@@ -46,7 +46,7 @@ List<Package> collectPackagesWithoutChangelogChanges(
       .where((package) => package.changelog.exists)
       .where((package) => !files
           .map((e) => e.relativePath)
-          .contains(toRelative(package.changelog.file)))
+          .contains(package.changelog.file.relativePath))
       .toList();
   print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
   return packagesWithoutChangedChangelog;

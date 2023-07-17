@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
 /// Execute the given CLI command asynchronously, streaming stdout and stderr to
@@ -110,8 +111,10 @@ bool expectEnv(String? value, String name) {
   }
 }
 
-String toRelative(File file) =>
-    path.relative(file.path, from: Directory.current.path);
+extension FileExtension on File {
+  String get relativePath =>
+      path.relative(this.path, from: Directory.current.path);
+}
 
 enum Severity {
   success(':heavy_check_mark:'),
