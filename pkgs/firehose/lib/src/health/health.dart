@@ -35,7 +35,7 @@ class Health {
 
   Health(this.directory);
 
-  Future<void> healthCheck(List args, bool testWeb) async {
+  Future<void> healthCheck(List args, bool coverageweb) async {
     var github = Github();
 
     // Do basic validation of our expected env var.
@@ -62,7 +62,7 @@ class Health {
         changelogCheck,
       if (args.contains('coverage') &&
           !github.prLabels.contains('skip-coverage-check'))
-        (Github github) => coverageCheck(github, testWeb),
+        (Github github) => coverageCheck(github, coverageweb),
     ];
 
     var checked =
@@ -154,8 +154,11 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     );
   }
 
-  Future<HealthCheckResult> coverageCheck(Github github, bool testWeb) async {
-    var coverage = await Coverage(testWeb).compareCoverages();
+  Future<HealthCheckResult> coverageCheck(
+    Github github,
+    bool coverageWeb,
+  ) async {
+    var coverage = await Coverage(coverageWeb).compareCoverages();
 
     var markdownResult = '''
 | File | Coverage |

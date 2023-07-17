@@ -13,9 +13,9 @@ import '../utils.dart';
 import 'lcov.dart';
 
 class Coverage {
-  final bool testWeb;
+  final bool coverageWeb;
 
-  Coverage(this.testWeb);
+  Coverage(this.coverageWeb);
 
   Future<CoverageResult> compareCoverages() async {
     var files = await Github().listFilesForPR();
@@ -92,7 +92,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ['pub', 'get'],
           workingDirectory: package.directory.path,
         );
-        if (testWeb) {
+        if (coverageWeb) {
           print('Get test coverage for web');
           var resultChrome = Process.runSync(
             'dart',

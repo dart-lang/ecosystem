@@ -20,7 +20,7 @@ void main(List<String> arguments) async {
     );
   var parsedArgs = argParser.parse(arguments);
   var checks = parsedArgs['checks'] as List<String>;
-  var testWeb = parsedArgs['coverage_web'] as bool;
+  var coverageWeb = parsedArgs['coverage_web'] as bool;
 
-  await Health(Directory.current).healthCheck(checks, testWeb);
+  await Health(Directory.current).healthCheck(checks, coverageWeb);
 }
