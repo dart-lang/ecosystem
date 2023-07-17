@@ -12,6 +12,8 @@ name: Health
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+#     with:
+#       coverage_web: true #If the coverage should run browser tests
 
 # Callers may optionally specify the version of the SDK to use when running the
 # health check. This can be useful if your package has a very recent minimum SDK

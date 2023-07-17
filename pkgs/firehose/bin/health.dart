@@ -15,12 +15,12 @@ void main(List<String> arguments) async {
       help: 'Check PR health.',
     )
     ..addFlag(
-      'test_web',
+      'coverage_web',
       help: 'Whether to run web tests for coverage',
     );
   var parsedArgs = argParser.parse(arguments);
   var checks = parsedArgs['checks'] as List<String>;
-  var testWeb = parsedArgs['test_web'] as bool;
+  var testWeb = parsedArgs['coverage_web'] as bool;
 
   await Health(Directory.current).healthCheck(checks, testWeb);
 }
