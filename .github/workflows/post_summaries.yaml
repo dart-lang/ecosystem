@@ -42,8 +42,8 @@ jobs:
           script: |
             var fs = require('fs');
             var markdown = fs.readFileSync('./comment.md');
-            if (fs.existsSync('./commentNumber')) {
-              var comment_number = Number(fs.readFileSync('./commentNumber'));
+            if (fs.existsSync('./commentId')) {
+              var comment_number = Number(fs.readFileSync('./commentId'));
               
               await github.issues.updateComment({
                 owner: context.repo.owner,
@@ -54,7 +54,7 @@ jobs:
             }
             else{
               var issue_number = Number(fs.readFileSync('./NR'));
-              
+
               await github.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,

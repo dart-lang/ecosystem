@@ -222,15 +222,18 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
       //   logError: print,
       // );
     } else {
-      await File('output/commentNumber')
-          .writeAsString(existingCommentId.toString());
+      var idFile = File('./output/commentId');
+      await idFile.create();
+      await idFile.writeAsString(existingCommentId.toString());
       // await allowFailure(
       //   github.updateComment(repoSlug, existingCommentId, summary),
       //   logError: print,
       // );
     }
 
-    await File('output/comment.md').writeAsString(summary);
+    var commentFile = File('./output/comment.md');
+    await commentFile.create();
+    await commentFile.writeAsString(summary);
 
     if (results.any((result) => result.severity == Severity.error) &&
         exitCode == 0) {
