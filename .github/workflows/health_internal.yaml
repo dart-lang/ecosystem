@@ -10,3 +10,4 @@ jobs:
     uses: ./.github/workflows/health.yaml
     with:
       local_debug: true
+      coverage_web: false

@@ -13,9 +13,14 @@ void main(List<String> arguments) async {
       'checks',
       allowed: ['version', 'license', 'changelog', 'coverage'],
       help: 'Check PR health.',
+    )
+    ..addFlag(
+      'coverage_web',
+      help: 'Whether to run web tests for coverage',
     );
   var parsedArgs = argParser.parse(arguments);
   var checks = parsedArgs['checks'] as List<String>;
+  var coverageWeb = parsedArgs['coverage_web'] as bool;
 
-  await Health(Directory.current).healthCheck(checks);
+  await Health(Directory.current).healthCheck(checks, coverageWeb);
 }

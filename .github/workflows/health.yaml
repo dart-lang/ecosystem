@@ -12,6 +12,8 @@ name: Health
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
+#     with:
+#       coverage_web: true #If the coverage should run browser tests
 
 # Callers may optionally specify the version of the SDK to use when running the
 # health check. This can be useful if your package has a very recent minimum SDK
@@ -47,6 +49,16 @@ on:
         required: false
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
+        required: false
+      upload_coverage:
+        description: Whether to upload the coverage to coveralls
+        default: true
+        type: boolean
+        required: false
+      coverage_web:
+        description: Whether to run `dart test -p chrome` for coverage
         default: false
         type: boolean
         required: false
@@ -90,9 +102,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--test_web","false":""}')[inputs.test_web] }}
 
       - name: Upload coverage to Coveralls
+        if: ${{ inputs.upload_coverage }}
         uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
         with:
           format: lcov

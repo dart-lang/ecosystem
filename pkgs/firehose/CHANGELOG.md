@@ -1,5 +1,5 @@
-## 0.3.23-wip
-
+## 0.3.23
+- Tweak PR health workflow.
 - Shorten some text in the markdown summary table.
 
 ## 0.3.22
