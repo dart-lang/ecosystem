@@ -40,7 +40,9 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
 }
 
 List<Package> collectPackagesWithoutChangelogChanges(
-    List<Package> packages, List<GitFile> files) {
+  List<Package> packages,
+  List<GitFile> files,
+) {
   print('Collecting packages without changed changelogs:');
   final packagesWithoutChangedChangelog = packages
       .where((package) => package.changelog.exists)
