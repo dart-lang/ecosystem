@@ -216,19 +216,10 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
       logError: print,
     );
 
-    if (existingCommentId == null) {
-      // await allowFailure(
-      //   github.createComment(repoSlug, issueNumber, summary),
-      //   logError: print,
-      // );
-    } else {
+    if (existingCommentId != null) {
       var idFile = File('./output/commentId');
       await idFile.create(recursive: true);
       await idFile.writeAsString(existingCommentId.toString());
-      // await allowFailure(
-      //   github.updateComment(repoSlug, existingCommentId, summary),
-      //   logError: print,
-      // );
     }
 
     var commentFile = File('./output/comment.md');
