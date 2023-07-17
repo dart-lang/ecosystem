@@ -223,7 +223,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
       // );
     } else {
       var idFile = File('./output/commentId');
-      await idFile.create();
+      await idFile.create(recursive: true);
       await idFile.writeAsString(existingCommentId.toString());
       // await allowFailure(
       //   github.updateComment(repoSlug, existingCommentId, summary),
@@ -232,7 +232,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
 
     var commentFile = File('./output/comment.md');
-    await commentFile.create();
+    await commentFile.create(recursive: true);
     await commentFile.writeAsString(summary);
 
     if (results.any((result) => result.severity == Severity.error) &&
