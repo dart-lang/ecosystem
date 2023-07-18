@@ -1,4 +1,4 @@
-## 0.3.24-wip
+## 0.3.24
 - Start fixing [#137](https://github.com/dart-lang/ecosystem/issues/137).
 
 ## 0.3.23
