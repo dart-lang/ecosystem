@@ -116,7 +116,7 @@ jobs:
 
       - name: Save PR number
         run: |
-          echo ${{ github.event.number }} > ./output/issueNumber
+          echo ${{ github.event.number }} > current_repo/output/issueNumber
 
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@v2

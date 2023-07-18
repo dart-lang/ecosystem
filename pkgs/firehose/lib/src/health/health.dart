@@ -225,7 +225,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     }
 
     var commentFile = File('./output/comment.md');
-    print('Saving comment markdown $summary to file ${commentFile.path}');
+    print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(summary);
 
