@@ -128,7 +128,7 @@ jobs:
       - name: Save PR number
         if: ${{ inputs.save_comment }}
         run: |
-          echo ${{ github.event.number }} > ./output/NR
+          echo ${{ github.event.number }} > ./output/issueNumber
 
       - name: Upload folder with number and markdown
         if: ${{ inputs.save_comment }}
