@@ -1,0 +1,72 @@
+name: Comment on the pull request
+
+on:
+  # Trigger this workflow after the Health workflow completes. This workflow will have permissions to
+  # do things like create comments on the PR, even if the original workflow couldn't.
+  workflow_run:
+    workflows: [Health]
+    types:
+      - completed
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+
+      # Download the output of the health workflow, consisting of the comment markdown and either
+      # the issue number or an existing comment ID.
+      - name: 'Download artifact'
+        uses: actions/github-script@6f00a0b667f9463337970371ccda9072ee86fb27
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "output"
+            })[0];
+            var download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            var fs = require('fs');
+            fs.writeFileSync('${{github.workspace}}/comment.zip', Buffer.from(download.data));
+      - run: unzip comment.zip
+
+
+      # Create the comment, or update the existing one, with the markdown
+      # generated in the Health workflow.
+      - name: 'Comment on PR'
+        uses: actions/github-script@6f00a0b667f9463337970371ccda9072ee86fb27
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            var fs = require('fs');
+            var markdown = fs.readFileSync('./comment.md');
+            if (fs.existsSync('./commentId')) {
+              var comment_number = Number(fs.readFileSync('./commentId'));
+              
+              await github.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment_number,
+                body: markdown
+              });
+            }
+            else{
+              var issue_number = Number(fs.readFileSync('./issueNumber'));
+
+              await github.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                body: markdown
+              });
+            }
