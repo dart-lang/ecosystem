@@ -98,11 +98,12 @@ jobs:
 
       - name: Check PR health
         if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--test_web","false":""}')[inputs.test_web] }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }}
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage }}
@@ -112,3 +113,13 @@ jobs:
           base-path: current_repo/
           compare-sha: ${{ github.event.pull_request.base.ref }}
           allow-empty: true
+
+      - name: Save PR number
+        run: |
+          echo ${{ github.event.number }} > current_repo/output/issueNumber
+
+      - name: Upload folder with number and markdown
+        uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: output/

@@ -216,17 +216,18 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
       logError: print,
     );
 
-    if (existingCommentId == null) {
-      await allowFailure(
-        github.createComment(repoSlug, issueNumber, summary),
-        logError: print,
-      );
-    } else {
-      await allowFailure(
-        github.updateComment(repoSlug, existingCommentId, summary),
-        logError: print,
-      );
+    if (existingCommentId != null) {
+      var idFile = File('./output/commentId');
+      print('''
+Saving existing comment id $existingCommentId to file ${idFile.path}''');
+      await idFile.create(recursive: true);
+      await idFile.writeAsString(existingCommentId.toString());
     }
+
+    var commentFile = File('./output/comment.md');
+    print('Saving comment markdown to file ${commentFile.path}');
+    await commentFile.create(recursive: true);
+    await commentFile.writeAsString(summary);
 
     if (results.any((result) => result.severity == Severity.error) &&
         exitCode == 0) {
