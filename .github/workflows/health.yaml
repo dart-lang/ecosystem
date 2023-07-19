@@ -62,11 +62,6 @@ on:
         default: false
         type: boolean
         required: false
-      save_comment:
-        description: Whether to save summary as markdown file
-        default: false
-        type: boolean
-        required: false
 
 jobs:
   health:
@@ -103,6 +98,7 @@ jobs:
 
       - name: Check PR health
         if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
@@ -118,20 +114,11 @@ jobs:
           compare-sha: ${{ github.event.pull_request.base.ref }}
           allow-empty: true
 
-      - name: Archive code coverage results
-        if: ${{ inputs.save_comment }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: code-coverage-report
-          path: output/${{ github.event.number }}/comment.md
-
       - name: Save PR number
-        if: ${{ inputs.save_comment }}
         run: |
-          echo ${{ github.event.number }} > ./output/issueNumber
+          echo ${{ github.event.number }} > current_repo/output/issueNumber
 
       - name: Upload folder with number and markdown
-        if: ${{ inputs.save_comment }}
         uses: actions/upload-artifact@v2
         with:
           name: output

@@ -218,11 +218,14 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 
     if (existingCommentId != null) {
       var idFile = File('./output/commentId');
+      print('''
+Saving existing comment id $existingCommentId to file ${idFile.path}''');
       await idFile.create(recursive: true);
       await idFile.writeAsString(existingCommentId.toString());
     }
 
     var commentFile = File('./output/comment.md');
+    print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(summary);
 
