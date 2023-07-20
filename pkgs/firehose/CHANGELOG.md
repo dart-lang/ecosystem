@@ -1,7 +1,9 @@
 ## 0.3.24
+
 - Fix [#137](https://github.com/dart-lang/ecosystem/issues/137).
 
 ## 0.3.23
+
 - Tweak PR health workflow.
 - Shorten some text in the markdown summary table.
 
