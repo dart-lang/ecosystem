@@ -29,7 +29,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version changelog license coverage"
+#       checks: "version,changelog,license,coverage"
 
 on:
   workflow_call:
@@ -43,7 +43,7 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "version changelog license"
+        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage"
         default: "version,changelog,license,coverage"
         type: string
         required: false
@@ -119,7 +119,7 @@ jobs:
           echo ${{ github.event.number }} > current_repo/output/issueNumber
 
       - name: Upload folder with number and markdown
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
           name: output
-          path: output/
+          path: current_repo/output/
