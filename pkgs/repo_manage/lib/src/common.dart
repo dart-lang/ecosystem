@@ -28,7 +28,7 @@ GraphQLClient _initGraphQLClient() {
 }
 
 String get githubToken {
-  var token = Platform.environment['GITHUB_TOKEN'];
+  var token = _envFileTokenOrEnvironment();
   if (token == null) {
     throw StateError('This tool expects a github access token in the '
         'GITHUB_TOKEN environment variable.');
@@ -86,7 +86,7 @@ class ReportCommandRunner extends CommandRunner<int> {
   }
 
   GitHub get github =>
-      _github ??= GitHub(auth: findAuthenticationFromEnvironment());
+      _github ??= GitHub(auth: Authentication.withToken(githubToken));
 
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
@@ -150,6 +150,7 @@ final List<String> noteableRepos = [
   'dart-lang/http',
   'dart-lang/language',
   'dart-lang/linter',
+  'dart-lang/native',
   'dart-lang/pub',
   'dart-lang/sdk',
   'dart-lang/shelf',
@@ -159,3 +160,19 @@ final List<String> noteableRepos = [
   'flutter/flutter',
   'flutter/packages',
 ];
+
+String? _envFileTokenOrEnvironment() {
+  final envFile = File('.env');
+  if (envFile.existsSync()) {
+    final env = <String, String>{};
+    for (var line in envFile.readAsLinesSync()) {
+      line = line.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      var split = line.indexOf('=');
+      env[line.substring(0, split)] = line.substring(split + 1);
+    }
+    return env['GITHUB_TOKEN'];
+  } else {
+    return Platform.environment['GITHUB_TOKEN'];
+  }
+}

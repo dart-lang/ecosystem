@@ -47,11 +47,14 @@ final Map<String, List<String>> synonyms = {
   'type-ux': ['ux'],
 };
 
-/// These single-word label names are grandfathered in.
+/// These label names are grandfathered in.
 final Set<String> allowList = {
+  'cla: no',
+  'cla: yes',
   'dependencies',
   'Epic',
   'meta',
+  'P4',
 };
 
 /// The cannonical set of dart-lang labels.
@@ -148,7 +151,8 @@ class LabelsUpdateCommand extends ReportCommand {
           edits
               .putIfAbsent(label.name, LabelEdit.new)
               .join(LabelEdit(newName: renameTo));
-          templateLabel = templateLabels.firstWhere((l) => l.name == renameTo);
+          templateLabel =
+              templateLabels.firstWhereOrNull((l) => l.name == renameTo);
         } else if (wellFormed(label.name) != null) {
           advisories[label.name] = wellFormed(label.name)!;
         }
@@ -183,22 +187,23 @@ class LabelsUpdateCommand extends ReportCommand {
 
       // renames
       for (var entry in edits.entries.where((e) => e.value.newName != null)) {
-        print('  (rename) ${entry.key}: ${entry.value}');
+        print('  (rename) [${entry.key}]: ${entry.value}');
       }
 
       // updates
       for (var entry in edits.entries.where((e) => e.value.newName == null)) {
-        print('  (update) ${entry.key}: ${entry.value}');
+        print('  (update) [${entry.key}]: ${entry.value}');
       }
 
       // adds
       for (var edit in adds) {
-        print('  (add) ${edit.newName}: #${edit.color} "${edit.description}"');
+        print(
+            '  (add) [${edit.newName}]: #${edit.color} "${edit.description}"');
       }
 
       // advisories
       for (var entry in advisories.entries) {
-        print('  (consistency) ${entry.key}: ${entry.value}');
+        print('  (consistency) [${entry.key}]: ${entry.value}');
       }
 
       if (alsoFix) {
@@ -211,10 +216,13 @@ class LabelsUpdateCommand extends ReportCommand {
         print('  $slug has ${repo.openIssuesCount} issues and '
             '${labels.length} labels.');
 
+        const circuitBreaker = 200;
+
         if (slug == templateRepoSlug || slug == 'dart-lang/sdk') {
           print("  skipping: won't update labels for $slug.");
-        } else if (repo.openIssuesCount >= 100) {
-          print("  skipping: won't update labels when issue count >= 100.");
+        } else if (repo.openIssuesCount >= circuitBreaker) {
+          print("  skipping: won't update labels when issue count >= "
+              '$circuitBreaker.');
         } else {
           // Perform updates.
           for (var entry in edits.entries) {
