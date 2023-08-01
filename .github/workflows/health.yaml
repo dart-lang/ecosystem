@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage }}
-        uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
+        uses: coverallsapp/github-action@95b1a2355bd0e526ad2fd62da9fd386ad4c98474
         with:
           format: lcov
           base-path: current_repo/
