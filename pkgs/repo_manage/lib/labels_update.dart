@@ -13,6 +13,7 @@ import 'src/common.dart';
 /// currently in use by various dart-lang repos.
 final Map<String, List<String>> synonyms = {
   'closed-as-intended': [
+    'as designed',
     'resolution: intended',
     'resolution: works as intended',
   ],
@@ -25,6 +26,7 @@ final Map<String, List<String>> synonyms = {
     'resolution: wontfix',
     'wontfix',
   ],
+  'closed-stale': ['assumed stale'],
   'contributions-welcome': ['help wanted', 'state: help wanted'],
   'P0': ['p0 critical', 'p0', 'p0-critical'],
   'P1': ['p1 high', 'p1', 'p1-high'],
@@ -39,9 +41,14 @@ final Map<String, List<String>> synonyms = {
   ],
   'type-bug': ['bug', 'type: bug'],
   'type-code-health': ['code health'],
-  'type-documentation': ['documentation', 'docs'],
-  'type-enhancement': ['enhancement', 'type: enhancement'],
-  'type-infra': ['github_actions', 'infrastructure', 'infra'],
+  'type-documentation': ['docs', 'documentation', 'Type: documentation'],
+  'type-enhancement': [
+    'enhancement',
+    'feature',
+    'feature-request',
+    'type: enhancement',
+  ],
+  'type-infra': ['github_actions', 'infra', 'infrastructure'],
   'type-performance': ['performance', 'type: perf'],
   'type-question': ['question', 'type: question'],
   'type-ux': ['ux'],
@@ -55,6 +62,10 @@ final Set<String> allowList = {
   'Epic',
   'meta',
   'P4',
+  'S0',
+  'S1',
+  'S2',
+  'S3',
 };
 
 /// The cannonical set of dart-lang labels.
@@ -69,12 +80,14 @@ class LabelsUpdateCommand extends ReportCommand {
             'Audit and update the labels used by dart-lang repos.') {
     argParser.addFlag(
       'dry-run',
+      aliases: ['audit'],
       negatable: false,
       help: "Audit the labels used but don't make any changes to the given "
           'repos.',
     );
     argParser.addFlag(
       'apply-changes',
+      aliases: ['apply'],
       negatable: false,
       help: 'Rename, edit, and add labels to bring them in line with those '
           "at $templateRepoSlug.\nWARNING: this will make changes to a repo's "
@@ -126,7 +139,7 @@ class LabelsUpdateCommand extends ReportCommand {
 
     for (var slug in repoSlugs) {
       print('');
-      print('## $slug');
+      print('## $slug (https://github.com/$slug/labels)');
 
       final labelsEncountered = <String>{};
 
@@ -216,7 +229,7 @@ class LabelsUpdateCommand extends ReportCommand {
         print('  $slug has ${repo.openIssuesCount} issues and '
             '${labels.length} labels.');
 
-        const circuitBreaker = 200;
+        const circuitBreaker = 300;
 
         if (slug == templateRepoSlug || slug == 'dart-lang/sdk') {
           print("  skipping: won't update labels for $slug.");
