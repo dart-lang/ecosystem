@@ -1,3 +1,7 @@
+## 0.3.25
+
+- Switch to pub.dev API in `package:firehose`.
+
 ## 0.3.24
 
 - Fix [#137](https://github.com/dart-lang/ecosystem/issues/137).
