@@ -63,6 +63,9 @@ class Health {
       if (args.contains('coverage') &&
           !github.prLabels.contains('skip-coverage-check'))
         (Github github) => coverageCheck(github, coverageweb),
+      if (args.contains('breaking') &&
+          !github.prLabels.contains('skip-breaking-check'))
+        breakingCheck,
     ];
 
     var checked =
@@ -88,6 +91,26 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       _publishBotTag2,
       results.severity,
       markdownTable,
+    );
+  }
+
+  Future<HealthCheckResult> breakingCheck(Github github) async {
+    var getApiTool = await Process.run(
+        'dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    if (getApiTool.exitCode != 0) {
+      throw ProcessException('dart pub global', ['activate dart_apitool'],
+          'Failed to install api tool');
+    }
+    var runApiTool = await Process.run(
+        'dart-apitool', ['diff', '--old', '../base_repo', '--new', '.']);
+
+    return HealthCheckResult(
+      'breaking',
+      _publishBotTag2,
+      runApiTool.exitCode == 0 ? Severity.success : Severity.error,
+      '''
+${runApiTool.stdout}
+''',
     );
   }
 

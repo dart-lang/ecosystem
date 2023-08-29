@@ -43,8 +43,8 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage"
-        default: "version,changelog,license,coverage"
+        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking"
+        default: "version,changelog,license,coverage,breaking"
         type: string
         required: false
       local_debug:
