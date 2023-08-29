@@ -13,14 +13,16 @@ class Pub {
 
   Future<bool> hasPublishedVersion(String name, String version) async {
     var response =
-        await httpClient.get(Uri.parse('https://pub.dev/packages/$name.json'));
+        await httpClient.get(Uri.parse('https://pub.dev/api/packages/$name'));
     if (response.statusCode != 200) {
       return false;
     }
 
-    var json = jsonDecode(response.body) as Map;
-    var versions = json['versions'] as List;
-    return versions.contains(version);
+    var json = jsonDecode(response.body) as Map<String, dynamic>;
+    return (json['versions'] as List)
+        .map((versionObject) =>
+            (versionObject as Map<String, dynamic>)['version'])
+        .contains(version);
   }
 
   void close() {
