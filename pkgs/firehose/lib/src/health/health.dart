@@ -80,7 +80,7 @@ class Health {
   }
 
   Future<HealthCheckResult> validateCheck(Github github) async {
-    var results = await Firehose(directory).verify(github);
+    var results = await Firehose(directory, true).verify(github);
 
     var markdownTable = '''
 | Package | Version | Status |

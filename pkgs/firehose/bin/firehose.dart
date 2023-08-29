@@ -35,7 +35,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    var firehose = Firehose(Directory.current);
+    var firehose = Firehose(Directory.current, true);
 
     if (validate) {
       await firehose.validate();

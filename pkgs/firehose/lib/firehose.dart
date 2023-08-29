@@ -24,7 +24,7 @@ const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 class Firehose {
   final Directory directory;
 
-  Firehose(this.directory);
+  Firehose(this.directory, bool requiredBoolean);
 
   /// Validate the packages in the repository.
   ///
