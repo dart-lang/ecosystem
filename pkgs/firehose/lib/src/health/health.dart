@@ -28,6 +28,8 @@ const String _changelogBotTag = '### Changelog Entry';
 
 const String _coverageBotTag = '### Coverage';
 
+const String _breakingBotTag = '### Breaking changes';
+
 const String _prHealthTag = '## PR Health';
 
 class Health {
@@ -106,7 +108,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     return HealthCheckResult(
       'breaking',
-      _publishBotTag2,
+      _breakingBotTag,
       runApiTool.exitCode == 0 ? Severity.success : Severity.error,
       '''
 ${runApiTool.stdout}
