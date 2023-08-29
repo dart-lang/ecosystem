@@ -16,6 +16,7 @@ import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
+import 'package:path/path.dart' as path;
 
 const String _botSuffix = '[bot]';
 
@@ -103,7 +104,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     var totalOut = '';
     var baseDirectory = Directory('../base_repo');
     for (var package in packages) {
-      print('Look for changes in $package with base ${baseDirectory.path}');
+      var basePackage = path.join(baseDirectory.path,
+          path.relative(package.directory.path, from: Directory.current.path));
+      print(
+          'Look for changes in ${package.directory.path} with base $basePackage');
       var getApiTool = Process.runSync(
           'dart', ['pub', 'global', 'activate', 'dart_apitool']);
       print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
@@ -114,7 +118,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var runApiTool = Process.runSync('dart-apitool', [
         'diff',
         '--old',
-        baseDirectory.path,
+        basePackage,
         '--new',
         package.directory.path,
       ]);
