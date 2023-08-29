@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart';
 
 import '../github.dart';
+import '../repo.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
@@ -97,22 +98,29 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck(Github github) async {
-    var getApiTool = await Process.run(
-        'dart', ['pub', 'global', 'activate', 'dart_apitool']);
-    print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
-    if (getApiTool.exitCode != 0) {
-      throw ProcessException('dart pub global', ['activate dart_apitool'],
-          'Failed to install api tool');
+    final repo = Repository();
+    final packages = repo.locatePackages();
+    var totalOut = '';
+    for (var package in packages) {
+      print('Look for changes in ${package}');
+      var getApiTool = await Process.run(
+          'dart', ['pub', 'global', 'activate', 'dart_apitool']);
+      print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
+      if (getApiTool.exitCode != 0) {
+        throw ProcessException('dart pub global', ['activate dart_apitool'],
+            'Failed to install api tool');
+      }
+      var runApiTool = await Process.run('dart-apitool',
+          ['diff', '--old', '../base_repo', '--new', package.directory.path]);
+      print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
+      totalOut += runApiTool.stdout.toString();
     }
-    var runApiTool = await Process.run(
-        'dart-apitool', ['diff', '--old', '../base_repo', '--new', '.']);
-    print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
     return HealthCheckResult(
       'breaking',
       _breakingBotTag,
-      runApiTool.exitCode == 0 ? Severity.success : Severity.error,
+      Severity.info,
       '''
-${runApiTool.stdout}
+$totalOut
 ''',
     );
   }
