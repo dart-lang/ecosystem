@@ -99,13 +99,14 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   Future<HealthCheckResult> breakingCheck(Github github) async {
     var getApiTool = await Process.run(
         'dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
     if (getApiTool.exitCode != 0) {
       throw ProcessException('dart pub global', ['activate dart_apitool'],
           'Failed to install api tool');
     }
     var runApiTool = await Process.run(
         'dart-apitool', ['diff', '--old', '../base_repo', '--new', '.']);
-
+    print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
     return HealthCheckResult(
       'breaking',
       _breakingBotTag,
