@@ -101,17 +101,23 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     final repo = Repository();
     final packages = repo.locatePackages();
     var totalOut = '';
+    var baseDirectory = Directory('../base_repo');
     for (var package in packages) {
-      print('Look for changes in ${package}');
-      var getApiTool = await Process.run(
+      print('Look for changes in $package with base ${baseDirectory.path}');
+      var getApiTool = Process.runSync(
           'dart', ['pub', 'global', 'activate', 'dart_apitool']);
       print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
       if (getApiTool.exitCode != 0) {
         throw ProcessException('dart pub global', ['activate dart_apitool'],
             'Failed to install api tool');
       }
-      var runApiTool = await Process.run('dart-apitool',
-          ['diff', '--old', '../base_repo', '--new', package.directory.path]);
+      var runApiTool = Process.runSync('dart-apitool', [
+        'diff',
+        '--old',
+        baseDirectory.path,
+        '--new',
+        package.directory.path,
+      ]);
       print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
       totalOut += runApiTool.stdout.toString();
     }
