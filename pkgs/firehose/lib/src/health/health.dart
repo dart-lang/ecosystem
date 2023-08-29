@@ -104,10 +104,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     var totalOut = '';
     var baseDirectory = Directory('../base_repo');
     for (var package in packages) {
-      var basePackage = path.join(baseDirectory.path,
-          path.relative(package.directory.path, from: Directory.current.path));
-      print(
-          'Look for changes in ${package.directory.path} with base $basePackage');
+      var currentPath =
+          path.relative(package.directory.path, from: Directory.current.path);
+      var basePackage = path.join(baseDirectory.path, currentPath);
+      print('Look for changes in $currentPath with base $basePackage');
       var getApiTool = Process.runSync(
           'dart', ['pub', 'global', 'activate', 'dart_apitool']);
       print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
@@ -115,13 +115,17 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         throw ProcessException('dart pub global', ['activate dart_apitool'],
             'Failed to install api tool');
       }
-      var runApiTool = Process.runSync('dart-apitool', [
-        'diff',
-        '--old',
-        basePackage,
-        '--new',
-        package.directory.path,
-      ]);
+      var runApiTool = Process.runSync(
+        'dart-apitool',
+        [
+          'diff',
+          '--old',
+          basePackage,
+          '--new',
+          '.',
+        ],
+        workingDirectory: currentPath,
+      );
       print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
       totalOut += runApiTool.stdout.toString();
     }
