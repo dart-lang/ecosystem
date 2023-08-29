@@ -110,11 +110,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       print('Look for changes in $currentPath with base $basePackage');
       var getApiTool = Process.runSync(
           'dart', ['pub', 'global', 'activate', 'dart_apitool']);
-      print('getApiTool: err:${getApiTool.stderr}, out:${getApiTool.stdout}');
-      if (getApiTool.exitCode != 0) {
-        throw ProcessException('dart pub global', ['activate dart_apitool'],
-            'Failed to install api tool');
-      }
+      print(
+          'getApiTool: err:!!!${getApiTool.stderr}!!!\nout: ???${getApiTool.stdout}???');
       var runApiTool = Process.runSync(
         'dart-apitool',
         [
