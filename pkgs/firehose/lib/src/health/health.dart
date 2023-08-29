@@ -106,7 +106,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     for (var package in packages) {
       var currentPath =
           path.relative(package.directory.path, from: Directory.current.path);
-      var basePackage = path.join(baseDirectory.path, currentPath);
+      var basePackage = path.relative(
+        path.join(baseDirectory.absolute.path, currentPath),
+        from: currentPath,
+      );
       print('Look for changes in $currentPath with base $basePackage');
       var getApiTool = Process.runSync(
           'dart', ['pub', 'global', 'activate', 'dart_apitool']);
