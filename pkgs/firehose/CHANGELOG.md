@@ -1,3 +1,6 @@
+## 0.3.26
+
+- Add support for Flutter package auto-publishing, fixing [#154](https://github.com/dart-lang/ecosystem/issues/154).
 ## 0.3.25
 
 - Switch to pub.dev API in `package:firehose`.
