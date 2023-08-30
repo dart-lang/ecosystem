@@ -72,10 +72,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
-        with:
-          sdk: ${{ inputs.sdk }}
-
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
         with:
           path: current_repo/
@@ -84,16 +80,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
-      
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+          
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
-          repository: mosuem/dart_apitool
-          ref: pubspecOverridesSupport
-          path: apitool/
-      
-      - name: Init apitool
-        run: (cd apitool/; dart pub get)
-        
+          sdk: ${{ inputs.sdk }}
+
       - name: Install coverage
         run: dart pub global activate coverage
 
