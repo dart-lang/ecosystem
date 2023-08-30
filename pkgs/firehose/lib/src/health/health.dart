@@ -111,20 +111,33 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         from: currentPath,
       );
       print('Look for changes in $currentPath with base $basePackage');
-      var getApiTool = Process.runSync(
-          'dart', ['pub', 'global', 'activate', 'dart_apitool']);
-      print(
-          'getApiTool: err:!!!${getApiTool.stderr}!!!\nout: ???${getApiTool.stdout}???');
+      // var getApiTool = Process.runSync(
+      //     'dart', ['pub', 'global', 'activate', 'dart_apitool']);
+      // print(
+      //     'getApiTool: err:!!!${getApiTool.stderr}!!!\nout: ???${getApiTool.stdout}???');
+      // var runApiTool = Process.runSync(
+      //   'dart-apitool',
+      //   [
+      //     'diff',
+      //     '--old',
+      //     basePackage,
+      //     '--new',
+      //     '.',
+      //   ],
+      //   workingDirectory: currentPath,
+      // );
       var runApiTool = Process.runSync(
-        'dart-apitool',
+        'dart',
         [
+          'run',
+          'bin/main.dart',
           'diff',
           '--old',
           basePackage,
           '--new',
           '.',
         ],
-        workingDirectory: currentPath,
+        workingDirectory: '../apitool/',
       );
       print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
       totalOut += runApiTool.stdout.toString();
