@@ -86,6 +86,9 @@ jobs:
           repository: mosuem/dart_apitool
           ref: pubspecOverridesSupport
           path: apitool/
+      
+      - name: Init apitool
+        run: (cd apitool/; dart pub get)
           
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
         with:
