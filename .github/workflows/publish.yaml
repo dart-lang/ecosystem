@@ -27,6 +27,16 @@ name: Publish
 #     with:
 #       sdk: beta
 
+# When using this package to publish Flutter packages, the `use_flutter`
+# parameter should be set. The `sdk` parameter is then used to specify
+# the Flutter SDK.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     with:
+#       use_flutter: true
+
 on:
   workflow_call:
     inputs:
@@ -46,6 +56,12 @@ on:
         default: "stable"
         required: false
         type: string
+      use_flutter:
+        description: >-
+          Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -87,7 +103,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+
+      - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
+        if: ${{ inputs.use_flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        if: ${{ !inputs.use_flutter }}
         with:
           sdk: ${{ inputs.sdk }}
 
