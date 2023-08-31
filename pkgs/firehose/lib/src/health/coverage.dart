@@ -31,6 +31,7 @@ class Coverage {
 
     var filesOfInterest = files
         .where((file) => path.extension(file.filename) == '.dart')
+        .where((file) => file.status != FileStatus.removed)
         .where((file) => isInSomePackage(packages, file.relativePath))
         .where((file) => isNotATest(packages, file.relativePath))
         .toList();

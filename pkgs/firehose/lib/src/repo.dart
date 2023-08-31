@@ -6,10 +6,10 @@ import 'dart:io';
 
 import 'package:firehose/src/changelog.dart';
 import 'package:path/path.dart' as path;
+import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 import 'github.dart';
-import 'pubspec.dart';
 
 class Repository {
   final Directory baseDirectory;
@@ -90,13 +90,16 @@ class Package {
   late final Changelog changelog;
 
   Package(this.directory, this.repository) {
-    pubspec = Pubspec(directory);
-    changelog = Changelog(File(path.join(directory.path, 'CHANGELOG.md')));
+    pubspec = Pubspec.parse(_getPackageFile('pubspec.yaml').readAsStringSync());
+    changelog = Changelog(_getPackageFile('CHANGELOG.md'));
   }
+
+  File _getPackageFile(String fileName) =>
+      File(path.join(directory.path, fileName));
 
   String get name => pubspec.name;
 
-  String? get version => pubspec.version;
+  String? get version => pubspec.version?.toString();
 
   @override
   String toString() {
