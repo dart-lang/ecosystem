@@ -118,4 +118,4 @@ jobs:
         run: dart pub global activate firehose
 
       - name: Publish packages
-        run: dart pub global run firehose --publish
+        run: dart pub global run firehose --publish --use-flutter ${{ inputs.use_flutter }}

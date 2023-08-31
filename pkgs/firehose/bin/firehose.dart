@@ -8,6 +8,10 @@ import 'package:args/args.dart';
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/github.dart';
 
+const validateOption = 'validate';
+const publishOption = 'publish';
+const useFlutterOption = 'use-flutter';
+
 void main(List<String> arguments) async {
   var argParser = _createArgs();
   try {
@@ -18,8 +22,9 @@ void main(List<String> arguments) async {
       exit(0);
     }
 
-    var validate = argResults['validate'] == true;
-    var publish = argResults['publish'] == true;
+    var validate = argResults[validateOption] == true;
+    var publish = argResults[publishOption] == true;
+    var useFlutter = argResults[useFlutterOption] == true;
 
     if (!validate && !publish) {
       _usage(argParser,
@@ -35,7 +40,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    var firehose = Firehose(Directory.current);
+    var firehose = Firehose(Directory.current, useFlutter);
 
     if (validate) {
       await firehose.validate();
@@ -68,14 +73,19 @@ ArgParser _createArgs() {
       help: 'Print tool help.',
     )
     ..addFlag(
-      'validate',
+      validateOption,
       negatable: false,
       help: 'Validate packages and indicate whether --publish would publish '
           'anything.',
     )
     ..addFlag(
-      'publish',
+      publishOption,
       negatable: false,
       help: 'Publish any changed packages.',
+    )
+    ..addFlag(
+      useFlutterOption,
+      negatable: true,
+      help: 'Whether this is a Flutter project.',
     );
 }
