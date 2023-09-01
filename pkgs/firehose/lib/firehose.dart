@@ -23,8 +23,9 @@ const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
   final Directory directory;
+  final bool useFlutter;
 
-  Firehose(this.directory);
+  Firehose(this.directory, this.useFlutter);
 
   /// Validate the packages in the repository.
   ///
@@ -279,7 +280,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     required bool force,
   }) async {
     String command;
-    if (package.pubspec.dependencies.containsKey('flutter')) {
+    if (useFlutter) {
       command = 'flutter';
     } else {
       command = 'dart';
