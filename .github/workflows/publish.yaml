@@ -88,7 +88,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate
+        run: dart pub global run firehose --validate --use-flutter ${{ inputs.use-flutter }}
 
   publish:
     if: ${{ github.event_name == 'push' }}
