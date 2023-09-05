@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[env.use-flutter] }}
+        run: dart pkgs/firehose/bin/firehose.dart --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[env.use-flutter] }}
 
       - name: Publish tagged package
         if: ${{ github.event_name == 'push' }}
