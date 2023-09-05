@@ -8,23 +8,24 @@ import 'package:args/args.dart';
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/github.dart';
 
-const validateOption = 'validate';
-const publishOption = 'publish';
-const useFlutterOption = 'use-flutter';
+const helpFlag = 'help';
+const validateFlag = 'validate';
+const publishFlag = 'publish';
+const useFlutterFlag = 'use-flutter';
 
 void main(List<String> arguments) async {
   var argParser = _createArgs();
   try {
-    var argResults = argParser.parse(arguments);
+    final argResults = argParser.parse(arguments);
 
-    if (argResults['help'] == true) {
+    if (argResults[helpFlag] as bool) {
       _usage(argParser);
       exit(0);
     }
 
-    var validate = argResults[validateOption] == true;
-    var publish = argResults[publishOption] == true;
-    var useFlutter = argResults[useFlutterOption] == true;
+    final validate = argResults[validateFlag] as bool;
+    final publish = argResults[publishFlag] as bool;
+    final useFlutter = argResults[useFlutterFlag] as bool;
 
     if (!validate && !publish) {
       _usage(argParser,
@@ -32,7 +33,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    var github = Github();
+    final github = Github();
     if (publish && !github.inGithubContext) {
       _usage(argParser,
           error: 'Error: --publish can only be executed from within a GitHub '
@@ -40,7 +41,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    var firehose = Firehose(Directory.current, useFlutter);
+    final firehose = Firehose(Directory.current, useFlutter);
 
     if (validate) {
       await firehose.validate();
@@ -67,24 +68,24 @@ void _usage(ArgParser argParser, {String? error}) {
 ArgParser _createArgs() {
   return ArgParser()
     ..addFlag(
-      'help',
+      helpFlag,
       abbr: 'h',
       negatable: false,
       help: 'Print tool help.',
     )
     ..addFlag(
-      validateOption,
+      validateFlag,
       negatable: false,
       help: 'Validate packages and indicate whether --publish would publish '
           'anything.',
     )
     ..addFlag(
-      publishOption,
+      publishFlag,
       negatable: false,
       help: 'Publish any changed packages.',
     )
     ..addFlag(
-      useFlutterOption,
+      useFlutterFlag,
       negatable: true,
       help: 'Whether this is a Flutter project.',
     );
