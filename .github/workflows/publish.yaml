@@ -94,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate ${{ inputs.use-flutter && '--use-flutter' || '--no-use-flutter' }}
+        run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
 
   publish:
     if: ${{ github.event_name == 'push' }}
@@ -124,4 +124,4 @@ jobs:
         run: dart pub global activate firehose
 
       - name: Publish packages
-        run: dart pub global run firehose --publish ${{ inputs.use-flutter && '--use-flutter' || '--no-use-flutter' }}
+        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
