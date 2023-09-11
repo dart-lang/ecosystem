@@ -42,6 +42,7 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
       - run: unzip comment.zip
+        continue-on-error: true
 
 
       # Create the comment, or update the existing one, with the markdown
@@ -73,3 +74,4 @@ jobs:
                 body: markdown
               });
             }
+        continue-on-error: true
