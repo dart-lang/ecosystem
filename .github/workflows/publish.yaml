@@ -27,6 +27,16 @@ name: Publish
 #     with:
 #       sdk: beta
 
+# When using this package to publish Flutter packages, the `use-flutter`
+# parameter should be set. The `sdk` parameter is then used to specify
+# the Flutter SDK.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     with:
+#       use-flutter: true
+
 on:
   workflow_call:
     inputs:
@@ -46,6 +56,12 @@ on:
         default: "stable"
         required: false
         type: string
+      use-flutter:
+        description: >-
+          Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -59,8 +75,14 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+      - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
 
@@ -72,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate
+        run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
 
   publish:
     if: ${{ github.event_name == 'push' }}
@@ -86,8 +108,15 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
+
+      - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+
       - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
 
@@ -95,4 +124,4 @@ jobs:
         run: dart pub global activate firehose
 
       - name: Publish packages
-        run: dart pub global run firehose --publish
+        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}

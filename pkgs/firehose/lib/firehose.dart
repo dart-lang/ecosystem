@@ -23,8 +23,9 @@ const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
   final Directory directory;
+  final bool useFlutter;
 
-  Firehose(this.directory, bool requiredBoolean);
+  Firehose(this.directory, this.useFlutter);
 
   /// Validate the packages in the repository.
   ///
@@ -115,7 +116,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       print('Validating $package:${package.name}');
 
       print('pubspec:');
-      var pubspecVersion = package.pubspec.version;
+      var pubspecVersion = package.pubspec.version?.toString();
       if (pubspecVersion == null) {
         var result = Result.fail(
           package,
@@ -146,7 +147,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         var result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
-      } else if (package.pubspec.isPreRelease) {
+      } else if (package.pubspec.version!.isPreRelease) {
         var result = Result.info(
           package,
           'pre-release version (no publish necessary)',
@@ -154,8 +155,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         print(result);
         results.addResult(result);
       } else {
-        var code = await runCommand('dart',
-            args: ['pub', 'publish', '--dry-run'], cwd: package.directory);
+        final code = await _runPublish(package, dryRun: true, force: false);
 
         final ignoreWarnings = github.prLabels.contains(_ignoreWarningsLabel);
 
@@ -245,7 +245,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     print('');
 
     print('pubspec:');
-    var pubspecVersion = package.pubspec.version;
+    var pubspecVersion = package.pubspec.version?.toString();
     print('  version: $pubspecVersion');
 
     print('changelog:');
@@ -267,12 +267,34 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
     print('');
 
-    var result = await runCommand('dart',
-        args: ['pub', 'publish', '--force'], cwd: package.directory);
+    var result = await _runPublish(package, dryRun: false, force: true);
     if (result != 0) {
       exitCode = result;
     }
     return result == 0;
+  }
+
+  Future<int> _runPublish(
+    Package package, {
+    required bool dryRun,
+    required bool force,
+  }) async {
+    String command;
+    if (useFlutter) {
+      command = 'flutter';
+    } else {
+      command = 'dart';
+    }
+    return await runCommand(
+      command,
+      args: [
+        'pub',
+        'publish',
+        if (dryRun) '--dry-run',
+        if (force) '--force',
+      ],
+      cwd: package.directory,
+    );
   }
 }
 
