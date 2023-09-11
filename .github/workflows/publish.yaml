@@ -96,6 +96,17 @@ jobs:
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
         run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
 
+      - name: Save PR number
+        run: |
+          mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
+
+      - name: Upload folder with number and markdown
+        uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
+        with:
+          name: output
+          path: output/
+  
+
   publish:
     if: ${{ github.event_name == 'push' }}
 

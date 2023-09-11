@@ -139,18 +139,6 @@ class Github {
     });
   }
 
-  /// Create a new comment on the given PR.
-  Future<String> createComment(
-      String repoSlug, String issueNumber, String commentText) async {
-    var result = await callRestApiPost(
-      Uri.parse(
-          'https://api.github.com/repos/$repoSlug/issues/$issueNumber/comments'),
-      jsonEncode({'body': commentText}),
-    );
-    var json = jsonDecode(result) as Map;
-    return json['url'] as String;
-  }
-
   /// Find a comment on the PR matching the given criteria ([user],
   /// [searchTerm]). Return the issue ID if a matching comment is found or null
   /// if there's no match.
@@ -179,18 +167,6 @@ class Github {
     }
 
     return null;
-  }
-
-  /// Update the given PR comment with new text.
-  Future<String> updateComment(
-      String repoSlug, int commentId, String commentText) async {
-    var result = await callRestApiPatch(
-      Uri.parse(
-          'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'),
-      jsonEncode({'body': commentText}),
-    );
-    var json = jsonDecode(result) as Map;
-    return json['url'] as String;
   }
 
   Future<void> deleteComment(String repoSlug, int commentId) async {
