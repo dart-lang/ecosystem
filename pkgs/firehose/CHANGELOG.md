@@ -1,3 +1,7 @@
+## 0.3.28
+
+- Fix [#156](https://github.com/dart-lang/ecosystem/issues/156).
+
 ## 0.3.27
 
 - Fix Flutter support.
