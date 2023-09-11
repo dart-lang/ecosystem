@@ -17,6 +17,7 @@ jobs:
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
+    continue-on-error: true
     steps:
 
       # Download the output of the health workflow, consisting of the comment markdown and either
@@ -42,7 +43,6 @@ jobs:
             var fs = require('fs');
             fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
       - run: unzip comment.zip
-        continue-on-error: true
 
 
       # Create the comment, or update the existing one, with the markdown
@@ -74,4 +74,3 @@ jobs:
                 body: markdown
               });
             }
-        continue-on-error: true
