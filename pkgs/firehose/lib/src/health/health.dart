@@ -9,6 +9,7 @@ import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart';
+import 'package:path/path.dart' as path;
 
 import '../github.dart';
 import '../repo.dart';
@@ -16,7 +17,6 @@ import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
-import 'package:path/path.dart' as path;
 
 const String _botSuffix = '[bot]';
 
