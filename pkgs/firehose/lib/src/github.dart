@@ -169,11 +169,6 @@ class Github {
     return null;
   }
 
-  Future<void> deleteComment(String repoSlug, int commentId) async {
-    await callRestApiDelete(Uri.parse(
-        'https://api.github.com/repos/$repoSlug/issues/comments/$commentId'));
-  }
-
   Future<List<GitFile>> listFilesForPR() async {
     var result = await callRestApiGet(
       Uri.parse(
