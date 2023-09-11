@@ -27,22 +27,26 @@ jobs:
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
             });
-            var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
-              return artifact.name == "output"
-            })[0];
-            var download = await github.rest.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
+            var matchArtifacts = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name.startsWith("output")
             });
             var fs = require('fs');
-            fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
-      - run: unzip comment.zip
+            for (const artifact of matchArtifacts) {
+              if (Object.prototype.hasOwnProperty.call(matchArtifacts, artifact)) {
+                  var download = await github.rest.actions.downloadArtifact({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    artifact_id: artifact.id,
+                    archive_format: 'zip',
+                  });
+                  fs.writeFileSync(`${{ github.workspace }}/comment${ artifact.id }.zip`, Buffer.from(download.data));
+              }
+            }
+      - run: for z in *.zip; do unzip "$z" -d "$z".comment; done
 
 
       # Create the comment, or update the existing one, with the markdown
@@ -53,24 +57,29 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             var fs = require('fs');
-            var markdown = fs.readFileSync('./comment.md', 'utf8');
-            if (fs.existsSync('./commentId')) {
-              var comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
-              
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: comment_number,
-                body: markdown
-              });
-            }
-            else{
-              var issue_number = Number(fs.readFileSync('./issueNumber', 'utf8'));
 
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue_number,
-                body: markdown
-              });
+            const subdirectories = fs.readdirSync('.');
+            const commentSubdirectories = subdirectories.filter(subdir => subdir.endsWith('.comment'));
+            for (const subdirectory of commentSubdirectories) {
+              var markdown = fs.readFileSync('./comment.md', 'utf8');
+              if (fs.existsSync(`${subdirectory}/commentId`)) {
+                  var comment_number = Number(fs.readFileSync(`${subdirectory}/commentId`, 'utf8'));
+            
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: comment_number,
+                    body: markdown
+                  });
+              }
+              else {
+                  var issue_number = Number(fs.readFileSync(`${subdirectory}/issueNumber`, 'utf8'));
+            
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue_number,
+                    body: markdown
+                  });
+              }
             }
