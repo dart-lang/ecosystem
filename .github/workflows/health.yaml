@@ -29,7 +29,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version,changelog,license,coverage"
+#       checks: "version,changelog,license,coverage,breaking"
 
 on:
   workflow_call:
@@ -91,6 +91,9 @@ jobs:
       - name: Install firehose
         run: dart pub global activate firehose
         if:  ${{ !inputs.local_debug }}
+
+      - name: Install api_tool
+        run: dart pub global activate --source git https://github.com/devmil/dart_apitool_fork --git-ref=fd64e2fec167d0b2c06085340f95392824946877
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
