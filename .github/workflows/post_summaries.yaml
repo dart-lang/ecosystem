@@ -35,9 +35,9 @@ jobs:
               console.log(artifact);
               return artifact.name.startsWith("output");
             });
-            matchArtifacts ??= []
             var fs = require('fs');
             for (const artifact of matchArtifacts) {
+              console.log(artifact);
               if (Object.prototype.hasOwnProperty.call(matchArtifacts, artifact)) {
                   var download = await github.rest.actions.downloadArtifact({
                     owner: context.repo.owner,
