@@ -103,7 +103,7 @@ jobs:
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
-          name: outputPublish
+          name: output
           path: output/
   
 
