@@ -4,9 +4,8 @@
 
 import 'dart:io';
 
-import 'package:corpus/pub.dart';
-
 import 'api.dart';
+import 'pub.dart';
 import 'utils.dart';
 
 abstract class ReportTarget {

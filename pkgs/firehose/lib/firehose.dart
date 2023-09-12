@@ -7,10 +7,9 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:firehose/src/repo.dart';
-
 import 'src/github.dart';
 import 'src/pub.dart';
+import 'src/repo.dart';
 import 'src/utils.dart';
 
 const String _botSuffix = '[bot]';

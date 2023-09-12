@@ -6,9 +6,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firehose/src/repo.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
+
+import 'repo.dart';
 
 // TODO:(devoncarew): Consider replacing some of this class with package:github.
 

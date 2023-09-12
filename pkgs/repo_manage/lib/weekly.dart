@@ -59,10 +59,10 @@ class WeeklyCommand extends ReportCommand {
         final now = DateTime.now();
         final currentDay = now.weekday;
         final thisWeek = now.subtract(Duration(days: currentDay - 1));
-        firstReportingDay = thisWeek.subtract(Duration(days: 7));
+        firstReportingDay = thisWeek.subtract(const Duration(days: 7));
       }
 
-      lastReportingDay = firstReportingDay.add(Duration(days: 6));
+      lastReportingDay = firstReportingDay.add(const Duration(days: 6));
     }
 
     var repos = noteableRepos.map(RepositorySlug.full).toList();

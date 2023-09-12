@@ -8,8 +8,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:firehose/firehose.dart';
 
+import '../../firehose.dart';
 import '../github.dart';
 import '../utils.dart';
 import 'changelog.dart';

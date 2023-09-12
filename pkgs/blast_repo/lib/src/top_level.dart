@@ -6,13 +6,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:blast_repo/src/tweaks/mono_repo_tweak.dart';
 import 'package:git/git.dart';
 
 import 'repo_tweak.dart';
 import 'tweaks/auto_publish_tweak.dart';
 import 'tweaks/dependabot_tweak.dart';
 import 'tweaks/github_action_tweak.dart';
+import 'tweaks/mono_repo_tweak.dart';
 import 'tweaks/no_reponse_tweak.dart';
 import 'utils.dart';
 

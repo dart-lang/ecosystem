@@ -49,7 +49,7 @@ class ApiUsage {
       'packages': fromPackages.toJson(),
       'libraries': fromLibraries.toJson(),
     };
-    file.writeAsStringSync(JsonEncoder.withIndent('  ').convert(json));
+    file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert(json));
   }
 
   /// Returns whether we found any references to the target package.
@@ -71,7 +71,7 @@ class ApiUsage {
 
   static ApiUsage fromFile(PackageInfo packageInfo, File file) {
     var json =
-        JsonDecoder().convert(file.readAsStringSync()) as Map<String, dynamic>;
+        const JsonDecoder().convert(file.readAsStringSync()) as Map<String, dynamic>;
     return ApiUsage(
       packageInfo,
       References.fromJson(json['packages'] as Map<String, dynamic>),
