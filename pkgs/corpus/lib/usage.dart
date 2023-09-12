@@ -15,9 +15,6 @@ import 'pub.dart';
 import 'report.dart';
 import 'surveyor.dart';
 
-final Version dart2_19 = Version(2, 19, 0);
-final Version dart3_0 = Version(3, 0, 0);
-
 Future analyzeUsage({
   required String packageName,
   required int packageLimit,
@@ -77,12 +74,7 @@ Future analyzeUsage({
     } else {
       var sdkConstraint = package.sdkContraint;
       if (sdkConstraint != null) {
-        if (sdkConstraint.allows(Version.parse(sdkVersion))) {
-          // nothing to do here
-        } else if (sdkConstraint.allows(dart2_19) &&
-            !sdkConstraint.allows(dart3_0)) {
-          // nothing to do here - we auto-allow packages to support 3.0
-        } else {
+        if (!sdkConstraint.allows(Version.parse(sdkVersion))) {
           log.stdout(
               "skipping - sdk constraint ($sdkConstraint) doesn't support the "
               'current sdk ($sdkVersion)');
