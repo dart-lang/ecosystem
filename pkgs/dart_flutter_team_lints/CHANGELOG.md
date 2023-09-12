@@ -1,3 +1,14 @@
+## 2.0.0
+
+- Enable `strict-inference`.
+- Added `avoid_unused_constructor_parameters`.
+- Added `cancel_subscriptions`.
+- Added `comment_references`.
+- Added `prefer_const_constructors`.
+- Added `prefer_relative_imports`.
+- Added `test_types_in_equals`.
+- Added `use_super_parameters`.
+
 ## 1.0.0
 
 - Added `collection_methods_unrelated_type`.
