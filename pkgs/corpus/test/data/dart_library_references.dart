@@ -11,6 +11,6 @@ void main() {
   map['three'] = 3;
   print(map);
 
-  var local = Queue();
-  Queue.castFrom(local);
+  var local = Queue<Object>();
+  Queue.castFrom<Object, String>(local);
 }

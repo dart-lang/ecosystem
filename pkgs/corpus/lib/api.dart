@@ -70,8 +70,8 @@ class ApiUsage {
   }
 
   static ApiUsage fromFile(PackageInfo packageInfo, File file) {
-    var json =
-        const JsonDecoder().convert(file.readAsStringSync()) as Map<String, dynamic>;
+    var json = const JsonDecoder().convert(file.readAsStringSync())
+        as Map<String, dynamic>;
     return ApiUsage(
       packageInfo,
       References.fromJson(json['packages'] as Map<String, dynamic>),

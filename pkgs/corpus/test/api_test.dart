@@ -20,8 +20,8 @@ void main() {
       var json =
           const JsonDecoder().convert(_sampleUsageJson) as Map<String, dynamic>;
       sampleUsage = ApiUsage(
-        PackageInfo.from(
-            const JsonDecoder().convert(_packageInfoJson) as Map<String, dynamic>),
+        PackageInfo.from(const JsonDecoder().convert(_packageInfoJson)
+            as Map<String, dynamic>),
         References.fromJson(json['packages'] as Map<String, dynamic>),
         References.fromJson(json['libraries'] as Map<String, dynamic>),
       );
@@ -42,8 +42,8 @@ void main() {
       sampleUsage.toFile(tempFile);
 
       var result = ApiUsage.fromFile(
-        PackageInfo.from(
-            const JsonDecoder().convert(_packageInfoJson) as Map<String, dynamic>),
+        PackageInfo.from(const JsonDecoder().convert(_packageInfoJson)
+            as Map<String, dynamic>),
         tempFile,
       );
 
