@@ -83,6 +83,5 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: comment_number,
-                body,
               });
             }
