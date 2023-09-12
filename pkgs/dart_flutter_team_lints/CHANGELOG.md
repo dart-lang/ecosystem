@@ -1,9 +1,8 @@
 ## 2.0.0
 
 - Enable `strict-inference`.
-- Added `avoid_unused_constructor_parameters`.
-- Added `cancel_subscriptions`.
 - Added `comment_references`.
+- Added `conditional_uri_does_not_exist`.
 - Added `prefer_const_constructors`.
 - Added `prefer_relative_imports`.
 - Added `test_types_in_equals`.
