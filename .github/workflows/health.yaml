@@ -93,7 +93,7 @@ jobs:
         if:  ${{ !inputs.local_debug }}
 
       - name: Install api_tool
-        run: dart pub global activate --source git https://github.com/devmil/dart_apitool_fork --git-ref=fd64e2fec167d0b2c06085340f95392824946877
+        run: dart pub global activate --source git https://github.com/bmw-tech/dart_apitool
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
