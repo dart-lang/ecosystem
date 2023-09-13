@@ -1,3 +1,13 @@
+## 2.0.0
+
+- Enable `strict-inference`.
+- Added `comment_references`.
+- Added `conditional_uri_does_not_exist`.
+- Added `prefer_const_constructors`.
+- Added `prefer_relative_imports`.
+- Added `test_types_in_equals`.
+- Added `use_super_parameters`.
+
 ## 1.0.0
 
 - Added `collection_methods_unrelated_type`.
