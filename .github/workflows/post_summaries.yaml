@@ -5,7 +5,9 @@ on:
   # do things like create comments on the PR, even if the original workflow couldn't.
   workflow_call:
   workflow_run:
-    workflows: [Health]
+    workflows:
+      - Publish
+      - Health
     types:
       - completed
 
@@ -17,6 +19,7 @@ jobs:
     if: >
       github.event.workflow_run.event == 'pull_request' &&
       github.event.workflow_run.conclusion == 'success'
+    continue-on-error: true
     steps:
 
       # Download the output of the health workflow, consisting of the comment markdown and either
@@ -26,18 +29,18 @@ jobs:
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               run_id: ${{ github.event.workflow_run.id }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
             });
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "output"
             })[0];
             var download = await github.rest.actions.downloadArtifact({
-               owner: context.repo.owner,
-               repo: context.repo.repo,
-               artifact_id: matchArtifact.id,
-               archive_format: 'zip',
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: matchArtifact.id,
+              archive_format: 'zip',
             });
             var fs = require('fs');
             fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
@@ -52,24 +55,33 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             var fs = require('fs');
-            var markdown = fs.readFileSync('./comment.md', 'utf8');
-            if (fs.existsSync('./commentId')) {
+            if (fs.existsSync('./comment.md')) {
+              var markdown = fs.readFileSync('./comment.md', 'utf8');
+              if (fs.existsSync('./commentId')) {
+                var comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
+            
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment_number,
+                  body: markdown
+                });
+              } else {
+                var issue_number = Number(fs.readFileSync('./issueNumber', 'utf8'));
+            
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue_number,
+                  body: markdown
+                });
+              }
+            } else if (fs.existsSync('./commentId')) {
               var comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
-              
-              await github.rest.issues.updateComment({
+            
+              await github.rest.issues.deleteComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: comment_number,
-                body: markdown
-              });
-            }
-            else{
-              var issue_number = Number(fs.readFileSync('./issueNumber', 'utf8'));
-
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue_number,
-                body: markdown
               });
             }

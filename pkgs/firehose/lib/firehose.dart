@@ -72,29 +72,21 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     if (results.hasSuccess) {
       var commentText = '$_publishBotTag\n\n$markdownTable';
 
-      if (existingCommentId == null) {
-        await allowFailure(
-          github.createComment(
-              github.repoSlug!, github.issueNumber!, commentText),
-          logError: print,
-        );
-      } else {
-        await allowFailure(
-          github.updateComment(
-              github.repoSlug!, existingCommentId, commentText),
-          logError: print,
-        );
+      if (existingCommentId != null) {
+        var idFile = File('./output/commentId');
+        print('''
+Saving existing comment id $existingCommentId to file ${idFile.path}''');
+        await idFile.create(recursive: true);
+        await idFile.writeAsString(existingCommentId.toString());
       }
+
+      var commentFile = File('./output/comment.md');
+      print('Saving comment markdown to file ${commentFile.path}');
+      await commentFile.create(recursive: true);
+      await commentFile.writeAsString(commentText);
     } else {
       if (results.hasError && exitCode == 0) {
         exitCode = 1;
-      }
-
-      if (existingCommentId != null) {
-        await allowFailure(
-          github.deleteComment(github.repoSlug!, existingCommentId),
-          logError: print,
-        );
       }
     }
 
