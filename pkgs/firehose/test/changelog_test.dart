@@ -132,6 +132,16 @@ void main() {
       });
     });
 
+    test('describeLatestChanges', () {
+      withChangelog(_multiLineContents, (file) {
+        var changelog = Changelog(file);
+        var description = changelog.describeLatestChanges;
+        expect(description, '''
+- Fix issue 1.
+- Fix issue 2.''');
+      });
+    });
+
     test('no recent entries', () {
       withChangelog('''
 ## 0.2.0-dev
@@ -166,6 +176,17 @@ const _defaultContents = '''
 - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
 
 ## 0.3.7
+
+- Provide feedback about publishing status as PR comments.
+''';
+
+const _multiLineContents = '''
+## 0.3.6
+
+- Fix issue 1.
+- Fix issue 2.
+
+## 0.3.5
 
 - Provide feedback about publishing status as PR comments.
 ''';
