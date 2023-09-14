@@ -1,3 +1,7 @@
+## 0.3.29
+
+- Fix an issue rendering longer changelogs (#170).
+
 ## 0.3.28
 
 - Fix [#156](https://github.com/dart-lang/ecosystem/issues/156).

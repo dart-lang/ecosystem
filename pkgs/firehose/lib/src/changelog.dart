@@ -85,7 +85,7 @@ class Changelog {
     return sections;
   }
 
-  String get describeLatestChanges => latestChangeEntries.join();
+  String get describeLatestChanges => latestChangeEntries.join('\n');
 }
 
 class _Section {
