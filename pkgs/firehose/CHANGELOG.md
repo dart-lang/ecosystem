@@ -1,3 +1,7 @@
+## 0.3.30-wip
+
+- Improve support for `-dev` and `-wip` package versions.
+
 ## 0.3.29
 
 - Fix an issue rendering longer changelogs (#170).
