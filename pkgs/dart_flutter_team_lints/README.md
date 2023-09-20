@@ -16,11 +16,11 @@ https://dart.dev/guides/language/analysis-options.
 
 ## Using the Lints
 
-To use the lints, add a dependency in your `pubspec.yaml` file:
+To use the lints, add the package as a dev dependency
+in your `pubspec.yaml` file:
 
-```yaml
-dev_dependencies:
-  dart_flutter_team_lints: ^1.0.0
+```bash
+dart pub add dev:dart_flutter_team_lints
 ```
 
 then, add an `analysis_options.yaml` file to your project:
