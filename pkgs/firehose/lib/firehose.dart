@@ -139,8 +139,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         print(result);
         results.addResult(result);
       } else if (package.pubspec.version!.wip) {
-        var result =
-            Result.info(package, 'pre-release WIP (no publish necessary)');
+        var result = Result.info(package, 'WIP (no publish necessary)');
         print(result);
         results.addResult(result);
       } else {

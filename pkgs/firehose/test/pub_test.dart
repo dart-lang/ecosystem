@@ -5,6 +5,7 @@
 library;
 
 import 'package:firehose/src/pub.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -33,6 +34,23 @@ void main() {
       var result = await pub.hasPublishedVersion(
           'foo_bar_not_published_package', '1.8.0');
       expect(result, false);
+    });
+  });
+
+  group('VersionExtension', () {
+    test('wip no pre-release', () async {
+      final version = Version.parse('1.2.3');
+      expect(version.wip, false);
+    });
+
+    test('wip pre-release', () async {
+      final version = Version.parse('1.2.3-dev');
+      expect(version.wip, false);
+    });
+
+    test('wip pre-release wip', () async {
+      final version = Version.parse('1.2.3-wip');
+      expect(version.wip, true);
     });
   });
 }
