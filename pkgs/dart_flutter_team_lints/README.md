@@ -12,7 +12,7 @@ wider ecosystem. For our community recommendations, see `package:lints` and
 `package:flutter_lints`.
 
 For documentation about customizing static analysis for your project, see
-https://dart.dev/guides/language/analysis-options.
+https://dart.dev/tools/analysis.
 
 ## Using the Lints
 
