@@ -1,4 +1,4 @@
-## 0.3.30-dev
+## 0.3.30
 
 - Improve support for `-dev` and `-wip` package versions.
 
