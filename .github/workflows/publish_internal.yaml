@@ -13,8 +13,8 @@ on:
     tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
 
 env:
-  use-flutter:  ${{ false }}
-  write-comments:  ${{ true }}
+  use-flutter: false
+  write-comments: true
 
 jobs:
   publish:
