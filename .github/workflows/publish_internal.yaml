@@ -14,7 +14,7 @@ on:
 
 env:
   use-flutter: false
-  write-comments: true
+  write-comments: false
 
 jobs:
   publish:
