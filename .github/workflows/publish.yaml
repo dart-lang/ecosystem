@@ -111,7 +111,7 @@ jobs:
 
       - name: Create comment
         uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
-        if: ${{ inputs.write-comments }} && ${{ env.COMMENT_ID == '' }}
+        if: ${{ inputs.write-comments && env.COMMENT_ID == '' }}
         with:
           issue-number: ${{ github.event.number }}
           body-path: 'output/comment.md'
@@ -119,7 +119,7 @@ jobs:
 
       - name: Update comment
         uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
-        if: ${{ inputs.write-comments }} && ${{ env.COMMENT_ID != '' }}
+        if: ${{ inputs.write-comments && env.COMMENT_ID != '' }}
         with:
           comment-id: ${{ env.COMMENT_ID }}
           body-path: 'output/comment.md'
