@@ -96,6 +96,26 @@ jobs:
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
         run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
 
+      - name: Get comment id
+        run: |
+          touch -a output/commentId
+          COMMENT_ID=$(cat output/commentId)
+          echo "COMMENT_ID=$COMMENT_ID" >> $GITHUB_ENV
+
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
+        if: ${{ env.COMMENT_ID == '' }}
+        with:
+          issue-number: ${{ github.event.number }}
+          body-path: 'output/comment.md'
+
+      - name: Update comment
+        uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
+        if: ${{ env.COMMENT_ID != '' }}
+        with:
+          comment-id: ${{ env.COMMENT_ID }}
+          body-path: 'output/comment.md'
+
       - name: Save PR number
         run: |
           mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
