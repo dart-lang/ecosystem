@@ -14,11 +14,11 @@ on:
 
 env:
   use-flutter:  ${{ false }}
-  write-comments:  ${{ false }}
+  write-comments:  ${{ true }}
 
 jobs:
   publish:
-    if: github.repository_owner == 'mosuem'
+    if: github.repository_owner == 'dart-lang'
 
     # These permissions are required for authentication using OIDC and to enable
     # us to create comments on PRs.
