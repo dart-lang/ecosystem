@@ -103,7 +103,7 @@ jobs:
         run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
 
       - name: Get comment id
-        if: ${{ inputs.write-comments }}
+        if: ${{ env.write-comments == true }}
         run: |
           touch -a output/commentId
           COMMENT_ID=$(cat output/commentId)
@@ -111,7 +111,7 @@ jobs:
 
       - name: Create comment
         uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
-        if: ${{ inputs.write-comments && env.COMMENT_ID == '' }}
+        if: ${{ (env.write-comments == true) && (env.COMMENT_ID == '') }}
         with:
           issue-number: ${{ github.event.number }}
           body-path: 'output/comment.md'
@@ -119,19 +119,19 @@ jobs:
 
       - name: Update comment
         uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
-        if: ${{ inputs.write-comments && env.COMMENT_ID != '' }}
+        if: ${{ (env.write-comments == true) && (env.COMMENT_ID != '') }}
         with:
           comment-id: ${{ env.COMMENT_ID }}
           body-path: 'output/comment.md'
           edit-mode: replace
 
       - name: Save PR number
-        if: ${{ !inputs.write-comments }}
+        if: ${{ env.write-comments == false }}
         run: |
           mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
 
       - name: Upload folder with number and markdown
-        if: ${{ !inputs.write-comments }}
+        if: ${{ env.write-comments == false }}
         uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
         with:
           name: output
