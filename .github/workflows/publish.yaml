@@ -37,6 +37,15 @@ name: Publish
 #     with:
 #       use-flutter: true
 
+# When using a post_summaries.yaml workflow to post the comments, set
+# the write-comments parameter to false.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     with:
+#       write-comments: false
+
 on:
   workflow_call:
     inputs:

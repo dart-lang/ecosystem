@@ -79,6 +79,34 @@ jobs:
     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 ```
 
+#### Enabling comments on forks
+
+- add the following to your `publish.yaml`:
+```yaml
+with:
+       write-comments: false
+``` 
+- copy the yaml below into a `.github/workflows/post_summaries.yaml` file in your repo
+
+```yaml
+# A CI configuration to write comments on PRs.
+
+name: Comment on the pull request
+
+on:
+  workflow_run:
+    workflows: 
+      - Publish
+    types:
+      - completed
+
+jobs:
+  upload:
+    uses: dart-lang/ecosystem/.github/workflows/post_summaries.yaml@main
+    permissions:
+      pull-requests: write
+```
+
 ### Publishing from a specific version of the SDK
 
 Callers may optionally specify the version of the SDK to use when publishing a
