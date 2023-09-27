@@ -1,3 +1,7 @@
+## 0.3.31
+
+- Add PR Health checks for breaking changes.
+
 ## 0.3.30
 
 - Improve support for `-dev` and `-wip` package versions.
