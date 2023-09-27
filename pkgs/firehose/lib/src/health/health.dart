@@ -11,7 +11,6 @@ import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart';
 import 'package:path/path.dart' as path;
 
-import '../../firehose.dart';
 import '../github.dart';
 import '../repo.dart';
 import '../utils.dart';
@@ -117,10 +116,9 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         'dart-apitool',
         [
           'diff',
-          '--old',
-          basePackage,
-          '--new',
-          '.',
+          ...['--old', basePackage],
+          ...['--new', '.'],
+          ...['--report-format', 'json'],
         ],
         workingDirectory: currentPath,
       );
