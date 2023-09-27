@@ -247,11 +247,11 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
             .readAsStringSync()
             .contains('DO_NOT_SUBMIT'))
         .toList();
-    print('Found files with DO_NOT_SUBMIT: $filesWithDNS');
+    print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
     final markdownResult = '''
-| Files with `DO_NOT_SUBMIT` |
+| Files with `DO_NOT_${'SUBMIT'}` |
 | :--- |
-${filesWithDNS.map((e) => e.filename)}
+${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 ''';
 
     return HealthCheckResult(
