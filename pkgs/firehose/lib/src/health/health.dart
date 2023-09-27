@@ -161,7 +161,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     return HealthCheckResult(
       'breaking',
       _breakingBotTag,
-      Severity.info,
+      packagesWithBreakingChanges.values
+              .any((element) => !element.versionIsFine)
+          ? Severity.warning
+          : Severity.info,
       '''
 | Package | Change | Current Version | Needed Version | Needs version rev |
 | :--- | :---: | ---: | ---: | ---: |
