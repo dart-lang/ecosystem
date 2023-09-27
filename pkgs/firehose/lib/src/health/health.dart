@@ -112,18 +112,20 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         from: currentPath,
       );
       print('Look for changes in $currentPath with base $basePackage');
-      var runApiTool = Process.runSync(
+      final runApiTool = Process.runSync(
         'dart-apitool',
         [
           'diff',
           ...['--old', basePackage],
           ...['--new', '.'],
           ...['--report-format', 'json'],
+          ...['--report-file-path', 'report.json'],
         ],
         workingDirectory: currentPath,
       );
       print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
-      totalOut += runApiTool.stdout.toString();
+      final reportFile = File(path.join(currentPath, 'report.json'));
+      totalOut += reportFile.readAsStringSync();
     }
     return HealthCheckResult(
       'breaking',
