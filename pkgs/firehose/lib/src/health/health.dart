@@ -125,13 +125,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: currentPath,
       );
-      var stdout = runApiTool.stdout as String;
-      var lines = stdout.split('\n');
-      var oldVersion = Version.parse(
-          lines.firstWhere((line) => line.startsWith('Old version:')));
+      var oldVersion = Package(Directory(basePackage), package.repository);
       var newVersion = package.version!;
 
-      print('runApiTool: err: ${runApiTool.stderr}, out: $stdout');
+      print('runApiTool: err: ${runApiTool.stderr}, out: ${runApiTool.stdout}');
       final reportFile = File(path.join(currentPath, 'report.json'));
       var fullReportString = reportFile.readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
