@@ -163,9 +163,9 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       _breakingBotTag,
       Severity.info,
       '''
-| Package | Has Breaking Changes | Current Version | Needed Version | Needs version rev |
+| Package | Change | Current Version | Needed Version | Needs version rev |
 | :--- | :---: | ---: | ---: | ---: |
-${packagesWithBreakingChanges.entries.map((e) => '|${e.key}|${e.value.level}|${e.value.newVersion}|${e.value.suggestedNewVersion}|${e.value.versionIsFine}|').join('\n')}
+${packagesWithBreakingChanges.entries.map((e) => '|${e.key.name}|${e.value.toRow().join('|')}|').join('\n')}
 ''',
     );
   }
@@ -324,9 +324,13 @@ Version getNewVersion(BreakingLevel level, Version oldVersion) {
 }
 
 enum BreakingLevel {
-  none,
-  nonBreaking,
-  breaking,
+  none('none'),
+  nonBreaking('Non-Breaking'),
+  breaking('Breaking');
+
+  final String name;
+
+  const BreakingLevel(this.name);
 }
 
 class HealthCheckResult {
@@ -352,4 +356,11 @@ class BreakingChange {
   Version get suggestedNewVersion => getNewVersion(level, oldVersion);
 
   bool get versionIsFine => newVersion == suggestedNewVersion;
+
+  Iterable<String> toRow() => [
+        level.name,
+        newVersion,
+        suggestedNewVersion,
+        versionIsFine ? ':heavy_check_mark:' : ':warning:'
+      ].map((e) => e.toString());
 }
