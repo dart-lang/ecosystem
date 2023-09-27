@@ -136,9 +136,9 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       if ((report['noChangesDetected'] as bool?) ?? false) {
         breakingLevel = BreakingLevel.none;
       } else {
-        if ((report['breakingChanges'] as Map).isNotEmpty) {
+        if ((report['breakingChanges'] as Map? ?? {}).isNotEmpty) {
           breakingLevel = BreakingLevel.breaking;
-        } else if ((report['nonBreakingChanges'] as Map).isNotEmpty) {
+        } else if ((report['nonBreakingChanges'] as Map? ?? {}).isNotEmpty) {
           breakingLevel = BreakingLevel.nonBreaking;
         } else {
           breakingLevel = BreakingLevel.none;
