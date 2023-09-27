@@ -38,7 +38,7 @@ class Changelog {
   /// or a `+...` sequence after a `-` sequence.
   /// It should be enough for the user-cases we need it for
   /// in this package.
-  static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[\-+]\w+)?');
+  static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[\+-].*)?');
 
   String? get latestVersion {
     var input = latestHeading;
