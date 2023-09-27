@@ -239,7 +239,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
   Future<HealthCheckResult> doNotSubmitCheck(Github github) async {
     final files = await github.listFilesForPR();
-    print('Checking for DO_NOT_SUBMIT strings: files');
+    print('Checking for DO_NOT_SUBMIT strings: $files');
     var filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
