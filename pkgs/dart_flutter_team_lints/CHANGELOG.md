@@ -1,3 +1,9 @@
+## 2.1.0
+
+- Updated to the preview `3.0.0-beta` version of package:lints/recommended.yaml.
+- Removed lints duplicated from package:lints/core.yaml and
+  package:lints/recommended.yaml.
+
 ## 2.0.0
 
 - Enable `strict-inference`.
