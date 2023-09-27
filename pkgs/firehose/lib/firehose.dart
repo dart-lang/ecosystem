@@ -7,10 +7,9 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:firehose/src/repo.dart';
-
 import 'src/github.dart';
 import 'src/pub.dart';
+import 'src/repo.dart';
 import 'src/utils.dart';
 
 const String _botSuffix = '[bot]';
@@ -72,29 +71,21 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     if (results.hasSuccess) {
       var commentText = '$_publishBotTag\n\n$markdownTable';
 
-      if (existingCommentId == null) {
-        await allowFailure(
-          github.createComment(
-              github.repoSlug!, github.issueNumber!, commentText),
-          logError: print,
-        );
-      } else {
-        await allowFailure(
-          github.updateComment(
-              github.repoSlug!, existingCommentId, commentText),
-          logError: print,
-        );
+      if (existingCommentId != null) {
+        var idFile = File('./output/commentId');
+        print('''
+Saving existing comment id $existingCommentId to file ${idFile.path}''');
+        await idFile.create(recursive: true);
+        await idFile.writeAsString(existingCommentId.toString());
       }
+
+      var commentFile = File('./output/comment.md');
+      print('Saving comment markdown to file ${commentFile.path}');
+      await commentFile.create(recursive: true);
+      await commentFile.writeAsString(commentText);
     } else {
       if (results.hasError && exitCode == 0) {
         exitCode = 1;
-      }
-
-      if (existingCommentId != null) {
-        await allowFailure(
-          github.deleteComment(github.repoSlug!, existingCommentId),
-          logError: print,
-        );
       }
     }
 
@@ -147,11 +138,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         var result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
-      } else if (package.pubspec.version!.isPreRelease) {
-        var result = Result.info(
-          package,
-          'pre-release version (no publish necessary)',
-        );
+      } else if (package.pubspec.version!.wip) {
+        var result = Result.info(package, 'WIP (no publish necessary)');
         print(result);
         results.addResult(result);
       } else {

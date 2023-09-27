@@ -57,7 +57,7 @@ void main(List<String> args) async {
 
   var targetPackage = await pub.getPackageInfo(packageName);
 
-  final dateOneYearAgo = DateTime.now().subtract(Duration(days: 365));
+  final dateOneYearAgo = DateTime.now().subtract(const Duration(days: 365));
 
   var limit = packageLimit == null ? null : int.parse(packageLimit);
 

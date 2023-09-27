@@ -4,11 +4,11 @@
 
 import 'dart:io';
 
-import 'package:firehose/src/changelog.dart';
 import 'package:path/path.dart' as path;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
+import 'changelog.dart';
 import 'github.dart';
 
 class Repository {

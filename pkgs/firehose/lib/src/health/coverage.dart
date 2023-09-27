@@ -17,8 +17,8 @@ class Coverage {
 
   Coverage(this.coverageWeb);
 
-  Future<CoverageResult> compareCoverages() async {
-    var files = await Github().listFilesForPR();
+  Future<CoverageResult> compareCoverages(Github github) async {
+    var files = await github.listFilesForPR();
     var basePath = '../base_repo/';
 
     return compareCoveragesFor(files, basePath);

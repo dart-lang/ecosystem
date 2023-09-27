@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart';
 import 'package:path/path.dart' as path;
 
+import '../../firehose.dart';
 import '../github.dart';
 import '../repo.dart';
 import '../utils.dart';
@@ -137,7 +138,7 @@ $totalOut
   }
 
   Future<HealthCheckResult> licenseCheck(Github github) async {
-    var files = await Github().listFilesForPR();
+    var files = await github.listFilesForPR();
     var allFilePaths = await getFilesWithoutLicenses(Directory.current);
 
     var groupedPaths = allFilePaths
@@ -203,7 +204,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     Github github,
     bool coverageWeb,
   ) async {
-    var coverage = await Coverage(coverageWeb).compareCoverages();
+    var coverage = await Coverage(coverageWeb).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |

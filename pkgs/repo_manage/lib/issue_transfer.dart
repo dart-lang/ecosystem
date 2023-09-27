@@ -199,7 +199,7 @@ class TransferIssuesCommand extends ReportCommand {
       }
 
       print('Waiting a bit to allow Github to catch up...');
-      await Future<void>.delayed(Duration(seconds: 5));
+      await Future<void>.delayed(const Duration(seconds: 5));
     }
   }
 

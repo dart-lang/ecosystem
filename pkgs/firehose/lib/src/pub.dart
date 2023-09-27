@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:pub_semver/pub_semver.dart';
 
 class Pub {
   http.Client? _httpClient;
@@ -27,5 +28,11 @@ class Pub {
 
   void close() {
     _httpClient?.close();
+  }
+}
+
+extension VersionExtension on Version {
+  bool get wip {
+    return isPreRelease && preRelease.length == 1 && preRelease.first == 'wip';
   }
 }

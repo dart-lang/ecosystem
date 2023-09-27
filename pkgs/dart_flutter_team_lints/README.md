@@ -12,15 +12,15 @@ wider ecosystem. For our community recommendations, see `package:lints` and
 `package:flutter_lints`.
 
 For documentation about customizing static analysis for your project, see
-https://dart.dev/guides/language/analysis-options.
+https://dart.dev/tools/analysis.
 
 ## Using the Lints
 
-To use the lints, add a dependency in your `pubspec.yaml` file:
+To use the lints, add the package as a dev dependency
+in your `pubspec.yaml` file:
 
-```yaml
-dev_dependencies:
-  dart_flutter_team_lints: ^1.0.0
+```bash
+dart pub add dev:dart_flutter_team_lints
 ```
 
 then, add an `analysis_options.yaml` file to your project:
