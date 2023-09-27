@@ -44,17 +44,17 @@ Future<int> runCommand(
 class Tag {
   /// RegExp matching a version tag at the start of a line.
   ///
-  /// A version tag is an optional starting seqeuence
-  /// of non-whitespace, which is the package name,
-  /// followed by a `v` and a simplified SemVer version
+  /// A version tag is an optional starting seqeuence of non-whitespace, which
+  /// is the package name, followed by a `v` and a simplified SemVer version
   /// number.
-  /// The version number accepted is
-  /// > digits '.' digits '.' digits
   ///
-  /// and if followed by a `+`, then it includes the
-  /// rest of the line.
+  /// The version number accepted is:
+  ///
+  ///     digits '.' digits '.' digits
+  ///
+  /// and if followed by a `+`, then it includes the rest of the line.
   static final RegExp packageVersionTag =
-      RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:\+.*)?)');
+      RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:[\+-].*)?)');
 
   /// A package version tag.
   ///

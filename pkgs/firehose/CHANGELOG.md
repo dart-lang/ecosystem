@@ -1,3 +1,7 @@
+## 0.3.31
+
+- Fix an issue validating pre-release git publishing tags (#176).
+
 ## 0.3.30
 
 - Improve support for `-dev` and `-wip` package versions.
