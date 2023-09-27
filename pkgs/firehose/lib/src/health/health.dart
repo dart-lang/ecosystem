@@ -8,9 +8,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:firehose/firehose.dart';
 import 'package:path/path.dart' as path;
 
+import '../../firehose.dart';
 import '../github.dart';
 import '../repo.dart';
 import '../utils.dart';
