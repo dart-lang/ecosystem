@@ -4,11 +4,13 @@
 
 // ignore_for_file: always_declare_return_types
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
 import '../github.dart';
@@ -102,7 +104,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   Future<HealthCheckResult> breakingCheck(Github github) async {
     final repo = Repository();
     final packages = repo.locatePackages();
-    var totalOut = '';
+    var packagesWithBreakingChanges = <Package, BreakingChange>{};
     var baseDirectory = Directory('../base_repo');
     for (var package in packages) {
       var currentPath =
@@ -123,16 +125,47 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: currentPath,
       );
-      print('runApiTool: err:${runApiTool.stderr}, out:${runApiTool.stdout}');
+      var stdout = runApiTool.stdout as String;
+      var lines = stdout.split('\n');
+      var oldVersion = Version.parse(
+          lines.firstWhere((line) => line.startsWith('Old version:')));
+      var newVersion = package.version!;
+
+      print('runApiTool: err: ${runApiTool.stderr}, out: $stdout');
       final reportFile = File(path.join(currentPath, 'report.json'));
-      totalOut += reportFile.readAsStringSync();
+      var fullReportString = reportFile.readAsStringSync();
+      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+      var fullReport = decoded['report'] as Map<String, dynamic>;
+      BreakingLevel breakingLevel;
+      if ((fullReport['noChangesDetected'] as bool?) ?? false) {
+        breakingLevel = BreakingLevel.none;
+      } else {
+        var breaking = fullReport['breakingChanges'] as Map<String, dynamic>;
+        var nonBreaking =
+            fullReport['nonBreakingChanges'] as Map<String, dynamic>;
+
+        if (breaking.isNotEmpty) {
+          breakingLevel = BreakingLevel.breaking;
+        } else if (nonBreaking.isNotEmpty) {
+          breakingLevel = BreakingLevel.nonBreaking;
+        } else {
+          breakingLevel = BreakingLevel.none;
+        }
+      }
+      packagesWithBreakingChanges[package] = BreakingChange(
+        level: breakingLevel,
+        oldVersion: oldVersion,
+        newVersion: newVersion,
+      );
     }
     return HealthCheckResult(
       'breaking',
       _breakingBotTag,
       Severity.info,
       '''
-$totalOut
+| Package | Has Breaking Changes | Current Version | Needed Version | Needs version rev |
+| :--- | :---: | ---: | ---: | ---: |
+${packagesWithBreakingChanges.entries.map((e) => '|${e.key}|${e.value.level}|${e.value.newVersion}|${e.value.suggestedNewVersion}|${e.value.versionIsFine}|').join('\n')}
 ''',
     );
   }
@@ -282,6 +315,20 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   }
 }
 
+Version getNewVersion(BreakingLevel level, Version oldVersion) {
+  return switch (level) {
+    BreakingLevel.none => oldVersion,
+    BreakingLevel.nonBreaking => oldVersion.nextMinor,
+    BreakingLevel.breaking => oldVersion.nextBreaking,
+  };
+}
+
+enum BreakingLevel {
+  none,
+  nonBreaking,
+  breaking,
+}
+
 class HealthCheckResult {
   final String name;
   final String tag;
@@ -289,4 +336,20 @@ class HealthCheckResult {
   final String markdown;
 
   HealthCheckResult(this.name, this.tag, this.severity, this.markdown);
+}
+
+class BreakingChange {
+  final BreakingLevel level;
+  final Version oldVersion;
+  final Version newVersion;
+
+  BreakingChange({
+    required this.level,
+    required this.oldVersion,
+    required this.newVersion,
+  });
+
+  Version get suggestedNewVersion => getNewVersion(level, oldVersion);
+
+  bool get versionIsFine => newVersion == suggestedNewVersion;
 }
