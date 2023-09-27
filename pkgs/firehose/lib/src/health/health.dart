@@ -114,7 +114,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         from: currentPath,
       );
       print('Look for changes in $currentPath with base $basePackage');
-      Process.runSync(
+      var runApiTool = Process.runSync(
         'dart-apitool',
         [
           'diff',
@@ -125,6 +125,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: currentPath,
       );
+      print(runApiTool.stderr);
+      print(runApiTool.stdout);
 
       final reportFile = File(path.join(currentPath, 'report.json'));
       var fullReportString = reportFile.readAsStringSync();
@@ -358,7 +360,7 @@ class BreakingChange {
         level.name,
         oldVersion,
         newVersion,
-        versionIsFine ? suggestedNewVersion : '*$suggestedNewVersion*',
+        versionIsFine ? suggestedNewVersion : '_${suggestedNewVersion}_',
         versionIsFine ? ':heavy_check_mark:' : ':warning:'
       ].map((e) => e.toString()).join('|');
 }
