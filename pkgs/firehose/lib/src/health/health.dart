@@ -114,7 +114,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         from: currentPath,
       );
       print('Look for changes in $currentPath with base $basePackage');
-      final runApiTool = Process.runSync(
+      Process.runSync(
         'dart-apitool',
         [
           'diff',
@@ -125,37 +125,32 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: currentPath,
       );
-      var oldVersion = Package(
-              Directory(path.join(baseDirectory.path, currentPath)),
-              package.repository)
-          .version!;
-      var newVersion = package.version!;
 
-      print('runApiTool: err: ${runApiTool.stderr}, out: ${runApiTool.stdout}');
       final reportFile = File(path.join(currentPath, 'report.json'));
       var fullReportString = reportFile.readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-      var fullReport = decoded['report'] as Map<String, dynamic>;
+      var report = decoded['report'] as Map<String, dynamic>;
       BreakingLevel breakingLevel;
-      if ((fullReport['noChangesDetected'] as bool?) ?? false) {
+      if ((report['noChangesDetected'] as bool?) ?? false) {
         breakingLevel = BreakingLevel.none;
       } else {
-        var breaking = fullReport['breakingChanges'] as Map<String, dynamic>;
-        var nonBreaking =
-            fullReport['nonBreakingChanges'] as Map<String, dynamic>;
-
-        if (breaking.isNotEmpty) {
+        if ((report['breakingChanges'] as Map).isNotEmpty) {
           breakingLevel = BreakingLevel.breaking;
-        } else if (nonBreaking.isNotEmpty) {
+        } else if ((report['nonBreakingChanges'] as Map).isNotEmpty) {
           breakingLevel = BreakingLevel.nonBreaking;
         } else {
           breakingLevel = BreakingLevel.none;
         }
       }
+
+      var oldPackage = Package(
+        Directory(path.join(baseDirectory.path, currentPath)),
+        package.repository,
+      );
       changeForPackage[package] = BreakingChange(
         level: breakingLevel,
-        oldVersion: oldVersion,
-        newVersion: newVersion,
+        oldVersion: oldPackage.version!,
+        newVersion: package.version!,
       );
     }
     return HealthCheckResult(
@@ -166,7 +161,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           : Severity.info,
       '''
 | Package | Change | Current Version | New Version | Needed Version | Looking good? |
-| :--- | :--- | ---: | ---: | ---: |
+| :--- | :--- | ---: | ---: | ---: | ---: |
 ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
 ''',
     );
