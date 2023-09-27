@@ -1,3 +1,7 @@
+## 0.3.32
+
+- Add PR Health checks for `DO_NOT_SUBMIT` strings.
+
 ## 0.3.31
 
 - Add PR Health checks for breaking changes.
