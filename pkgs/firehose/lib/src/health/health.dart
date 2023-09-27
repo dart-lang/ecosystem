@@ -323,7 +323,7 @@ Version getNewVersion(BreakingLevel level, Version oldVersion) {
 }
 
 enum BreakingLevel {
-  none('none'),
+  none('None'),
   nonBreaking('Non-Breaking'),
   breaking('Breaking');
 
