@@ -104,7 +104,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   Future<HealthCheckResult> breakingCheck(Github github) async {
     final repo = Repository();
     final packages = repo.locatePackages();
-    var packagesWithBreakingChanges = <Package, BreakingChange>{};
+    var changeForPackage = <Package, BreakingChange>{};
     var baseDirectory = Directory('../base_repo');
     for (var package in packages) {
       var currentPath =
@@ -152,7 +152,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           breakingLevel = BreakingLevel.none;
         }
       }
-      packagesWithBreakingChanges[package] = BreakingChange(
+      changeForPackage[package] = BreakingChange(
         level: breakingLevel,
         oldVersion: oldVersion,
         newVersion: newVersion,
@@ -161,14 +161,13 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     return HealthCheckResult(
       'breaking',
       _breakingBotTag,
-      packagesWithBreakingChanges.values
-              .any((element) => !element.versionIsFine)
+      changeForPackage.values.any((element) => !element.versionIsFine)
           ? Severity.warning
           : Severity.info,
       '''
-| Package | Change | Current Version | Needed Version | Needs version rev |
-| :--- | :---: | ---: | ---: | ---: |
-${packagesWithBreakingChanges.entries.map((e) => '|${e.key.name}|${e.value.toRow().join('|')}|').join('\n')}
+| Package | Change | Current Version | New Version | Needed Version | Looking good? |
+| :--- | :--- | ---: | ---: | ---: |
+${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
 ''',
     );
   }
@@ -360,10 +359,11 @@ class BreakingChange {
 
   bool get versionIsFine => newVersion == suggestedNewVersion;
 
-  Iterable<String> toRow() => [
+  String toMarkdownRow() => [
         level.name,
+        oldVersion,
         newVersion,
-        suggestedNewVersion,
+        versionIsFine ? suggestedNewVersion : '*$suggestedNewVersion*',
         versionIsFine ? ':heavy_check_mark:' : ':warning:'
-      ].map((e) => e.toString());
+      ].map((e) => e.toString()).join('|');
 }
