@@ -125,7 +125,8 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: currentPath,
       );
-      var oldVersion = Package(Directory(basePackage), package.repository);
+      var oldVersion =
+          Package(Directory(basePackage), package.repository).version!;
       var newVersion = package.version!;
 
       print('runApiTool: err: ${runApiTool.stderr}, out: ${runApiTool.stdout}');
