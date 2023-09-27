@@ -24,7 +24,9 @@ class Firehose {
   final Directory directory;
   final bool useFlutter;
 
-  Firehose(this.directory, this.useFlutter);
+  final String testArg;
+
+  Firehose(this.directory, this.useFlutter, this.testArg);
 
   /// Validate the packages in the repository.
   ///
