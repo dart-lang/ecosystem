@@ -12,4 +12,4 @@ jobs:
       local_debug: true
       coverage_web: false
       upload_coverage: false
-      checks: version,changelog,license,coverage,breaking
+      checks: version,changelog,license,coverage,breaking,do-not-submit
