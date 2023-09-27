@@ -360,7 +360,7 @@ class BreakingChange {
         level.name,
         oldVersion,
         newVersion,
-        versionIsFine ? suggestedNewVersion : '_${suggestedNewVersion}_',
+        versionIsFine ? suggestedNewVersion : '**$suggestedNewVersion**',
         versionIsFine ? ':heavy_check_mark:' : ':warning:'
       ].map((e) => e.toString()).join('|');
 }
