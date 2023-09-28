@@ -121,6 +121,7 @@ jobs:
       - name: Create comment
         uses: peter-evans/create-or-update-comment@46da6c0d98504aed6fc429519a258b951f23f474
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID == '') }}
+        continue-on-error: true
         with:
           issue-number: ${{ github.event.number }}
           body-path: 'output/comment.md'
