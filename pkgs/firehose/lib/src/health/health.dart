@@ -4,13 +4,17 @@
 
 // ignore_for_file: always_declare_return_types
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
 import '../github.dart';
+import '../repo.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
@@ -27,6 +31,8 @@ const String _licenseBotTag = '### License Headers';
 const String _changelogBotTag = '### Changelog Entry';
 
 const String _coverageBotTag = '### Coverage';
+
+const String _breakingBotTag = '### Breaking changes';
 
 const String _prHealthTag = '## PR Health';
 
@@ -63,6 +69,9 @@ class Health {
       if (args.contains('coverage') &&
           !github.prLabels.contains('skip-coverage-check'))
         (Github github) => coverageCheck(github, coverageweb),
+      if (args.contains('breaking') &&
+          !github.prLabels.contains('skip-breaking-check'))
+        breakingCheck,
     ];
 
     var checked =
@@ -89,6 +98,80 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       _publishBotTag2,
       results.severity,
       markdownTable,
+    );
+  }
+
+  Future<HealthCheckResult> breakingCheck(Github github) async {
+    final repo = Repository();
+    final packages = repo.locatePackages();
+    var changeForPackage = <Package, BreakingChange>{};
+    var baseDirectory = Directory('../base_repo');
+    for (var package in packages) {
+      var currentPath =
+          path.relative(package.directory.path, from: Directory.current.path);
+      var basePackage = path.relative(
+        path.join(baseDirectory.absolute.path, currentPath),
+        from: currentPath,
+      );
+      print('Look for changes in $currentPath with base $basePackage');
+      var runApiTool = Process.runSync(
+        'dart',
+        [
+          ...['pub', 'global', 'run'],
+          'dart_apitool:main',
+          'diff',
+          ...['--old', basePackage],
+          ...['--new', '.'],
+          ...['--report-format', 'json'],
+          ...['--report-file-path', 'report.json'],
+        ],
+        workingDirectory: currentPath,
+      );
+      print(runApiTool.stderr);
+      print(runApiTool.stdout);
+
+      final reportFile = File(path.join(currentPath, 'report.json'));
+      var fullReportString = reportFile.readAsStringSync();
+      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+      var report = decoded['report'] as Map<String, dynamic>;
+
+      var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
+      print('Breaking change report:\n$formattedChanges');
+
+      BreakingLevel breakingLevel;
+      if ((report['noChangesDetected'] as bool?) ?? false) {
+        breakingLevel = BreakingLevel.none;
+      } else {
+        if ((report['breakingChanges'] as Map? ?? {}).isNotEmpty) {
+          breakingLevel = BreakingLevel.breaking;
+        } else if ((report['nonBreakingChanges'] as Map? ?? {}).isNotEmpty) {
+          breakingLevel = BreakingLevel.nonBreaking;
+        } else {
+          breakingLevel = BreakingLevel.none;
+        }
+      }
+
+      var oldPackage = Package(
+        Directory(path.join(baseDirectory.path, currentPath)),
+        package.repository,
+      );
+      changeForPackage[package] = BreakingChange(
+        level: breakingLevel,
+        oldVersion: oldPackage.version!,
+        newVersion: package.version!,
+      );
+    }
+    return HealthCheckResult(
+      'breaking',
+      _breakingBotTag,
+      changeForPackage.values.any((element) => !element.versionIsFine)
+          ? Severity.warning
+          : Severity.info,
+      '''
+| Package | Change | Current Version | New Version | Needed Version | Looking good? |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
+''',
     );
   }
 
@@ -237,6 +320,24 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   }
 }
 
+Version getNewVersion(BreakingLevel level, Version oldVersion) {
+  return switch (level) {
+    BreakingLevel.none => oldVersion,
+    BreakingLevel.nonBreaking => oldVersion.nextMinor,
+    BreakingLevel.breaking => oldVersion.nextBreaking,
+  };
+}
+
+enum BreakingLevel {
+  none('None'),
+  nonBreaking('Non-Breaking'),
+  breaking('Breaking');
+
+  final String name;
+
+  const BreakingLevel(this.name);
+}
+
 class HealthCheckResult {
   final String name;
   final String tag;
@@ -244,4 +345,28 @@ class HealthCheckResult {
   final String markdown;
 
   HealthCheckResult(this.name, this.tag, this.severity, this.markdown);
+}
+
+class BreakingChange {
+  final BreakingLevel level;
+  final Version oldVersion;
+  final Version newVersion;
+
+  BreakingChange({
+    required this.level,
+    required this.oldVersion,
+    required this.newVersion,
+  });
+
+  Version get suggestedNewVersion => getNewVersion(level, oldVersion);
+
+  bool get versionIsFine => newVersion == suggestedNewVersion;
+
+  String toMarkdownRow() => [
+        level.name,
+        oldVersion,
+        newVersion,
+        versionIsFine ? suggestedNewVersion : '**$suggestedNewVersion**',
+        versionIsFine ? ':heavy_check_mark:' : ':warning:'
+      ].map((e) => e.toString()).join('|');
 }

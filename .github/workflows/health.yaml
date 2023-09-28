@@ -29,7 +29,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version,changelog,license,coverage"
+#       checks: "version,changelog,license,coverage,breaking"
 
 on:
   workflow_call:
@@ -43,8 +43,8 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage"
-        default: "version,changelog,license,coverage"
+        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking"
+        default: "version,changelog,license,coverage,breaking"
         type: string
         required: false
       local_debug:
@@ -91,6 +91,9 @@ jobs:
       - name: Install firehose
         run: dart pub global activate firehose
         if:  ${{ !inputs.local_debug }}
+
+      - name: Install api_tool
+        run: dart pub global activate --source git https://github.com/bmw-tech/dart_apitool
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
