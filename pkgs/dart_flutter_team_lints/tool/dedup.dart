@@ -124,7 +124,7 @@ class Lints {
       parent:
           localInclude == null ? null : Lints.readFrom(localInclude, packages),
       include: include,
-      lints: lints.map((e) => e as String).toList(),
+      lints: lints.cast<String>().toList(),
     );
   }
 
