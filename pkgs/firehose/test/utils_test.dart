@@ -22,6 +22,11 @@ void main() {
       expect(tag.version, '1.2.3');
     });
 
+    test('pre-release package repo', () {
+      var tag = Tag('v1.2.3-beta');
+      expect(tag.version, '1.2.3-beta');
+    });
+
     test('service release', () {
       var tag = Tag('v1.2.3+1');
       expect(tag.version, '1.2.3+1');
@@ -37,6 +42,12 @@ void main() {
       var tag = Tag('foo_bar-v1.2.3');
       expect(tag.package, 'foo_bar');
       expect(tag.version, '1.2.3');
+    });
+
+    test('mono repo pre-release', () {
+      var tag = Tag('foo_bar-v1.2.3-dev.1');
+      expect(tag.package, 'foo_bar');
+      expect(tag.version, '1.2.3-dev.1');
     });
 
     test('mono repo bad', () {

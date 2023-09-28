@@ -1,3 +1,7 @@
+## 0.3.32
+
+- Fix an issue validating pre-release git publishing tags (#176).
+
 ## 0.3.31
 
 - Add PR Health checks for breaking changes.
