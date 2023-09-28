@@ -118,7 +118,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         'dart',
         [
           ...['pub', 'global', 'run'],
-          'dart-apitool',
+          'dart_apitool:main',
           'diff',
           ...['--old', basePackage],
           ...['--new', '.'],
