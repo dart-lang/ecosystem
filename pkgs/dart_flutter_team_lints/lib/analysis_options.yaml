@@ -23,51 +23,31 @@ analyzer:
 linter:
   rules:
     # consistency
-    - avoid_empty_else
-    - avoid_shadowing_type_parameters
-    - avoid_types_as_parameter_names
-    - camel_case_extensions
     - combinators_ordering
-    - curly_braces_in_flow_control_structures
     - directives_ordering
-    - empty_catches
-    - file_names
     - library_annotations
     - lines_longer_than_80_chars
     - omit_local_variable_types
     - prefer_asserts_in_initializer_lists
     - prefer_const_constructors
-    - prefer_generic_function_type_aliases
-    - prefer_is_empty
     - prefer_relative_imports
     - prefer_single_quotes
-    - prefer_typing_uninitialized_variables
     - sort_pub_dependencies
     - unnecessary_lambdas
     - unnecessary_library_directive
-    - unnecessary_overrides
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_is_even_rather_than_modulo
-    - use_string_in_part_of_directives
-    - use_super_parameters
 
     # correctness
     - always_declare_return_types
     - avoid_catching_errors
     - avoid_dynamic_calls
-    - await_only_futures
-    - collection_methods_unrelated_type
     - comment_references
     - conditional_uri_does_not_exist
-    - dangling_library_doc_comments
-    - hash_and_equals
-    - implicit_call_tearoffs
-    - no_duplicate_case_values
     - only_throw_errors
     - test_types_in_equals
     - throw_in_finally
     - type_annotate_public_apis
     - unawaited_futures
     - unreachable_from_main
-    - unrelated_type_equality_checks
