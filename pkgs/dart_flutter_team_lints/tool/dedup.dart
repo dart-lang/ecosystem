@@ -110,8 +110,9 @@ Map<String, Directory>? _parseConfigFile(File configFile) {
 class Lints {
   static Lints readFrom(String include, Map<String, Directory> packages) {
     // "package:lints/recommended.yaml"
-    final package = include.substring('package:'.length).split('/')[0];
-    final filePath = include.substring('package:'.length).split('/')[1];
+    final uri = Uri.parse(include);
+    final package = uri.pathSegments[0];
+    final filePath = uri.pathSegments[1];
 
     final dir = packages[package]!;
     final configFile = File(path.join(dir.path, 'lib', filePath));

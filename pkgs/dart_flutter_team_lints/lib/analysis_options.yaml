@@ -45,7 +45,6 @@ linter:
     - avoid_dynamic_calls
     - comment_references
     - conditional_uri_does_not_exist
-    - dangling_library_doc_comments
     - only_throw_errors
     - test_types_in_equals
     - throw_in_finally
