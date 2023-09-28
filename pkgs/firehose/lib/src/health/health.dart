@@ -30,6 +30,8 @@ const String _licenseBotTag = '### License Headers';
 
 const String _changelogBotTag = '### Changelog Entry';
 
+const String _doNotSubmitBotTag = '### Do Not Submit';
+
 const String _coverageBotTag = '### Coverage';
 
 const String _breakingBotTag = '### Breaking changes';
@@ -72,6 +74,9 @@ class Health {
       if (args.contains('breaking') &&
           !github.prLabels.contains('skip-breaking-check'))
         breakingCheck,
+      if (args.contains('do-not-submit') &&
+          !github.prLabels.contains('skip-do-not-submit-check'))
+        doNotSubmitCheck,
     ];
 
     var checked =
@@ -238,6 +243,31 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     );
   }
 
+  Future<HealthCheckResult> doNotSubmitCheck(Github github) async {
+    final files = await github.listFilesForPR();
+    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
+    var filesWithDNS = files
+        .where((file) =>
+            ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
+        .where((file) => File(file.relativePath)
+            .readAsStringSync()
+            .contains('DO_NOT${'_'}SUBMIT'))
+        .toList();
+    print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
+    final markdownResult = '''
+| Files with `DO_NOT_${'SUBMIT'}` |
+| :--- |
+${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
+''';
+
+    return HealthCheckResult(
+      'do-not-submit',
+      _doNotSubmitBotTag,
+      filesWithDNS.isNotEmpty ? Severity.error : Severity.success,
+      filesWithDNS.isNotEmpty ? markdownResult : null,
+    );
+  }
+
   Future<HealthCheckResult> coverageCheck(
     Github github,
     bool coverageWeb,
@@ -266,7 +296,8 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
     Github github,
     List<HealthCheckResult> results,
   ) async {
-    var commentText = results.map((result) {
+    var commentText =
+        results.where((result) => result.markdown != null).map((result) {
       var markdown = result.markdown;
       var isWorseThanInfo = result.severity.index >= Severity.warning.index;
       var s = '''
@@ -281,7 +312,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 </details>
 
 ''';
-      return '${result.tag} ${result.severity.emoji}\n\n$s';
+      return '${result.title} ${result.severity.emoji}\n\n$s';
     }).join('\n');
 
     var summary = '$_prHealthTag\n\n$commentText';
@@ -340,11 +371,11 @@ enum BreakingLevel {
 
 class HealthCheckResult {
   final String name;
-  final String tag;
+  final String title;
   final Severity severity;
-  final String markdown;
+  final String? markdown;
 
-  HealthCheckResult(this.name, this.tag, this.severity, this.markdown);
+  HealthCheckResult(this.name, this.title, this.severity, this.markdown);
 }
 
 class BreakingChange {
