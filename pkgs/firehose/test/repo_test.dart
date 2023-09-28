@@ -34,7 +34,7 @@ void main() {
       final queryParams = releaseUri.queryParameters;
       expect(queryParams['tag'], packages.calculateRepoTag(package));
       expect(queryParams['title'],
-          allOf(contains(package.name), contains(package.version)));
+          allOf(contains(package.name), contains(package.version.toString())));
       expect(queryParams['body'], package.changelog.describeLatestChanges);
     });
   });

@@ -11,7 +11,14 @@ void main(List<String> arguments) async {
   var argParser = ArgParser()
     ..addMultiOption(
       'checks',
-      allowed: ['version', 'license', 'changelog', 'coverage'],
+      allowed: [
+        'version',
+        'license',
+        'changelog',
+        'coverage',
+        'breaking',
+        'do-not-submit',
+      ],
       help: 'Check PR health.',
     )
     ..addFlag(

@@ -1,3 +1,12 @@
+## 0.3.32
+
+- Fix an issue validating pre-release git publishing tags (#176).
+
+## 0.3.31
+
+- Add PR Health checks for breaking changes.
+- Add PR Health checks for `DO_NOT${'_'}SUBMIT` strings.
+
 ## 0.3.30
 
 - Improve support for `-dev` and `-wip` package versions.

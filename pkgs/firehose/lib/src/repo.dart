@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -99,7 +100,7 @@ class Package {
 
   String get name => pubspec.name;
 
-  String? get version => pubspec.version?.toString();
+  Version? get version => pubspec.version;
 
   @override
   String toString() {
