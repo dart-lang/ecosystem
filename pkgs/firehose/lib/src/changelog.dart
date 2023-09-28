@@ -26,19 +26,15 @@ class Changelog {
   /// Pattern recognizing some SemVer formats.
   ///
   /// Accepts:
-  /// >  digits '.' digits '.' digits
   ///
-  /// optionally followed by `-` or `+` character
-  /// and one or more "word characters", which are
-  /// ASCII letters (`a`-`z`, `A`-`Z`), digits (`0`-`9`),
-  /// underscore (`_`) and dollar-sign (`$`).
+  /// > digits '.' digits '.' digits
   ///
-  /// This is not all complete SemVer version strings,
-  /// since it doesn't allow `.` in the continuation,
-  /// or a `+...` sequence after a `-` sequence.
-  /// It should be enough for the user-cases we need it for
-  /// in this package.
-  static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[\+-].*)?');
+  /// optionally followed by `-` or `+` character and one of more non-whitespace
+  /// characters, without validating them as valid semver.
+  ///
+  /// This is not all complete SemVer version strings but it should be enough
+  /// for the user-cases we need it for in this package.
+  static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[+\-]\S*)?');
 
   String? get latestVersion {
     var input = latestHeading;

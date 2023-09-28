@@ -50,19 +50,21 @@ class Tag {
   ///
   /// The version number accepted is:
   ///
-  ///     digits '.' digits '.' digits
+  /// > digits '.' digits '.' digits
   ///
-  /// and if followed by a `+`, then it includes the rest of the line.
+  /// and if followed by a `+` or `-`, then it includes the remaining
+  /// non-whitespace characters.
   static final RegExp packageVersionTag =
-      RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:[\+-].*)?)');
+      RegExp(r'^(?:(\S+)-)?v(\d+\.\d+\.\d+(?:[+\-]\S*)?)');
 
   /// A package version tag.
   ///
   /// Is expected to have the format:
+  ///
   /// > (package-name)? 'v' SemVer-version
   ///
-  /// If not, the tag is not [valid], and the [package] and [version]
-  /// will both be `null`.
+  /// If not, the tag is not [valid], and the [package] and [version] will both
+  /// be `null`.
   final String tag;
 
   Tag(this.tag);
