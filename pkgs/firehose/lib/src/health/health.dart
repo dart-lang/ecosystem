@@ -401,27 +401,3 @@ class BreakingChange {
         versionIsFine ? ':heavy_check_mark:' : ':warning:'
       ].map((e) => e.toString()).join('|');
 }
-
-class BreakingChange {
-  final BreakingLevel level;
-  final Version oldVersion;
-  final Version newVersion;
-
-  BreakingChange({
-    required this.level,
-    required this.oldVersion,
-    required this.newVersion,
-  });
-
-  Version get suggestedNewVersion => getNewVersion(level, oldVersion);
-
-  bool get versionIsFine => newVersion == suggestedNewVersion;
-
-  String toMarkdownRow() => [
-        level.name,
-        oldVersion,
-        newVersion,
-        versionIsFine ? suggestedNewVersion : '**$suggestedNewVersion**',
-        versionIsFine ? ':heavy_check_mark:' : ':warning:'
-      ].map((e) => e.toString()).join('|');
-}
