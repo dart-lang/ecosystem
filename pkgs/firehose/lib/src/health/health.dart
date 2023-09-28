@@ -88,7 +88,7 @@ class Health {
 
   Future<HealthCheckResult> validateCheck(Github github) async {
     //TODO: Add Flutter support for PR health checks
-    var results = await Firehose(directory, false, '').verify(github);
+    var results = await Firehose(directory, false).verify(github);
 
     var markdownTable = '''
 | Package | Version | Status |
@@ -120,8 +120,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       );
       print('Look for changes in $currentPath with base $basePackage');
       var runApiTool = Process.runSync(
-        'dart-apitool',
+        'dart',
         [
+          ...['pub', 'global', 'run'],
+          'dart_apitool:main',
           'diff',
           ...['--old', basePackage],
           ...['--new', '.'],
@@ -137,6 +139,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var fullReportString = reportFile.readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
       var report = decoded['report'] as Map<String, dynamic>;
+
+      var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
+      print('Breaking change report:\n$formattedChanges');
+
       BreakingLevel breakingLevel;
       if ((report['noChangesDetected'] as bool?) ?? false) {
         breakingLevel = BreakingLevel.none;

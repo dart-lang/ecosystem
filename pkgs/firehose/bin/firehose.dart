@@ -41,7 +41,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    final firehose = Firehose(Directory.current, useFlutter, '');
+    final firehose = Firehose(Directory.current, useFlutter);
 
     if (validate) {
       await firehose.validate();
