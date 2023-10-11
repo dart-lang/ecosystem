@@ -96,7 +96,7 @@ jobs:
         with:
           channel: ${{ inputs.sdk }}
 
-      - uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -167,7 +167,7 @@ jobs:
         with:
           channel: ${{ inputs.sdk }}
 
-      - uses: dart-lang/setup-dart@8a4b97ea2017cc079571daec46542f76189836b1
+      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
