@@ -1,3 +1,7 @@
+## 2.1.1
+
+- Depend on the `3.0.0` release version of package:lints.
+
 ## 2.1.0
 
 - Updated to the preview `3.0.0-beta` version of package:lints/recommended.yaml.
