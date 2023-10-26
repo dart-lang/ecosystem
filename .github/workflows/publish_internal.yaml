@@ -15,7 +15,7 @@ on:
 env:
   use-flutter: false
   write-comments: false
-  run-before: echo Hi
+  run-before: ''
 
 jobs:
   publish:
