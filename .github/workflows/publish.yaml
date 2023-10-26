@@ -77,6 +77,12 @@ on:
         default: true
         required: false
         type: boolean
+      run-before:
+        description: >-
+          Arbitrary command to run before running 
+        default: true
+        required: false
+        type: boolean
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -103,6 +109,10 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate firehose
+
+      - name: Run custom command
+        run: ${{ inputs.run-before }}
+        if: ${{ inputs.run-before != '' }}
 
       - name: Validate packages
         env:

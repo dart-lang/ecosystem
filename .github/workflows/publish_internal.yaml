@@ -15,6 +15,7 @@ on:
 env:
   use-flutter: false
   write-comments: false
+  run-before: echo Hi
 
 jobs:
   publish:
@@ -34,6 +35,10 @@ jobs:
       - name: Pub get
         working-directory: pkgs/firehose
         run: dart pub get
+
+      - name: Run custom command
+        run: ${{ env.run-before }}
+        if: ${{ env.run-before != '' }}
 
       - name: Validate packages
         if: ${{ github.event_name == 'pull_request' }}
