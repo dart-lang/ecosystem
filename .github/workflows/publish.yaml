@@ -80,9 +80,9 @@ on:
       run-before:
         description: >-
           Arbitrary command to run before running 
-        default: true
+        default: ''
         required: false
-        type: boolean
+        type: string
 
 jobs:
   # Note that this job does not require the specified environment.
