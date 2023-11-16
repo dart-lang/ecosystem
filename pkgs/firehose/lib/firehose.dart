@@ -12,6 +12,8 @@ import 'src/pub.dart';
 import 'src/repo.dart';
 import 'src/utils.dart';
 
+export 'src/repo.dart';
+
 const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';
