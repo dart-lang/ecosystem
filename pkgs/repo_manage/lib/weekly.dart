@@ -21,7 +21,7 @@ class WeeklyCommand extends ReportCommand {
       ..addFlag(
         'dart-lang',
         negatable: false,
-        help: 'Return stats for add dart-lang repos.',
+        help: 'Return stats for all dart-lang repos.',
       )
       ..addFlag(
         'monthly',
@@ -89,6 +89,11 @@ class WeeklyCommand extends ReportCommand {
           from: firstReportingDay,
           to: lastReportingDay,
         ),
+        prsOpened: await queryPRsOpened(
+          repo: repo,
+          from: firstReportingDay,
+          to: lastReportingDay,
+        ),
         commits: await queryCommitsSince(
           repo: repo,
           since: firstReportingDay,
@@ -101,13 +106,14 @@ class WeeklyCommand extends ReportCommand {
     }));
 
     print('');
-    print('Repo,Issues Opened,Issues Closed,Commits,P0s,P1s,Stars');
+    print('Repo,Issues Opened,Issues Closed,PRs Opened,Commits,P0s,P1s,Stars');
 
     for (var info in infos) {
       print(
         '${info.repo},'
         '${info.issuesOpened},'
         '${info.issuesClosed},'
+        '${info.prsOpened},'
         '${info.commits},'
         '${info.p0Count},'
         '${info.p1Count},'
@@ -119,8 +125,10 @@ class WeeklyCommand extends ReportCommand {
 
     print(
       'All: '
-      '${infos.fold(0, (count, info) => count + info.issuesOpened)} opened, '
+      '${infos.fold(0, (count, info) => count + info.issuesOpened)} issues '
+      'opened, '
       '${infos.fold(0, (count, info) => count + info.issuesClosed)} closed, '
+      '${infos.fold(0, (count, info) => count + info.prsOpened)} PRs, '
       '${infos.fold(0, (count, info) => count + info.commits)} commits, '
       '${infos.fold(0, (count, info) => count + info.p0Count)} P0s, '
       '${infos.fold(0, (count, info) => count + info.p1Count)} P1s, '
@@ -165,6 +173,30 @@ class WeeklyCommand extends ReportCommand {
     edges {
       node {
         ... on Issue { title url createdAt number state }
+      }
+    }
+  }
+}''';
+
+    final result = await query(QueryOptions(
+      document: gql(queryString),
+      parserFn: (data) => (data['search'] as Map)['issueCount']! as int,
+    ));
+
+    return result.hasException ? throw result.exception! : result.parsedData!;
+  }
+
+  Future<int> queryPRsOpened({
+    required RepositorySlug repo,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final queryString = '''{
+  search(query: "repo:${repo.fullName} is:pr created:${iso8601String(from)}..${iso8601String(to)}", type: ISSUE, last: 100) {
+  issueCount
+    edges {
+      node { 
+        ... on PullRequest { title url createdAt number state }
       }
     }
   }
