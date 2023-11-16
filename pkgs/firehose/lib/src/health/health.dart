@@ -14,7 +14,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
 import '../github.dart';
-import '../repo.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
