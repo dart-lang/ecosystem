@@ -126,6 +126,7 @@ class RepoInfo {
   final String repo;
   final int issuesOpened;
   final int issuesClosed;
+  final int prsOpened;
   final int commits;
   final int p0Count;
   final int p1Count;
@@ -135,6 +136,7 @@ class RepoInfo {
     this.repo, {
     required this.issuesOpened,
     required this.issuesClosed,
+    required this.prsOpened,
     required this.commits,
     required this.p0Count,
     required this.p1Count,

@@ -39,7 +39,7 @@ class TransferIssuesCommand extends ReportCommand {
     argParser.addOption(
       'add-label',
       help: 'Add a label to all transferred issues.',
-      valueHelp: 'pkg:foo',
+      valueHelp: 'package:foo',
     );
   }
 
