@@ -14,7 +14,7 @@ class Pub {
 
   Future<bool> hasPublishedVersion(String name, String version) async {
     var uri = Uri.parse('https://pub.dev/api/packages/$name');
-    http.Response response = await getCall(uri, retries: 3);
+    var response = await getCall(uri, retries: 3);
     if (response.statusCode != 200) {
       return false;
     }
