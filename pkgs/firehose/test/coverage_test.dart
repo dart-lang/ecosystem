@@ -32,9 +32,7 @@ void main() {
   });
   test('Compare coverage', () async {
     var coverages = FakeHealth().compareCoveragesFor(
-      [
-        GitFile('testfile.dart', FileStatus.modified),
-      ],
+      [GitFile('testfile.dart', FileStatus.modified)],
       'base_path_does_not_exist',
     );
 

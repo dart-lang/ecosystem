@@ -31,8 +31,12 @@ class GithubApi {
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
   /// The owner and repository name. For example, `octocat/Hello-World`.
-  RepositorySlug? get repoSlug =>
-      _repoSlug ?? RepositorySlug.full(_env['GITHUB_REPOSITORY']!);
+  RepositorySlug? get repoSlug {
+    return _repoSlug ??
+        (_env['GITHUB_REPOSITORY'] != null
+            ? RepositorySlug.full(_env['GITHUB_REPOSITORY']!)
+            : null);
+  }
 
   /// The PR (or issue) number.
   int? get issueNumber =>
