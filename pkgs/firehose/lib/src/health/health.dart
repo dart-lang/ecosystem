@@ -254,8 +254,9 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
         .toList();
     print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
 
-    print('Check if the PR description contains a DO_NOT${'_'}SUBMIT string:');
     final descriptionContainsDNS = description.contains('DO_NOT${'_'}SUBMIT');
+    print(
+        'The PR description contains a DO_NOT${'_'}SUBMIT string: $descriptionContainsDNS');
     final markdownResult = '''
 ${descriptionContainsDNS ? 'Description contains DO_NOT${'_'}SUBMIT' : ''}
 
@@ -264,11 +265,12 @@ ${descriptionContainsDNS ? 'Description contains DO_NOT${'_'}SUBMIT' : ''}
 ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 ''';
 
+    final hasDNS = filesWithDNS.isNotEmpty || descriptionContainsDNS;
     return HealthCheckResult(
       'do-not-submit',
       _doNotSubmitBotTag,
-      filesWithDNS.isNotEmpty ? Severity.error : Severity.success,
-      filesWithDNS.isNotEmpty ? markdownResult : null,
+      hasDNS ? Severity.error : Severity.success,
+      hasDNS ? markdownResult : null,
     );
   }
 
