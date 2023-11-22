@@ -102,7 +102,7 @@ jobs:
       - name: Check PR health
         id: healthstep
         if: ${{ github.event_name == 'pull_request' }}
-        continue-on-error: true
+        continue-on-error: true # continue, so that the result is written as a comment. Fail in the last step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
@@ -128,6 +128,6 @@ jobs:
           name: output
           path: current_repo/output/
 
-      - name: Fail the workflow
+      - name: Fail the workflow if "Check PR health" failed
         if: steps.healthstep.outcome != 'success'
         run: exit 1
