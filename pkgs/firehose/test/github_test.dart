@@ -34,6 +34,13 @@ Future<void> main() async {
     );
     expect(commentId, 1660891263);
   });
+  test('Find comment with searchterm', () async {
+    var commentId = await github.findCommentId(
+      user: 'auto-submit[bot]',
+      searchTerm: 'some string not in the comment',
+    );
+    expect(commentId, isNull);
+  });
 
   tearDownAll(() => github.close());
 }
