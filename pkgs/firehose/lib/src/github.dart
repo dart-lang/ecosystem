@@ -3,33 +3,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
+import 'package:github/github.dart';
 import 'package:path/path.dart' as path;
 
 import 'repo.dart';
 
-// TODO:(devoncarew): Consider replacing some of this class with package:github.
+class GithubApi {
+  final RepositorySlug? _repoSlug;
 
-class Github {
+  final int? _issueNumber;
+
   static Map<String, String> get _env => Platform.environment;
 
   /// When true, details of any RPC error are printed to the console.
   final bool verbose;
 
-  http.Client? _httpClient;
+  GithubApi({this.verbose = false, RepositorySlug? repoSlug, int? issueNumber})
+      : _repoSlug = repoSlug,
+        _issueNumber = issueNumber;
 
-  Github({this.verbose = false});
+  late GitHub github = githubAuthToken != null
+      ? GitHub(auth: Authentication.withToken(githubAuthToken))
+      : GitHub();
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
   /// The owner and repository name. For example, `octocat/Hello-World`.
-  String? get repoSlug => _env['GITHUB_REPOSITORY'];
+  RepositorySlug? get repoSlug =>
+      _repoSlug ?? RepositorySlug.full(_env['GITHUB_REPOSITORY']!);
 
   /// The PR (or issue) number.
-  String? get issueNumber => _env['ISSUE_NUMBER'];
+  int? get issueNumber =>
+      _issueNumber ?? int.tryParse(_env['ISSUE_NUMBER'] ?? '');
 
   /// Any labels applied to this PR.
   List<String> get prLabels =>
@@ -52,8 +59,6 @@ class Github {
   /// The ref name of the base where the PR branched off of.
   String? get baseRef => _env['base_ref'];
 
-  http.Client get httpClient => _httpClient ??= http.Client();
-
   /// Write the given [markdownSummary] content to the GitHub
   /// `GITHUB_STEP_SUMMARY` file. This will cause the markdown output to be
   /// appended to the GitHub job summary for the current PR.
@@ -72,139 +77,45 @@ class Github {
         mode: FileMode.append);
   }
 
-  Future<String> callRestApiGet(Uri uri) async {
-    var token = githubAuthToken!;
-
-    return httpClient.get(uri, headers: {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/vnd.github+json',
-    }).then((response) {
-      return response.statusCode != 200
-          ? throw RpcException(response.reasonPhrase!)
-          : response.body;
-    });
-  }
-
-  Future<String> callRestApiPost(Uri uri, String body) async {
-    var token = githubAuthToken!;
-
-    return httpClient
-        .post(uri,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/vnd.github+json',
-            },
-            body: body)
-        .then((response) {
-      if (response.statusCode != 201) {
-        if (verbose) {
-          stderr.writeln('${response.statusCode} ${response.reasonPhrase}');
-          for (var entry in response.headers.entries) {
-            stderr.writeln('${entry.key}: ${entry.value}');
-          }
-          stderr.writeln(response.body);
-        }
-        throw RpcException(response.reasonPhrase!);
-      }
-      return response.body;
-    });
-  }
-
-  Future<String> callRestApiPatch(Uri uri, String body) async {
-    var token = githubAuthToken!;
-
-    return httpClient
-        .patch(uri,
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/vnd.github+json',
-            },
-            body: body)
-        .then((response) {
-      return response.statusCode != 200
-          ? throw RpcException(response.reasonPhrase!)
-          : response.body;
-    });
-  }
-
-  Future<void> callRestApiDelete(Uri uri) async {
-    var token = githubAuthToken!;
-
-    return httpClient.delete(uri, headers: {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/vnd.github+json',
-    }).then((response) {
-      if (response.statusCode != 204) {
-        throw RpcException(response.reasonPhrase!);
-      }
-    });
-  }
-
   /// Find a comment on the PR matching the given criteria ([user],
   /// [searchTerm]). Return the issue ID if a matching comment is found or null
   /// if there's no match.
-  Future<int?> findCommentId(
-    String repoSlug,
-    String issueNumber, {
+  Future<int?> findCommentId({
     required String user,
     String? searchTerm,
   }) async {
-    var result = await callRestApiGet(
-      Uri.parse('https://api.github.com/repos/$repoSlug/issues/$issueNumber/'
-          'comments?per_page=100'),
+    final matchingComment = await github.issues
+        .listCommentsByIssue(repoSlug!, issueNumber!)
+        .map<IssueComment?>((comment) => comment)
+        .firstWhere(
+      (comment) {
+        final userMatch = comment?.user?.login == user;
+        final containsSearchTerm = searchTerm == null ||
+            (comment?.body?.contains(searchTerm) ?? false);
+        return userMatch && containsSearchTerm;
+      },
+      orElse: () => null,
     );
-
-    var items = jsonDecode(result) as List;
-    for (var item in items) {
-      item as Map;
-      var id = item['id'] as int;
-      var userLogin = (item['user'] as Map)['login'] as String;
-      var body = item['body'] as String;
-
-      if (userLogin != user) continue;
-      if (searchTerm != null && !body.contains(searchTerm)) continue;
-
-      return id;
-    }
-
-    return null;
+    return matchingComment?.id;
   }
 
-  Future<List<GitFile>> listFilesForPR() async {
-    var result = await callRestApiGet(
-      Uri.parse(
-          'https://api.github.com/repos/$repoSlug/pulls/$issueNumber/files'),
-    );
-    var json = jsonDecode(result) as List;
-    var files = json
-        .map((e) => e as Map<String, dynamic>)
-        .map((e) => GitFile(
-              e['filename'] as String,
-              FileStatus.values.firstWhere(
-                (element) => element.name == e['status'] as String,
-              ),
-            ))
-        .toList();
-    return files;
-  }
-
-  void close() {
-    _httpClient?.close();
-  }
+  Future<List<GitFile>> listFilesForPR() async => await github.pullRequests
+      .listFiles(repoSlug!, issueNumber!)
+      .map((prFile) =>
+          GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
+      .toList();
 
   /// Write a notice message to the github log.
   void notice({required String message}) {
     print('::notice ::$message');
   }
-}
 
-class RpcException implements Exception {
-  final String message;
+  Future<String> pullrequestDescription() async {
+    final pullRequest = await github.pullRequests.get(repoSlug!, issueNumber!);
+    return pullRequest.body ?? '';
+  }
 
-  RpcException(this.message);
-
-  @override
-  String toString() => 'RpcException: $message';
+  void close() => github.dispose();
 }
 
 class GitFile {
@@ -223,6 +134,18 @@ class GitFile {
 
   @override
   String toString() => '$filename: $status';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is GitFile &&
+        other.filename == filename &&
+        other.status == status;
+  }
+
+  @override
+  int get hashCode => filename.hashCode ^ status.hashCode;
 }
 
 enum FileStatus {
@@ -233,4 +156,7 @@ enum FileStatus {
   copied,
   changed,
   unchanged;
+
+  static FileStatus fromString(String s) =>
+      FileStatus.values.firstWhere((element) => element.name == s);
 }

@@ -34,12 +34,12 @@ class Firehose {
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
   Future<void> validate() async {
-    var github = Github();
+    var github = GithubApi();
 
     // Do basic validation of our expected env var.
     if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
-    if (!expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
-    if (!expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
+    if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
     if ((github.actor ?? '').endsWith(_botSuffix)) {
@@ -60,8 +60,6 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     var existingCommentId = await allowFailure(
       github.findCommentId(
-        github.repoSlug!,
-        github.issueNumber!,
         user: _githubActionsUser,
         searchTerm: _publishBotTag,
       ),
@@ -92,7 +90,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     github.close();
   }
 
-  Future<VerificationResults> verify(Github github) async {
+  Future<VerificationResults> verify(GithubApi github) async {
     var repo = Repository();
     var packages = repo.locatePackages();
 
@@ -184,7 +182,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   }
 
   Future<bool> _publish() async {
-    var github = Github();
+    var github = GithubApi();
 
     if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
 

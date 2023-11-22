@@ -74,7 +74,7 @@ class Repository {
     }
   }
 
-  Uri calculateReleaseUri(Package package, Github github) {
+  Uri calculateReleaseUri(Package package, GithubApi github) {
     final tag = calculateRepoTag(package);
     final title = 'package:${package.name} v${package.pubspec.version}';
     final body = package.changelog.describeLatestChanges;

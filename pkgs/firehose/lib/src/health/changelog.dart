@@ -11,7 +11,7 @@ import '../repo.dart';
 import '../utils.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
-    Github github) async {
+    GithubApi github) async {
   final repo = Repository();
   final packages = repo.locatePackages();
 

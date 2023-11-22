@@ -33,7 +33,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    final github = Github();
+    final github = GithubApi();
     if (publish && !github.inGithubContext) {
       _usage(argParser,
           error: 'Error: --publish can only be executed from within a GitHub '

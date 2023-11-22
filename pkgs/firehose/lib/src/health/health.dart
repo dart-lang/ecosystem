@@ -44,12 +44,12 @@ class Health {
   Health(this.directory);
 
   Future<void> healthCheck(List args, bool coverageweb) async {
-    var github = Github();
+    var github = GithubApi();
 
     // Do basic validation of our expected env var.
     if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
-    if (!expectEnv(github.repoSlug, 'GITHUB_REPOSITORY')) return;
-    if (!expectEnv(github.issueNumber, 'ISSUE_NUMBER')) return;
+    if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
+    if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
     if ((github.actor ?? '').endsWith(_botSuffix)) {
@@ -70,7 +70,7 @@ class Health {
         changelogCheck,
       if (args.contains('coverage') &&
           !github.prLabels.contains('skip-coverage-check'))
-        (Github github) => coverageCheck(github, coverageweb),
+        (GithubApi github) => coverageCheck(github, coverageweb),
       if (args.contains('breaking') &&
           !github.prLabels.contains('skip-breaking-check'))
         breakingCheck,
@@ -82,11 +82,9 @@ class Health {
     var checked =
         await Future.wait(checks.map((check) => check(github)).toList());
     await writeInComment(github, checked);
-
-    github.close();
   }
 
-  Future<HealthCheckResult> validateCheck(Github github) async {
+  Future<HealthCheckResult> validateCheck(GithubApi github) async {
     //TODO: Add Flutter support for PR health checks
     var results = await Firehose(directory, false).verify(github);
 
@@ -106,7 +104,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
   }
 
-  Future<HealthCheckResult> breakingCheck(Github github) async {
+  Future<HealthCheckResult> breakingCheck(GithubApi github) async {
     final repo = Repository();
     final packages = repo.locatePackages();
     var changeForPackage = <Package, BreakingChange>{};
@@ -180,7 +178,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     );
   }
 
-  Future<HealthCheckResult> licenseCheck(Github github) async {
+  Future<HealthCheckResult> licenseCheck(GithubApi github) async {
     var files = await github.listFilesForPR();
     var allFilePaths = await getFilesWithoutLicenses(Directory.current);
 
@@ -224,7 +222,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
-  Future<HealthCheckResult> changelogCheck(Github github) async {
+  Future<HealthCheckResult> changelogCheck(GithubApi github) async {
     var filePaths = await packagesWithoutChangelog(github);
 
     final markdownResult = '''
@@ -243,10 +241,11 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     );
   }
 
-  Future<HealthCheckResult> doNotSubmitCheck(Github github) async {
+  Future<HealthCheckResult> doNotSubmitCheck(GithubApi github) async {
+    final description = await github.pullrequestDescription();
     final files = await github.listFilesForPR();
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
-    var filesWithDNS = files
+    final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
         .where((file) => File(file.relativePath)
@@ -254,7 +253,12 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
             .contains('DO_NOT${'_'}SUBMIT'))
         .toList();
     print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
+
+    print('Check if the PR description contains a DO_NOT${'_'}SUBMIT string:');
+    final descriptionContainsDNS = description.contains('DO_NOT${'_'}SUBMIT');
     final markdownResult = '''
+${descriptionContainsDNS ? 'Description contains DO_NOT${'_'}SUBMIT' : ''}
+
 | Files with `DO_NOT_${'SUBMIT'}` |
 | :--- |
 ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
@@ -269,7 +273,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck(
-    Github github,
+    GithubApi github,
     bool coverageWeb,
   ) async {
     var coverage = await Coverage(coverageWeb).compareCoverages(github);
@@ -293,7 +297,7 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
   }
 
   Future<void> writeInComment(
-    Github github,
+    GithubApi github,
     List<HealthCheckResult> results,
   ) async {
     var commentText =
@@ -318,16 +322,8 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     var summary = '$_prHealthTag\n\n$commentText';
     github.appendStepSummary(summary);
 
-    var repoSlug = github.repoSlug!;
-    var issueNumber = github.issueNumber!;
-
     var existingCommentId = await allowFailure(
-      github.findCommentId(
-        repoSlug,
-        issueNumber,
-        user: _githubActionsUser,
-        searchTerm: _prHealthTag,
-      ),
+      github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
       logError: print,
     );
 
