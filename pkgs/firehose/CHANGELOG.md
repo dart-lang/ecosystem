@@ -1,4 +1,4 @@
-## 0.3.34
+## 0.4.0
 
 - Switch to `package:github`.
 - Check for `DO_NOT${'_'}SUBMIT` strings in the PR description.
