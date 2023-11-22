@@ -1,3 +1,7 @@
+## 0.3.33
+
+- Retry calls to pub.dev API.
+
 ## 0.3.32
 
 - Fix an issue validating pre-release git publishing tags (#176).

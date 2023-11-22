@@ -13,8 +13,8 @@ class Pub {
   http.Client get httpClient => _httpClient ??= http.Client();
 
   Future<bool> hasPublishedVersion(String name, String version) async {
-    var response =
-        await httpClient.get(Uri.parse('https://pub.dev/api/packages/$name'));
+    var uri = Uri.parse('https://pub.dev/api/packages/$name');
+    var response = await getCall(uri, retries: 3);
     if (response.statusCode != 200) {
       return false;
     }
@@ -24,6 +24,20 @@ class Pub {
         .map((versionObject) =>
             (versionObject as Map<String, dynamic>)['version'])
         .contains(version);
+  }
+
+  Future<http.Response> getCall(Uri uri, {required int retries}) async {
+    for (var i = 0; i < retries + 1; i++) {
+      try {
+        var response = await httpClient.get(uri);
+        return response;
+      } catch (e) {
+        if (i >= retries) {
+          rethrow;
+        }
+      }
+    }
+    throw AssertionError('This should be unreachable');
   }
 
   void close() {
