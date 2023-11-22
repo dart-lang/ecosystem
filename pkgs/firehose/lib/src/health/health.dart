@@ -242,7 +242,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
   }
 
   Future<HealthCheckResult> doNotSubmitCheck(GithubApi github) async {
-    final description = await github.pullrequestDescription();
+    final body = await github.pullrequestBody();
     final files = await github.listFilesForPR();
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
@@ -254,18 +254,17 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
         .toList();
     print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
 
-    final descriptionContainsDNS = description.contains('DO_NOT${'_'}SUBMIT');
-    print(
-        'The PR description contains a DO_NOT${'_'}SUBMIT string: $descriptionContainsDNS');
+    final bodyContainsDNS = body.contains('DO_NOT${'_'}SUBMIT');
+    print('The body contains a DO_NOT${'_'}SUBMIT string: $bodyContainsDNS');
     final markdownResult = '''
-${descriptionContainsDNS ? 'Description contains DO_NOT${'_'}SUBMIT' : ''}
+${bodyContainsDNS ? 'Description contains DO_NOT${'_'}SUBMIT' : ''}
 
 | Files with `DO_NOT_${'SUBMIT'}` |
 | :--- |
 ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 ''';
 
-    final hasDNS = filesWithDNS.isNotEmpty || descriptionContainsDNS;
+    final hasDNS = filesWithDNS.isNotEmpty || bodyContainsDNS;
     return HealthCheckResult(
       'do-not-submit',
       _doNotSubmitBotTag,

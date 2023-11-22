@@ -11,7 +11,7 @@ Future<void> main() async {
     issueNumber: 148,
   );
   test('Fetching pull request description', () async {
-    var pullrequestDescription = await github.pullrequestDescription();
+    var pullrequestDescription = await github.pullrequestBody();
     expect(
         pullrequestDescription,
         startsWith(

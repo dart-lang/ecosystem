@@ -114,7 +114,7 @@ class GithubApi {
     print('::notice ::$message');
   }
 
-  Future<String> pullrequestDescription() async {
+  Future<String> pullrequestBody() async {
     final pullRequest = await github.pullRequests.get(repoSlug!, issueNumber!);
     return pullRequest.body ?? '';
   }
