@@ -100,6 +100,7 @@ jobs:
         run: dart pub global activate dart_apitool
       
       - name: Check PR health
+        id: healthstep
         if: ${{ github.event_name == 'pull_request' }}
         continue-on-error: true
         env:
@@ -126,3 +127,7 @@ jobs:
         with:
           name: output
           path: current_repo/output/
+
+      - name: Fail the workflow
+        if: steps.healthstep.outcome != 'success'
+        run: exit 1
