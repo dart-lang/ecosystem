@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Switch to using `package:github`.
+- Check for `DO_NOT${'_'}SUBMIT` strings in the PR description.
+
 ## 0.3.33
 
 - Retry calls to pub.dev API.

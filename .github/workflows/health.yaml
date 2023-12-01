@@ -92,15 +92,17 @@ jobs:
         run: dart pub global activate firehose
         if:  ${{ !inputs.local_debug }}
 
-      - name: Install api_tool
-        run: dart pub global activate --source git https://github.com/bmw-tech/dart_apitool
-
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
-
+        
+      - name: Install api_tool
+        run: dart pub global activate dart_apitool
+      
       - name: Check PR health
+        id: healthstep
         if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true # continue, so that the result is written as a comment. Fail in the last step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
@@ -125,3 +127,7 @@ jobs:
         with:
           name: output
           path: current_repo/output/
+
+      - name: Fail the workflow if "Check PR health" failed
+        if: steps.healthstep.outcome != 'success'
+        run: exit 1

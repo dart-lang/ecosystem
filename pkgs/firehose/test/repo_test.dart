@@ -27,7 +27,7 @@ void main() {
     });
 
     test('github release link', () {
-      final github = Github();
+      final github = GithubApi();
       final package = packages.locatePackages().single;
       final releaseUri = packages.calculateReleaseUri(package, github);
       expect(releaseUri.path, '/${github.repoSlug}/releases/new');
