@@ -40,10 +40,13 @@ class Repository {
   ///
   /// Once we find a package, we don't look for packages in sub-directories.
   List<Package> locatePackages() {
-    return _recurseAndGather(baseDirectory, []);
+    final packages = <Package>[];
+    _recurseAndGather(baseDirectory, packages);
+    packages.sort((a, b) => a.name.compareTo(b.name));
+    return packages;
   }
 
-  List<Package> _recurseAndGather(Directory directory, List<Package> packages) {
+  void _recurseAndGather(Directory directory, List<Package> packages) {
     var pubspecFile = File(path.join(directory.path, 'pubspec.yaml'));
 
     if (pubspecFile.existsSync()) {
@@ -62,8 +65,6 @@ class Repository {
         }
       }
     }
-
-    return packages;
   }
 
   String calculateRepoTag(Package package) {
@@ -103,7 +104,6 @@ class Package {
   Version? get version => pubspec.version;
 
   @override
-  String toString() {
-    return 'package:${pubspec.name} ${pubspec.version} (dir=${directory.path})';
-  }
+  String toString() =>
+      'package:${pubspec.name} ${pubspec.version} (dir=${directory.path})';
 }
