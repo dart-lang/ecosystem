@@ -1,3 +1,7 @@
+## 0.4.1-wip
+
+- Ensure that packages are listed in lexical order.
+
 ## 0.4.0
 
 - Switch to using `package:github`.
