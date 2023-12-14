@@ -1,6 +1,7 @@
 ## 0.4.1-wip
 
 - Ensure that packages are listed in lexical order.
+- Require the latest `package:http`.
 
 ## 0.4.0
 
