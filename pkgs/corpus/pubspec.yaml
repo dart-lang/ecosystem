@@ -7,11 +7,11 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  analyzer: ^5.0.0
+  analyzer: ^6.0.0
   args: ^2.0.0
-  cli_util: ^0.3.0
+  cli_util: ^0.4.0
   collection: ^1.16.0
-  http: ^0.13.2
+  http: ^1.0.0
   path: ^1.8.0
   pub_semver: ^2.0.0
   yaml: ^3.0.0
