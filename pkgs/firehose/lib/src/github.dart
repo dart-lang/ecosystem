@@ -26,14 +26,14 @@ class GithubApi {
       : _repoSlug = repoSlug,
         _issueNumber = issueNumber;
 
-  final http.Client client = DelayedClient(const Duration(milliseconds: 50));
+  final http.Client _client = DelayedClient(const Duration(milliseconds: 50));
 
   late GitHub github = githubAuthToken != null
       ? GitHub(
           auth: Authentication.withToken(githubAuthToken),
-          client: client,
+          client: _client,
         )
-      : GitHub(client: client);
+      : GitHub(client: _client);
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
