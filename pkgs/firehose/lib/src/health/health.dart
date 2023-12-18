@@ -77,11 +77,18 @@ class Health {
           !github.prLabels.contains('skip-do-not-submit-check'))
         doNotSubmitCheck,
     ];
-    final results = <HealthCheckResult>[];
-    for (var check in checks) {
-      results.add(await check(github));
+    try {
+      final results = <HealthCheckResult>[];
+      for (var check in checks) {
+        results.add(await check(github));
+      }
+      await writeInComment(github, results);
+    } catch (e) {
+      print(e);
+      print(
+          '${github.github.rateLimitRemaining} ${github.github.rateLimitReset}');
+      rethrow;
     }
-    await writeInComment(github, results);
   }
 
   Future<HealthCheckResult> validateCheck(GithubApi github) async {
