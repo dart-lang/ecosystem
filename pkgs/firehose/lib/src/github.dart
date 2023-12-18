@@ -6,9 +6,9 @@
 import 'dart:io';
 
 import 'package:github/github.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
-import 'delayed_client.dart';
 import 'repo.dart';
 
 class GithubApi {
@@ -25,7 +25,7 @@ class GithubApi {
       : _repoSlug = repoSlug,
         _issueNumber = issueNumber;
 
-  final DelayedClient client = DelayedClient();
+  final http.Client client = http.Client();
 
   late GitHub github = githubAuthToken != null
       ? GitHub(
