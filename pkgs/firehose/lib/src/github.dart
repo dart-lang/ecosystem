@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:github/github.dart';
 import 'package:path/path.dart' as path;
 
+import 'delayed_client.dart';
 import 'repo.dart';
 
 class GithubApi {
@@ -24,9 +25,14 @@ class GithubApi {
       : _repoSlug = repoSlug,
         _issueNumber = issueNumber;
 
+  final DelayedClient client = DelayedClient();
+
   late GitHub github = githubAuthToken != null
-      ? GitHub(auth: Authentication.withToken(githubAuthToken))
-      : GitHub();
+      ? GitHub(
+          auth: Authentication.withToken(githubAuthToken),
+          client: client,
+        )
+      : GitHub(client: client);
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
