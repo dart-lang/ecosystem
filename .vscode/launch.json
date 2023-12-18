@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "health",
+            "program": "pkgs/firehose/bin/health.dart",
+            "request": "launch",
+            "type": "dart",
+            "env": {
+                "GITHUB_REPOSITORY": "dart-lang/ecosystem",
+                "ISSUE_NUMBER": "173",
+                "GITHUB_SHA": "null",
+                "GITHUB_STEP_SUMMARY": "/tmp/github_step_summary_mock.md",
+            },
+            "args": [
+                "--checks",
+                "version,changelog,license,coverage,do-not-submit"
+            ]
+        }
+    ]
+}

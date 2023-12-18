@@ -47,7 +47,6 @@ class Health {
     var github = GithubApi();
 
     // Do basic validation of our expected env var.
-    if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
     if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
@@ -78,10 +77,11 @@ class Health {
           !github.prLabels.contains('skip-do-not-submit-check'))
         doNotSubmitCheck,
     ];
-
-    var checked =
-        await Future.wait(checks.map((check) => check(github)).toList());
-    await writeInComment(github, checked);
+    final results = <HealthCheckResult>[];
+    for (var check in checks) {
+      results.add(await check(github));
+    }
+    await writeInComment(github, results);
   }
 
   Future<HealthCheckResult> validateCheck(GithubApi github) async {
