@@ -1,7 +1,8 @@
-## 0.4.1-wip
+## 0.4.1
 
 - Ensure that packages are listed in lexical order.
 - Require the latest `package:http`.
+- Delay Github requests by a small delay to avoid http errors.
 
 ## 0.4.0
 
