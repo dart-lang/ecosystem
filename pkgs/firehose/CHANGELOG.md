@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Get needed version from `dart_apitool` in PR health checks.
+
 ## 0.4.1
 
 - Ensure that packages are listed in lexical order.
