@@ -141,7 +141,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
       print('Breaking change report:\n$formattedChanges');
 
-      final versionMap = decoded['version'] as Map<String, Object>;
+      final versionMap = decoded['version'] as Map<String, dynamic>;
       changeForPackage[package] = BreakingChange(
         level: _breakingLevel(report),
         oldVersion: Version.parse(versionMap['old'].toString()),
