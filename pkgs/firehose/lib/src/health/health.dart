@@ -141,27 +141,14 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
       print('Breaking change report:\n$formattedChanges');
 
-      BreakingLevel breakingLevel;
-      if ((report['noChangesDetected'] as bool?) ?? false) {
-        breakingLevel = BreakingLevel.none;
-      } else {
-        if ((report['breakingChanges'] as Map? ?? {}).isNotEmpty) {
-          breakingLevel = BreakingLevel.breaking;
-        } else if ((report['nonBreakingChanges'] as Map? ?? {}).isNotEmpty) {
-          breakingLevel = BreakingLevel.nonBreaking;
-        } else {
-          breakingLevel = BreakingLevel.none;
-        }
-      }
-
-      var oldPackage = Package(
-        Directory(path.join(baseDirectory.path, currentPath)),
-        package.repository,
-      );
+      final versionMap = decoded['version'] as Map<String, Object>;
       changeForPackage[package] = BreakingChange(
-        level: breakingLevel,
-        oldVersion: oldPackage.version!,
-        newVersion: package.version!,
+        level: _breakingLevel(report),
+        oldVersion: Version.parse(versionMap['old'].toString()),
+        newVersion: Version.parse(versionMap['new'].toString()),
+        neededVersion: Version.parse(versionMap['needed'].toString()),
+        versionIsFine: versionMap['success'] as bool,
+        explanation: versionMap['explanation'].toString(),
       );
     }
     return HealthCheckResult(
@@ -176,6 +163,20 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
 ''',
     );
+  }
+
+  BreakingLevel _breakingLevel(Map<String, dynamic> report) {
+    BreakingLevel breakingLevel;
+    if ((report['noChangesDetected'] as bool?) ?? false) {
+      breakingLevel = BreakingLevel.none;
+    } else if ((report['breakingChanges'] as Map? ?? {}).isNotEmpty) {
+      breakingLevel = BreakingLevel.breaking;
+    } else if ((report['nonBreakingChanges'] as Map? ?? {}).isNotEmpty) {
+      breakingLevel = BreakingLevel.nonBreaking;
+    } else {
+      breakingLevel = BreakingLevel.none;
+    }
+    return breakingLevel;
   }
 
   Future<HealthCheckResult> licenseCheck(GithubApi github) async {
@@ -379,22 +380,24 @@ class BreakingChange {
   final BreakingLevel level;
   final Version oldVersion;
   final Version newVersion;
+  final Version neededVersion;
+  final bool versionIsFine;
+  final String explanation;
 
   BreakingChange({
     required this.level,
     required this.oldVersion,
     required this.newVersion,
+    required this.neededVersion,
+    required this.versionIsFine,
+    required this.explanation,
   });
-
-  Version get suggestedNewVersion => getNewVersion(level, oldVersion);
-
-  bool get versionIsFine => newVersion == suggestedNewVersion;
 
   String toMarkdownRow() => [
         level.name,
         oldVersion,
         newVersion,
-        versionIsFine ? suggestedNewVersion : '**$suggestedNewVersion**',
+        versionIsFine ? neededVersion : '**$neededVersion** <br> $explanation',
         versionIsFine ? ':heavy_check_mark:' : ':warning:'
       ].map((e) => e.toString()).join('|');
 }
