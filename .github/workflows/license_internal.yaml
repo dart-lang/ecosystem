@@ -1,6 +1,6 @@
 # A CI configuration to check PR health.
 
-name: Health:Coverage
+name: Health:License
 on:
   pull_request:
     branches: [ main ]
