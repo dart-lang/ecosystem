@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:github/src/common/model/issues.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -75,7 +76,7 @@ class Health {
       return;
     }
 
-    await saveExistingCommentId(github);
+    final issueComment = await saveExistingCommentId(github);
 
     print('Start health check for the checks $checks');
     final results = <HealthCheckResult>[];
@@ -99,8 +100,18 @@ class Health {
         print('Skipping $check, as the skip tag is present.');
       }
     }
-    await writeInComment(github, results);
+    await writeInComment(github, results, issueComment);
   }
+
+  String tagFor(String checkType) => switch (checkType) {
+        'version' => _publishBotTag2,
+        'license' => _licenseBotTag,
+        'changelog' => _changelogBotTag,
+        'coverage' => _coverageBotTag,
+        'breaking' => _breakingBotTag,
+        'do-not-submit' => _doNotSubmitBotTag,
+        String() => throw ArgumentError(),
+      };
 
   Future<HealthCheckResult> Function() checkFor(String checkType) =>
       switch (checkType) {
@@ -127,7 +138,6 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 
     return HealthCheckResult(
       'validate',
-      _publishBotTag2,
       results.severity,
       markdownTable,
     );
@@ -181,7 +191,6 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     }
     return HealthCheckResult(
       'breaking',
-      _breakingBotTag,
       changeForPackage.values.any((element) => !element.versionIsFine)
           ? Severity.warning
           : Severity.info,
@@ -245,7 +254,6 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
 
     return HealthCheckResult(
       'license',
-      _licenseBotTag,
       changedFilesPaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
@@ -264,7 +272,6 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
     return HealthCheckResult(
       'changelog',
-      _changelogBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
@@ -296,7 +303,6 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     final hasDNS = filesWithDNS.isNotEmpty || bodyContainsDNS;
     return HealthCheckResult(
       'do-not-submit',
-      _doNotSubmitBotTag,
       hasDNS ? Severity.error : Severity.success,
       hasDNS ? markdownResult : null,
     );
@@ -315,7 +321,6 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
     return HealthCheckResult(
       'coverage',
-      _coverageBotTag,
       Severity.values[coverage.coveragePerFile.values
           .map((change) => change.severity.index)
           .fold(0, max)],
@@ -326,8 +331,22 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
   Future<void> writeInComment(
     GithubApi github,
     List<HealthCheckResult> results,
+    IssueComment? issueComment,
   ) async {
-    var commentText =
+    var summary = '$_prHealthTag\n\n';
+    if (issueComment != null) {
+      var body = issueComment.body ?? '';
+      for (var check in checks
+          .where((check) => results.none((result) => result.name == check))) {
+        var blockStart = body.indexOf(tagFor(check));
+        if (blockStart != -1) {
+          var blockEnd = body.indexOf('</details>', blockStart);
+          summary += body.substring(blockStart, blockEnd);
+        }
+      }
+    }
+
+    final commentText =
         results.where((result) => result.markdown != null).map((result) {
       var markdown = result.markdown;
       var isWorseThanInfo = result.severity.index >= Severity.warning.index;
@@ -343,16 +362,16 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 </details>
 
 ''';
-      return '${result.title} ${result.severity.emoji}\n\n$s';
+      return '${tagFor(result.name)} ${result.severity.emoji}\n\n$s';
     }).join('\n');
 
-    var summary = '$_prHealthTag\n\n$commentText';
-    github.appendStepSummary(summary);
+    final markdownSummary = summary + commentText;
+    github.appendStepSummary(markdownSummary);
 
     var commentFile = File('./output/comment.md');
     print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
-    await commentFile.writeAsString(summary);
+    await commentFile.writeAsString(markdownSummary);
 
     if (results.any((result) => result.severity == Severity.error) &&
         exitCode == 0) {
@@ -360,19 +379,21 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  Future<void> saveExistingCommentId(GithubApi github) async {
-    var existingCommentId = await allowFailure(
+  Future<IssueComment?> saveExistingCommentId(GithubApi github) async {
+    var existingComment = await allowFailure(
       github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
       logError: print,
     );
 
-    if (existingCommentId != null) {
+    if (existingComment != null) {
       var idFile = File('./output/commentId');
       print('''
-    Saving existing comment id $existingCommentId to file ${idFile.path}''');
+    Saving existing comment id $existingComment to file ${idFile.path}''');
       await idFile.create(recursive: true);
-      await idFile.writeAsString(existingCommentId.toString());
+      await idFile.writeAsString(existingComment.id.toString());
+      return existingComment;
     }
+    return null;
   }
 
   List<Package> packagesContaining(List<GitFile> filesInPR) {
@@ -407,15 +428,13 @@ enum BreakingLevel {
 
 class HealthCheckResult {
   final String name;
-  final String title;
   final Severity severity;
   final String? markdown;
 
-  HealthCheckResult(this.name, this.title, this.severity, this.markdown);
+  HealthCheckResult(this.name, this.severity, this.markdown);
 
   HealthCheckResult withSeverity(Severity severity) => HealthCheckResult(
         name,
-        title,
         severity,
         markdown,
       );

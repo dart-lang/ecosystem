@@ -96,6 +96,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
+        if: contains('coverage', inputs.checks) || contains('breaking', inputs.checks)
+
           
       - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
         if: ${{ inputs.use-flutter }}
@@ -109,6 +111,7 @@ jobs:
 
       - name: Install coverage
         run: dart pub global activate coverage
+        if: contains('coverage', inputs.checks)
 
       - name: Install firehose
         run: dart pub global activate firehose
@@ -120,6 +123,7 @@ jobs:
         
       - name: Install api_tool
         run: dart pub global activate dart_apitool
+        if: contains('breaking', inputs.checks)
       
       - name: Check PR health
         id: healthstep
