@@ -75,6 +75,8 @@ class Health {
       return;
     }
 
+    await saveExistingCommentId(github);
+
     print('Start health check for the checks $checks');
     final results = <HealthCheckResult>[];
     for (final check in checks) {
@@ -348,19 +350,6 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     var summary = '$_prHealthTag\n\n$commentText';
     github.appendStepSummary(summary);
 
-    var existingCommentId = await allowFailure(
-      github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
-      logError: print,
-    );
-
-    if (existingCommentId != null) {
-      var idFile = File('./output/commentId');
-      print('''
-Saving existing comment id $existingCommentId to file ${idFile.path}''');
-      await idFile.create(recursive: true);
-      await idFile.writeAsString(existingCommentId.toString());
-    }
-
     var commentFile = File('./output/comment.md');
     print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
@@ -369,6 +358,21 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     if (results.any((result) => result.severity == Severity.error) &&
         exitCode == 0) {
       exitCode = 1;
+    }
+  }
+
+  Future<void> saveExistingCommentId(GithubApi github) async {
+    var existingCommentId = await allowFailure(
+      github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
+      logError: print,
+    );
+
+    if (existingCommentId != null) {
+      var idFile = File('./output/commentId');
+      print('''
+    Saving existing comment id $existingCommentId to file ${idFile.path}''');
+      await idFile.create(recursive: true);
+      await idFile.writeAsString(existingCommentId.toString());
     }
   }
 
