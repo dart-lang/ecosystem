@@ -150,6 +150,8 @@ jobs:
           name: output
           path: current_repo/output/
 
-      - name: Fail the workflow if "Check PR health" failed
+      - name: \"Check PR health\" failed - see the logs above for the cause.
         if: steps.healthstep.outcome != 'success'
-        run: exit 1
+        run: |
+            echo See the log of the "Check PR health" step further above to find the cause for the failure. If you want to ignore the result, you can add the `skip-${name}-tag` to the PR to not run the check.
+            exit 1
