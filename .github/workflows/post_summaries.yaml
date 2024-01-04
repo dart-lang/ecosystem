@@ -8,6 +8,7 @@ on:
     workflows:
       - Publish
       - Health
+      - Health:License
     types:
       - completed
 
