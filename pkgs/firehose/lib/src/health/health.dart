@@ -110,7 +110,7 @@ class Health {
         'coverage' => _coverageBotTag,
         'breaking' => _breakingBotTag,
         'do-not-submit' => _doNotSubmitBotTag,
-        String() => throw ArgumentError(),
+        String() => throw ArgumentError('Invalid check type $checkType'),
       };
 
   Future<HealthCheckResult> Function() checkFor(String checkType) =>
@@ -121,7 +121,7 @@ class Health {
         'coverage' => coverageCheck,
         'breaking' => breakingCheck,
         'do-not-submit' => doNotSubmitCheck,
-        String() => throw ArgumentError(),
+        String() => throw ArgumentError('Invalid check type $checkType'),
       };
 
   Future<HealthCheckResult> validateCheck() async {
