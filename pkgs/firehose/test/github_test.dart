@@ -26,14 +26,14 @@ Future<void> main() async {
   });
   test('Find comment', () async {
     var commentId = await github.findCommentId(user: 'auto-submit[bot]');
-    expect(commentId, 1660891263);
+    expect(commentId?.id, 1660891263);
   });
   test('Find comment with searchterm', () async {
     var commentId = await github.findCommentId(
       user: 'auto-submit[bot]',
       searchTerm: 'before re-applying this label.',
     );
-    expect(commentId, 1660891263);
+    expect(commentId?.id, 1660891263);
   });
   test('Find comment with searchterm', () async {
     var commentId = await github.findCommentId(
