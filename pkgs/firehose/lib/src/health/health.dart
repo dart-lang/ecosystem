@@ -93,7 +93,6 @@ class Health {
           finalResult = firstResult;
         }
         results.add(finalResult);
-        if (1 < 2) throw ArgumentError();
         print(
             '\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
       } else {
