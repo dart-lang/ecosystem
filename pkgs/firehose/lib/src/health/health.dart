@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:github/src/common/model/issues.dart';
+import 'package:github/github.dart' as gh;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -76,8 +76,6 @@ class Health {
       return;
     }
 
-    final issueComment = await saveExistingCommentId(github);
-
     print('Start health check for the checks $checks');
     final results = <HealthCheckResult>[];
     for (final check in checks) {
@@ -100,7 +98,7 @@ class Health {
         print('Skipping $check, as the skip tag is present.');
       }
     }
-    await writeInComment(github, results, issueComment);
+    await writeInComment(github, results);
   }
 
   String tagFor(String checkType) => switch (checkType) {
@@ -329,10 +327,8 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
   }
 
   Future<void> writeInComment(
-    GithubApi github,
-    List<HealthCheckResult> results,
-    IssueComment? issueComment,
-  ) async {
+      GithubApi github, List<HealthCheckResult> results) async {
+    final issueComment = await saveExistingCommentId(github);
     var summary = '$_prHealthTag\n\n';
     if (issueComment != null) {
       var body = issueComment.body ?? '';
@@ -379,7 +375,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  Future<IssueComment?> saveExistingCommentId(GithubApi github) async {
+  Future<gh.IssueComment?> saveExistingCommentId(GithubApi github) async {
     var existingComment = await allowFailure(
       github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
       logError: print,
