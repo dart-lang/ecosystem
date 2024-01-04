@@ -170,4 +170,14 @@ enum FileStatus {
 
   static FileStatus fromString(String s) =>
       FileStatus.values.firstWhere((element) => element.name == s);
+
+  bool get isRelevant => switch (this) {
+        FileStatus.added => true,
+        FileStatus.removed => true,
+        FileStatus.modified => true,
+        FileStatus.renamed => true,
+        FileStatus.copied => true,
+        FileStatus.changed => true,
+        FileStatus.unchanged => false,
+      };
 }

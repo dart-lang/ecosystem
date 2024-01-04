@@ -105,11 +105,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck(GithubApi github) async {
-    final repo = Repository();
-    final packages = repo.locatePackages();
-    var changeForPackage = <Package, BreakingChange>{};
-    var baseDirectory = Directory('../base_repo');
-    for (var package in packages) {
+    final filesInPR = await github.listFilesForPR();
+    final changeForPackage = <Package, BreakingChange>{};
+    final baseDirectory = Directory('../base_repo');
+    for (var package in packagesContaining(filesInPR)) {
       var currentPath =
           path.relative(package.directory.path, from: Directory.current.path);
       var basePackage = path.relative(
@@ -346,6 +345,17 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         exitCode == 0) {
       exitCode = 1;
     }
+  }
+
+  List<Package> packagesContaining(List<GitFile> filesInPR) {
+    var files = filesInPR.where((element) => element.status.isRelevant);
+    final repo = Repository();
+    return repo.locatePackages().where((package) {
+      var relativePackageDirectory =
+          path.relative(package.directory.path, from: Directory.current.path);
+      return files.any(
+          (file) => path.isWithin(relativePackageDirectory, file.relativePath));
+    }).toList();
   }
 }
 
