@@ -47,6 +47,16 @@ on:
         default: "version,changelog,license,coverage,breaking,do-not-submit"
         type: string
         required: false
+      fail_on:
+        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "version,changelog,license,coverage,breaking,do-not-submit"
+        type: string
+        required: false
+      warn_on:
+        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "version,changelog,license,coverage,breaking,do-not-submit"
+        type: string
+        required: false
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
@@ -119,7 +129,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }}
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage }}

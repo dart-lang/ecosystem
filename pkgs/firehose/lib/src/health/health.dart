@@ -38,14 +38,33 @@ const String _breakingBotTag = '### Breaking changes';
 
 const String _prHealthTag = '## PR Health';
 
+const checkTypes = <String>[
+  'version',
+  'license',
+  'changelog',
+  'coverage',
+  'breaking',
+  'do-not-submit',
+];
+
 class Health {
   final Directory directory;
 
-  Health(this.directory);
+  Health(
+    this.directory,
+    this.checks,
+    this.warnOn,
+    this.failOn,
+    this.coverageweb,
+  );
+  final github = GithubApi();
 
-  Future<void> healthCheck(List args, bool coverageweb) async {
-    var github = GithubApi();
+  final List<String> checks;
+  final List<String> warnOn;
+  final List<String> failOn;
+  final bool coverageweb;
 
+  Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
     if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
@@ -56,35 +75,39 @@ class Health {
       return;
     }
 
-    print('Start health check for the checks $args');
-    var checks = [
-      if (args.contains('version') &&
-          !github.prLabels.contains('skip-validate-check'))
-        validateCheck,
-      if (args.contains('license') &&
-          !github.prLabels.contains('skip-license-check'))
-        licenseCheck,
-      if (args.contains('changelog') &&
-          !github.prLabels.contains('skip-changelog-check'))
-        changelogCheck,
-      if (args.contains('coverage') &&
-          !github.prLabels.contains('skip-coverage-check'))
-        (GithubApi github) => coverageCheck(github, coverageweb),
-      if (args.contains('breaking') &&
-          !github.prLabels.contains('skip-breaking-check'))
-        breakingCheck,
-      if (args.contains('do-not-submit') &&
-          !github.prLabels.contains('skip-do-not-submit-check'))
-        doNotSubmitCheck,
-    ];
+    print('Start health check for the checks $checks');
     final results = <HealthCheckResult>[];
-    for (var check in checks) {
-      results.add(await check(github));
+    for (final name in checkTypes) {
+      if (checks.contains(name) &&
+          !github.prLabels.contains('skip-$name-check')) {
+        final firstResult = await checkFor(name)();
+        final HealthCheckResult finalResult;
+        if (warnOn.contains(name) && firstResult.severity == Severity.error) {
+          finalResult = firstResult.withSeverity(Severity.warning);
+        } else if (failOn.contains(name) &&
+            firstResult.severity == Severity.warning) {
+          finalResult = firstResult.withSeverity(Severity.error);
+        } else {
+          finalResult = firstResult;
+        }
+        results.add(finalResult);
+      }
     }
     await writeInComment(github, results);
   }
 
-  Future<HealthCheckResult> validateCheck(GithubApi github) async {
+  Future<HealthCheckResult> Function() checkFor(String checkType) =>
+      switch (checkType) {
+        'version' => validateCheck,
+        'license' => licenseCheck,
+        'changelog' => changelogCheck,
+        'coverage' => coverageCheck,
+        'breaking' => breakingCheck,
+        'do-not-submit' => doNotSubmitCheck,
+        String() => throw ArgumentError(),
+      };
+
+  Future<HealthCheckResult> validateCheck() async {
     //TODO: Add Flutter support for PR health checks
     var results = await Firehose(directory, false).verify(github);
 
@@ -104,7 +127,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
   }
 
-  Future<HealthCheckResult> breakingCheck(GithubApi github) async {
+  Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await github.listFilesForPR();
     final changeForPackage = <Package, BreakingChange>{};
     final baseDirectory = Directory('../base_repo');
@@ -178,7 +201,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     return breakingLevel;
   }
 
-  Future<HealthCheckResult> licenseCheck(GithubApi github) async {
+  Future<HealthCheckResult> licenseCheck() async {
     var files = await github.listFilesForPR();
     var allFilePaths = await getFilesWithoutLicenses(Directory.current);
 
@@ -222,7 +245,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
-  Future<HealthCheckResult> changelogCheck(GithubApi github) async {
+  Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(github);
 
     final markdownResult = '''
@@ -241,7 +264,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     );
   }
 
-  Future<HealthCheckResult> doNotSubmitCheck(GithubApi github) async {
+  Future<HealthCheckResult> doNotSubmitCheck() async {
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR();
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
@@ -273,11 +296,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
   }
 
-  Future<HealthCheckResult> coverageCheck(
-    GithubApi github,
-    bool coverageWeb,
-  ) async {
-    var coverage = await Coverage(coverageWeb).compareCoverages(github);
+  Future<HealthCheckResult> coverageCheck() async {
+    var coverage = await Coverage(coverageweb).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |
@@ -384,6 +404,13 @@ class HealthCheckResult {
   final String? markdown;
 
   HealthCheckResult(this.name, this.title, this.severity, this.markdown);
+
+  HealthCheckResult withSeverity(Severity severity) => HealthCheckResult(
+        name,
+        title,
+        severity,
+        markdown,
+      );
 }
 
 class BreakingChange {
