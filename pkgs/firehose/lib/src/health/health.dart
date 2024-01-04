@@ -137,7 +137,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     ''';
 
     return HealthCheckResult(
-      'validate',
+      'version',
       results.severity,
       markdownTable,
     );
