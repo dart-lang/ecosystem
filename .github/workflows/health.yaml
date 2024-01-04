@@ -144,6 +144,9 @@ jobs:
         run: |
           mkdir -p current_repo/output/ && echo ${{ github.event.number }} > current_repo/output/issueNumber
 
+      - name: Write comment if not present
+        run: test -f current_repo/output/comment.md || echo "## PR Health \nThe Health workflow has encountered an exception and did not complete." >> current_repo/output/comment.md
+
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
