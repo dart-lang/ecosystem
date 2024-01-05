@@ -99,7 +99,9 @@ jobs:
         if: contains(inputs.checks, 'coverage') || contains(inputs.checks, 'breaking')
 
       - name: Write comment if not present
-        run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.checks }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+        run: |
+         mkdir -p current_repo/output/
+         test -f current_repo/output/comment.md || echo $'The ${{ inputs.checks }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
           
       - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
         if: ${{ inputs.use-flutter }}
