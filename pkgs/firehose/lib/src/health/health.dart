@@ -22,8 +22,6 @@ import 'license.dart';
 
 const String _botSuffix = '[bot]';
 
-const String _githubActionsUser = 'github-actions[bot]';
-
 const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
@@ -35,8 +33,6 @@ const String _doNotSubmitBotTag = '### Do Not Submit';
 const String _coverageBotTag = '### Coverage';
 
 const String _breakingBotTag = '### Breaking changes';
-
-const String _prHealthTag = '## PR Health';
 
 const checkTypes = <String>[
   'version',
@@ -322,7 +318,6 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
   Future<void> writeInComment(
       GithubApi github, HealthCheckResult result) async {
-    await saveExistingCommentId(github);
     final String markdownSummary;
     if (result.markdown != null) {
       var markdown = result.markdown;
@@ -356,21 +351,6 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  Future<void> saveExistingCommentId(GithubApi github) async {
-    var existingComment = await allowFailure(
-      github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
-      logError: print,
-    );
-
-    if (existingComment != null) {
-      var idFile = File('./output/commentId');
-      print('''
-    Saving existing comment id $existingComment to file ${idFile.path}''');
-      await idFile.create(recursive: true);
-      await idFile.writeAsString(existingComment.id.toString());
-    }
-  }
-
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     final repo = Repository();
@@ -381,14 +361,6 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
           (file) => path.isWithin(relativePackageDirectory, file.relativePath));
     }).toList();
   }
-}
-
-Version getNewVersion(BreakingLevel level, Version oldVersion) {
-  return switch (level) {
-    BreakingLevel.none => oldVersion,
-    BreakingLevel.nonBreaking => oldVersion.nextMinor,
-    BreakingLevel.breaking => oldVersion.nextBreaking,
-  };
 }
 
 enum BreakingLevel {
