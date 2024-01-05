@@ -172,6 +172,18 @@ jobs:
 
       - run: ls -R single-comments
 
+      - name: Find Comment
+        uses: peter-evans/find-comment@
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: github-actions[bot]
+          body-includes: '## PR Health'
+      
+      - name: Write comment id to file
+        if: ${{ steps.fc.outputs.comment-id == 0 }} 
+        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+
       - name: Merge all single comments
         run: |
          mkdir output
