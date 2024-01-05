@@ -12,17 +12,9 @@ name: Health
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
-#     with:
-#       coverage_web: true #If the coverage should run browser tests
 
-# Callers may optionally specify the version of the SDK to use when running the
-# health check. This can be useful if your package has a very recent minimum SDK
-# constraint. This is done via the `sdk` input parameter. Note that this
-# parameter is not required; it defaults to `stable` - using the most recent
-# stable release of the Dart SDK.
-# 
-# The checks can also be restricted to any subset of version, changelog, and license,
-# if needed.
+
+# Or with options:
 #
 # jobs:
 #   health:
@@ -30,10 +22,21 @@ name: Health
 #     with:
 #       sdk: beta
 #       checks: "version,changelog,license,coverage,breaking,do-not-submit"
+#       fail_on: "version,changelog,do-not-submit"
+#       warn_on: "license,coverage,breaking"
+#       coverage_web: false
+#       upload_coverage: false
+#       use-flutter: true
+
 
 on:
   workflow_call:
     inputs:
+      # Callers may optionally specify the version of the SDK to use when running the
+      # health check. This can be useful if your package has a very recent minimum SDK
+      # constraint. This is done via the `sdk` input parameter. Note that this
+      # parameter is not required; it defaults to `stable` - using the most recent
+      # stable release of the Dart SDK.
       sdk:
         description: >-
           The channel, or a specific version from a channel, to install
@@ -42,6 +45,8 @@ on:
         default: "stable"
         required: false
         type: string
+      # Restrict the checks to any subset of version, changelog, and license if
+      # needed.
       checks:
         description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
         default: "version,changelog,license,coverage,breaking,do-not-submit"
