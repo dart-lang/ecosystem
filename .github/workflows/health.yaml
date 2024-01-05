@@ -83,7 +83,7 @@ jobs:
   version:
     name: health:version
     if: contains(${{ inputs.checks }}, 'version')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: version
@@ -95,7 +95,7 @@ jobs:
   changelog:
     name: health:changelog
     if: contains(${{ inputs.checks }}, 'changelog')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: changelog
@@ -107,7 +107,7 @@ jobs:
   license:
     name: health:license
     if: contains(${{ inputs.checks }}, 'license')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: license
@@ -119,7 +119,7 @@ jobs:
   coverage:
     name: health:coverage
     if: contains(${{ inputs.checks }}, 'coverage')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: coverage
@@ -133,7 +133,7 @@ jobs:
   breaking:
     name: health:breaking
     if: contains(${{ inputs.checks }}, 'breaking')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: breaking
@@ -145,7 +145,7 @@ jobs:
   do-not-submit:
     name: health:do-not-submit
     if: contains(${{ inputs.checks }}, 'do-not-submit')
-    uses: .github/workflows/health_base.yaml
+    uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: do-not-submit
