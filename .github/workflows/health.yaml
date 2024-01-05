@@ -179,10 +179,6 @@ jobs:
           comment-author: github-actions[bot]
           body-includes: '## PR Health'
       
-      - name: Write comment id to file
-        if: ${{ steps.fc.outputs.comment-id != 0 }} 
-        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
-
       - name: Merge all single comments
         run: |
          mkdir output
@@ -190,6 +186,10 @@ jobs:
          cat single-comments/*/*.md >> output/comment.md
          echo ${{ github.event.number }} > output/issueNumber
 
+      - name: Write comment id to file
+        if: ${{ steps.fc.outputs.comment-id != 0 }} 
+        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+ 
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
