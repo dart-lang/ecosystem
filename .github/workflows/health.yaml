@@ -81,7 +81,6 @@ on:
 
 jobs:
   version:
-    name: version
     if: contains(${{ inputs.checks }}, 'version')
     uses: ./.github/workflows/health_base.yaml
     with:
@@ -93,7 +92,6 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   changelog:
-    name: changelog
     if: contains(${{ inputs.checks }}, 'changelog')
     uses: ./.github/workflows/health_base.yaml
     with:
@@ -105,7 +103,6 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   license:
-    name: license
     if: contains(${{ inputs.checks }}, 'license')
     uses: ./.github/workflows/health_base.yaml
     with:
@@ -117,7 +114,6 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   coverage:
-    name: coverage
     if: contains(${{ inputs.checks }}, 'coverage')
     uses: ./.github/workflows/health_base.yaml
     with:
@@ -131,7 +127,6 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   breaking:
-    name: breaking
     if: contains(${{ inputs.checks }}, 'breaking')
     uses: ./.github/workflows/health_base.yaml
     with:
@@ -143,7 +138,6 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   do-not-submit:
-    name: do-not-submit
     if: contains(${{ inputs.checks }}, 'do-not-submit')
     uses: ./.github/workflows/health_base.yaml
     with:
