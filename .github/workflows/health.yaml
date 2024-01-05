@@ -156,6 +156,7 @@ jobs:
 
   comment:
     needs: [version, changelog, license, coverage, breaking, do-not-submit]
+    if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
