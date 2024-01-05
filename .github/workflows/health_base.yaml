@@ -1,6 +1,6 @@
 # A CI configuration to check PR health.
 
-name: Health
+name: Health:Base
 
 # Callers of this workflow should use it as follows:
 #
@@ -49,13 +49,11 @@ on:
         required: false
       fail_on:
         description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        default: "version,changelog,do-not-submit"
-        type: string
-        required: false
+        type: boolean
+        required: true
       warn_on:
         description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        default: "license,coverage,breaking"
-        type: string
+        type: boolean
         required: false
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
@@ -80,33 +78,7 @@ on:
         type: boolean
 
 jobs:
-  version:
-    if: contains(${{ inputs.checks }}, 'version')
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: ./.github/workflows/health_base.yaml
-        with:
-          sdk: ${{ inputs.sdk }}
-          checks: version
-          fail: false
-          local_debug: ${{ inputs.local_debug }}
-  license:
-    if: contains(${{ inputs.checks }}, 'license')
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: ./.github/workflows/health_base.yaml
-        with:
-          sdk: ${{ inputs.sdk }}
-          checks: license
-          fail: false
-          local_debug: ${{ inputs.local_debug }}
-
-  comment:
-    needs: [version, license]
+  health:
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
@@ -114,22 +86,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download All Artifacts
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
-          path: single-comments
-          pattern: comment-*
-          merge-multiple: true
+          path: current_repo/
+      
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base_repo/
+        if: contains(inputs.checks, 'coverage') || contains(inputs.checks, 'breaking')
 
-      - name: Merge all single comments
-        run: |
-         mkdir output
-         echo $'## PR Health \n\n' >> my_file.txt
-         cat single-comments/* >> output/comment.md
-         echo ${{ github.event.number }} > output/issueNumber
+      - name: Write comment if not present
+        run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.checks }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+          
+      - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+  
+      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
 
-      - name: Upload folder with number and markdown
+      - name: Install coverage
+        run: dart pub global activate coverage
+        if: contains(inputs.checks, 'coverage')
+
+      - name: Install firehose
+        run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }}
+
+      - name: Install local firehose
+        run: dart pub global activate --source path current_repo/pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
+        
+      - name: Install api_tool
+        run: dart pub global activate dart_apitool
+        if: contains(inputs.checks, 'breaking')
+      
+      - name: Check PR health
+        id: healthstep
+        if: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true # continue, so that the result is written as a comment. Fail in the last step
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
+        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
+
+      - name: Upload coverage to Coveralls
+        if: ${{ inputs.upload_coverage }}
+        uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
+        with:
+          format: lcov
+          base-path: current_repo/
+          compare-sha: ${{ github.event.pull_request.base.ref }}
+          allow-empty: true
+
+      - name: Upload markdown
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
-          name: output
-          path: output/
+          name: comment-${{ inputs.checks }}
+          path: current_repo/output/comment.md

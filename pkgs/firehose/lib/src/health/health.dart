@@ -9,7 +9,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:github/github.dart' as gh;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -328,20 +327,8 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
   Future<void> writeInComment(
       GithubApi github, List<HealthCheckResult> results) async {
-    final issueComment = await saveExistingCommentId(github);
-    var summary = '$_prHealthTag\n\n';
-    if (issueComment != null) {
-      var body = issueComment.body ?? '';
-      for (var check in checks
-          .where((check) => results.none((result) => result.name == check))) {
-        var blockStart = body.indexOf(tagFor(check));
-        if (blockStart != -1) {
-          var blockEnd = body.indexOf('</details>', blockStart);
-          summary += body.substring(blockStart, blockEnd);
-        }
-      }
-    }
-
+    await saveExistingCommentId(github);
+    var summary = '';
     final commentText =
         results.where((result) => result.markdown != null).map((result) {
       var markdown = result.markdown;
@@ -375,7 +362,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  Future<gh.IssueComment?> saveExistingCommentId(GithubApi github) async {
+  Future<void> saveExistingCommentId(GithubApi github) async {
     var existingComment = await allowFailure(
       github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
       logError: print,
@@ -387,9 +374,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     Saving existing comment id $existingComment to file ${idFile.path}''');
       await idFile.create(recursive: true);
       await idFile.writeAsString(existingComment.id.toString());
-      return existingComment;
     }
-    return null;
   }
 
   List<Package> packagesContaining(List<GitFile> filesInPR) {
