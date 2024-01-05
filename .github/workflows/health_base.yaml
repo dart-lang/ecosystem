@@ -139,7 +139,7 @@ jobs:
         run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
 
       - name: Upload coverage to Coveralls
-        if: ${{ inputs.upload_coverage }}
+        if: ${{ always() && inputs.upload_coverage }}
         uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
         with:
           format: lcov
@@ -148,6 +148,7 @@ jobs:
           allow-empty: true
 
       - name: Upload markdown
+        if: always()
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
           name: comment-${{ inputs.checks }}
