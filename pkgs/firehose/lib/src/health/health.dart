@@ -52,14 +52,14 @@ class Health {
 
   Health(
     this.directory,
-    this.checks,
+    this.check,
     this.warnOn,
     this.failOn,
     this.coverageweb,
   );
   final github = GithubApi();
 
-  final List<String> checks;
+  final String check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
@@ -75,29 +75,24 @@ class Health {
       return;
     }
 
-    print('Start health check for the checks $checks');
-    final results = <HealthCheckResult>[];
-    for (final check in checks) {
-      print('Checking for $check');
-      if (!github.prLabels.contains('skip-$check-check')) {
-        final firstResult = await checkFor(check)();
-        final HealthCheckResult finalResult;
-        if (warnOn.contains(check) && firstResult.severity == Severity.error) {
-          finalResult = firstResult.withSeverity(Severity.warning);
-        } else if (failOn.contains(check) &&
-            firstResult.severity == Severity.warning) {
-          finalResult = firstResult.withSeverity(Severity.error);
-        } else {
-          finalResult = firstResult;
-        }
-        results.add(finalResult);
-        print(
-            '\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
+    print('Start health check for the check $check');
+    print('Checking for $check');
+    if (!github.prLabels.contains('skip-$check-check')) {
+      final firstResult = await checkFor(check)();
+      final HealthCheckResult finalResult;
+      if (warnOn.contains(check) && firstResult.severity == Severity.error) {
+        finalResult = firstResult.withSeverity(Severity.warning);
+      } else if (failOn.contains(check) &&
+          firstResult.severity == Severity.warning) {
+        finalResult = firstResult.withSeverity(Severity.error);
       } else {
-        print('Skipping $check, as the skip tag is present.');
+        finalResult = firstResult;
       }
+      await writeInComment(github, finalResult);
+      print('\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
+    } else {
+      print('Skipping $check, as the skip tag is present.');
     }
-    await writeInComment(github, results);
   }
 
   String tagFor(String checkType) => switch (checkType) {
@@ -326,11 +321,10 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
   }
 
   Future<void> writeInComment(
-      GithubApi github, List<HealthCheckResult> results) async {
+      GithubApi github, HealthCheckResult result) async {
     await saveExistingCommentId(github);
-    var summary = '';
-    final commentText =
-        results.where((result) => result.markdown != null).map((result) {
+    final String markdownSummary;
+    if (result.markdown != null) {
       var markdown = result.markdown;
       var isWorseThanInfo = result.severity.index >= Severity.warning.index;
       var s = '''
@@ -345,10 +339,11 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 </details>
 
 ''';
-      return '${tagFor(result.name)} ${result.severity.emoji}\n\n$s';
-    }).join('\n');
+      markdownSummary = '${tagFor(result.name)} ${result.severity.emoji}\n\n$s';
+    } else {
+      markdownSummary = '';
+    }
 
-    final markdownSummary = summary + commentText;
     github.appendStepSummary(markdownSummary);
 
     var commentFile = File('./output/comment.md');
@@ -356,8 +351,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(markdownSummary);
 
-    if (results.any((result) => result.severity == Severity.error) &&
-        exitCode == 0) {
+    if (result.severity == Severity.error && exitCode == 0) {
       exitCode = 1;
     }
   }

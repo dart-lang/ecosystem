@@ -86,7 +86,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: version
+      check: version
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -98,7 +98,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: changelog
+      check: changelog
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -110,7 +110,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: license
+      check: license
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -122,7 +122,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: coverage
+      check: coverage
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       upload_coverage: ${{ inputs.upload_coverage }}
@@ -136,7 +136,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: breaking
+      check: breaking
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -148,7 +148,7 @@ jobs:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      checks: do-not-submit
+      check: do-not-submit
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}

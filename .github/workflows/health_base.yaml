@@ -42,11 +42,10 @@ on:
         default: "stable"
         required: false
         type: string
-      checks:
-        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        default: "version,changelog,license,coverage,breaking,do-not-submit"
+      check:
+        description: What to check for in the PR health check - any of "version,changelog,license,coverage,breaking,do-not-submit"
         type: string
-        required: false
+        required: true
       fail_on:
         description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
         default: "version,changelog,do-not-submit"
@@ -97,12 +96,12 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
-        if: contains(inputs.checks, 'coverage') || contains(inputs.checks, 'breaking')
+        if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - name: Write comment if not present
         run: |
          mkdir -p current_repo/output/
-         test -f current_repo/output/comment.md || echo $'The ${{ inputs.checks }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+         test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
           
       - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
         if: ${{ inputs.use-flutter }}
@@ -116,7 +115,7 @@ jobs:
 
       - name: Install coverage
         run: dart pub global activate coverage
-        if: contains(inputs.checks, 'coverage')
+        if: ${{ inputs.check == 'coverage' }}
 
       - name: Install firehose
         run: dart pub global activate firehose
@@ -128,7 +127,7 @@ jobs:
         
       - name: Install api_tool
         run: dart pub global activate dart_apitool
-        if: contains(inputs.checks, 'breaking')
+        if: ${{ inputs.check == 'breaking' }}
       
       - name: Check PR health
         id: healthstep
@@ -137,7 +136,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
+        run: cd current_repo/ && dart pub global run firehose:health --check ${{ inputs.check }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage }}
@@ -152,5 +151,5 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
-          name: comment-${{ inputs.checks }}
+          name: comment-${{ inputs.check }}
           path: current_repo/output/comment.md

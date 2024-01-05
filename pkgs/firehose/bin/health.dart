@@ -9,8 +9,8 @@ import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
   var argParser = ArgParser()
-    ..addMultiOption(
-      'checks',
+    ..addOption(
+      'check',
       allowed: checkTypes,
       help: 'Check PR health.',
     )
@@ -29,7 +29,7 @@ void main(List<String> arguments) async {
       help: 'Whether to run web tests for coverage',
     );
   var parsedArgs = argParser.parse(arguments);
-  var checks = parsedArgs['checks'] as List<String>;
+  var check = parsedArgs['check'] as String;
   var warnOn = parsedArgs['warn_on'] as List<String>;
   var failOn = parsedArgs['fail_on'] as List<String>;
   var coverageWeb = parsedArgs['coverage_web'] as bool;
@@ -37,6 +37,6 @@ void main(List<String> arguments) async {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
   }
-  await Health(Directory.current, checks, warnOn, failOn, coverageWeb)
+  await Health(Directory.current, check, warnOn, failOn, coverageWeb)
       .healthCheck();
 }
