@@ -151,5 +151,5 @@ jobs:
       - name: Upload markdown
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
-          name: comment
+          name: comment-${{ inputs.checks }}
           path: current_repo/output/comment.md
