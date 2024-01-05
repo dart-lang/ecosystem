@@ -81,25 +81,81 @@ on:
 
 jobs:
   version:
-    uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
+    name: health:version
     if: contains(${{ inputs.checks }}, 'version')
+    uses: .github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: version
       fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  changelog:
+    name: health:changelog
+    if: contains(${{ inputs.checks }}, 'changelog')
+    uses: .github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: changelog
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
 
   license:
+    name: health:license
     if: contains(${{ inputs.checks }}, 'license')
-    uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
+    uses: .github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
       checks: license
       fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  coverage:
+    name: health:coverage
+    if: contains(${{ inputs.checks }}, 'coverage')
+    uses: .github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: coverage
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      upload_coverage: ${{ inputs.upload_coverage }}
+      coverage_web: ${{ inputs.coverage_web }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  breaking:
+    name: health:breaking
+    if: contains(${{ inputs.checks }}, 'breaking')
+    uses: .github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: breaking
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  do-not-submit:
+    name: health:do-not-submit
+    if: contains(${{ inputs.checks }}, 'do-not-submit')
+    uses: .github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: do-not-submit
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
 
   comment:
-    needs: [version, license]
+    needs: [version, changelog, license, coverage, breaking, do-not-submit]
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
