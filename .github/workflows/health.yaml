@@ -177,30 +177,9 @@ jobs:
           issue-number: ${{ github.event.number }}
           comment-author: github-actions[bot]
           body-includes: '## PR Health'
-
-
-
-      - name: Find Comment
-        uses: peter-evans/find-comment@4541d1b6b0e618acc24284e118743fc5ad0bc5de
-        id: fc2
-        with:
-          issue-number: ${{ github.event.number }}
-          comment-author: github-actions[bot]
-
-      - name: Find Comment
-        uses: peter-evans/find-comment@4541d1b6b0e618acc24284e118743fc5ad0bc5de
-        id: fc3
-        with:
-          issue-number: ${{ github.event.number }}
-          body-includes: '## PR Health'
-
-      - run: |
-          echo ${{ steps.fc.outputs.comment-id }}
-          echo ${{ steps.fc2.outputs.comment-id }}
-          echo ${{ steps.fc3.outputs.comment-id }}
       
       - name: Write comment id to file
-        if: ${{ steps.fc.outputs.comment-id == 0 }} 
+        if: ${{ steps.fc.outputs.comment-id != 0 }} 
         run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
 
       - name: Merge all single comments

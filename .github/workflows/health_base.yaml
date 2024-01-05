@@ -132,7 +132,6 @@ jobs:
       - name: Check PR health
         id: healthstep
         if: ${{ github.event_name == 'pull_request' }}
-        continue-on-error: true # continue, so that the result is written as a comment. Fail in the last step
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
