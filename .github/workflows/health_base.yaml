@@ -49,11 +49,13 @@ on:
         required: false
       fail_on:
         description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        type: boolean
-        required: true
+        default: "version,changelog,do-not-submit"
+        type: string
+        required: false
       warn_on:
         description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        type: boolean
+        default: "license,coverage,breaking"
+        type: string
         required: false
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
