@@ -86,7 +86,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       checks: version
-      fail: contains(${{ inputs.fail_on }}, 'version')
+      fail_on: ${{ inputs.fail_on }}
       local_debug: ${{ inputs.local_debug }}
 
   license:
@@ -95,7 +95,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       checks: license
-      fail: contains(${{ inputs.fail_on }}, 'license')
+      fail_on: ${{ inputs.fail_on }}
       local_debug: ${{ inputs.local_debug }}
 
   comment:
