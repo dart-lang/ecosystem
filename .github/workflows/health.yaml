@@ -114,10 +114,12 @@ jobs:
           pattern: comment-*
           merge-multiple: true
 
+      - run: ls -R single-comments
+
       - name: Merge all single comments
         run: |
          mkdir output
-         echo $'## PR Health \n\n' >> my_file.txt
+         echo $'## PR Health \n\n' >> output/comment.md
          cat single-comments/* >> output/comment.md
          echo ${{ github.event.number }} > output/issueNumber
 
