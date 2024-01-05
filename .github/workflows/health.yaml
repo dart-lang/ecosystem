@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ./.github/workflows/health_base.yaml
+      - uses: dart-lang/ecosystem/.github/workflows/health_base.yaml
         with:
           sdk: ${{ inputs.sdk }}
           checks: version
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: ./.github/workflows/health_base.yaml
+      - uses: dart-lang/ecosystem/.github/workflows/health_base.yaml
         with:
           sdk: ${{ inputs.sdk }}
           checks: license

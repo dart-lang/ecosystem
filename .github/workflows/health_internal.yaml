@@ -6,45 +6,10 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
 jobs:
-  version:
+  health:
     uses: ./.github/workflows/health.yaml
     with:
       local_debug: true
       coverage_web: false
       upload_coverage: false
-      checks: version
-  license:
-    uses: ./.github/workflows/health.yaml
-    with:
-      local_debug: true
-      coverage_web: false
-      upload_coverage: false
-      checks: license
-  changelog:
-    uses: ./.github/workflows/health.yaml
-    with:
-      local_debug: true
-      coverage_web: false
-      upload_coverage: false
-      checks: changelog
-  coverage:
-    uses: ./.github/workflows/health.yaml
-    with:
-      local_debug: true
-      coverage_web: false
-      upload_coverage: false
-      checks: coverage
-  breaking:
-    uses: ./.github/workflows/health.yaml
-    with:
-      local_debug: true
-      coverage_web: false
-      upload_coverage: false
-      checks: breaking
-  do-not-submit:
-    uses: ./.github/workflows/health.yaml
-    with:
-      local_debug: true
-      coverage_web: false
-      upload_coverage: false
-      checks: do-not-submit
+      checks: version,changelog,coverage,breaking,do-not-submit
