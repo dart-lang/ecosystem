@@ -81,29 +81,22 @@ on:
 
 jobs:
   version:
+    uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
     if: contains(${{ inputs.checks }}, 'version')
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: version
+      fail: false
+      local_debug: ${{ inputs.local_debug }}
 
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
-        with:
-          sdk: ${{ inputs.sdk }}
-          checks: version
-          fail: false
-          local_debug: ${{ inputs.local_debug }}
   license:
     if: contains(${{ inputs.checks }}, 'license')
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
-        with:
-          sdk: ${{ inputs.sdk }}
-          checks: license
-          fail: false
-          local_debug: ${{ inputs.local_debug }}
+    uses: dart-lang/ecosystem/.github/workflows/health_base.yaml@healthUpdates
+    with:
+      sdk: ${{ inputs.sdk }}
+      checks: license
+      fail: false
+      local_debug: ${{ inputs.local_debug }}
 
   comment:
     needs: [version, license]
