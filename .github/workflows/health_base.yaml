@@ -81,6 +81,7 @@ on:
 
 jobs:
   health:
+    name: run
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
