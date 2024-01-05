@@ -351,8 +351,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     final markdownSummary = summary + commentText;
     github.appendStepSummary(markdownSummary);
 
-    var commentFile =
-        File('./output/comment-${results.map((e) => e.name).join('-')}.md');
+    var commentFile = File('./output/comment.md');
     print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(markdownSummary);

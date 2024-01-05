@@ -167,8 +167,6 @@ jobs:
         uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110
         with:
           path: single-comments
-          pattern: comment-*
-          merge-multiple: true
 
       - run: ls -R single-comments
 
@@ -188,7 +186,7 @@ jobs:
         run: |
          mkdir output
          echo $'## PR Health \n\n' >> output/comment.md
-         cat single-comments/* >> output/comment.md
+         cat single-comments/* single-comments/*/* >> output/comment.md
          echo ${{ github.event.number }} > output/issueNumber
 
       - name: Upload folder with number and markdown
