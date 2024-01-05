@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Split health checks in individual workflows.
+
 ## 0.4.2
 
 - Get needed version from `dart_apitool` in PR health checks.
