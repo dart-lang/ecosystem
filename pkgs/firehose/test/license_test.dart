@@ -21,7 +21,7 @@ void main() {
 
   test('Check for licenses', () async {
     var filesWithoutLicenses =
-        await getFilesWithoutLicenses(Directory('test/'));
+        await getFilesWithoutLicenses(Directory('test/'), []);
     expect(filesWithoutLicenses, [fileWithoutLicense.path]);
   });
 

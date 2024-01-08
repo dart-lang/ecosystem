@@ -15,6 +15,10 @@ void main(List<String> arguments) async {
       help: 'Check PR health.',
     )
     ..addMultiOption(
+      'ignore',
+      help: 'Check PR health.',
+    )
+    ..addMultiOption(
       'warn_on',
       allowed: checkTypes,
       help: 'Which checks to display warnings on',
@@ -32,11 +36,12 @@ void main(List<String> arguments) async {
   var check = parsedArgs['check'] as String;
   var warnOn = parsedArgs['warn_on'] as List<String>;
   var failOn = parsedArgs['fail_on'] as List<String>;
+  var ignore = parsedArgs['ignore'] as List<String>;
   var coverageWeb = parsedArgs['coverage_web'] as bool;
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
   }
-  await Health(Directory.current, check, warnOn, failOn, coverageWeb)
+  await Health(Directory.current, check, warnOn, failOn, coverageWeb, ignore)
       .healthCheck();
 }

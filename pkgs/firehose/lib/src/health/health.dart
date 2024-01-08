@@ -52,13 +52,15 @@ class Health {
     this.warnOn,
     this.failOn,
     this.coverageweb,
-  );
+    List<String> ignored,
+  ) : ignoredFiles = ignored.map(RegExp.new).toList();
   final github = GithubApi();
 
   final String check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
+  final List<RegExp> ignoredFiles;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -206,7 +208,8 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   Future<HealthCheckResult> licenseCheck() async {
     var files = await github.listFilesForPR();
-    var allFilePaths = await getFilesWithoutLicenses(Directory.current);
+    var allFilePaths =
+        await getFilesWithoutLicenses(Directory.current, ignoredFiles);
 
     var groupedPaths = allFilePaths
         .groupListsBy((path) => files.any((f) => f.relativePath == path));
