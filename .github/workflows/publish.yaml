@@ -13,7 +13,7 @@ name: Publish
 #     tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 # jobs:
 #   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 
 # Callers may optionally specify the version of the SDK to use when publishing a
 # package. This can be useful if your package has a very recent minimum SDK
@@ -23,7 +23,7 @@ name: Publish
 #
 # jobs:
 #   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 #     with:
 #       sdk: beta
 
@@ -33,7 +33,7 @@ name: Publish
 #
 # jobs:
 #   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 #     with:
 #       use-flutter: true
 
@@ -42,7 +42,7 @@ name: Publish
 #
 # jobs:
 #   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
 #     with:
 #       write-comments: false
 
