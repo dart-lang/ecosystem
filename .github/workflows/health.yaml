@@ -78,11 +78,14 @@ on:
         type: boolean
         required: false
       use-flutter:
-        description: >-
-          Whether to setup Flutter in this workflow.
+        description: Whether to setup Flutter in this workflow.
         default: false
         required: false
         type: boolean
+      ignore_license:
+        description: Which files to ignore when checking for licenses.
+        required: false
+        type: string
 
 jobs:
   version:
@@ -117,6 +120,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore_license }}
 
   coverage:
     if: contains(${{ inputs.checks }}, 'coverage')

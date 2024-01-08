@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -53,14 +54,14 @@ class Health {
     this.failOn,
     this.coverageweb,
     List<String> ignored,
-  ) : ignoredFiles = ignored.map(RegExp.new).toList();
+  ) : ignoredFiles = ignored.map((e) => Glob(e)).toList();
   final github = GithubApi();
 
   final String check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
-  final List<RegExp> ignoredFiles;
+  final List<Glob> ignoredFiles;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.

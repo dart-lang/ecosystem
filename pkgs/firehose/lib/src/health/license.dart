@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
 final license = '''
@@ -13,7 +14,7 @@ final license = '''
 // BSD-style license that can be found in the LICENSE file.''';
 
 Future<List<String>> getFilesWithoutLicenses(
-    Directory repositoryDir, List<RegExp> ignoredFiles) async {
+    Directory repositoryDir, List<Glob> ignoredFiles) async {
   var dartFiles = await repositoryDir
       .list(recursive: true)
       .where((f) => f.path.endsWith('.dart'))
@@ -26,7 +27,7 @@ Future<List<String>> getFilesWithoutLicenses(
         if (!fileContainsCopyright) {
           var relativePath =
               path.relative(file.path, from: Directory.current.path);
-          if (ignoredFiles.none((regex) => regex.hasMatch(relativePath))) {
+          if (ignoredFiles.none((regex) => regex.matches(relativePath))) {
             print(relativePath);
             return relativePath;
           }
