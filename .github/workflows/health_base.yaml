@@ -117,7 +117,7 @@ jobs:
           cd current_repo/ && \
           dart pub global run firehose:health \
             --check ${{ inputs.check }} \
-            ${{ fromJSON('{"true":"--coverage_web \","false":""}')[inputs.coverage_web] }}
+            ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
             --ignore ${{ inputs.ignore }}
