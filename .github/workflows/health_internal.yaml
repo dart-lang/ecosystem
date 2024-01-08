@@ -1,6 +1,6 @@
 # A CI configuration to check PR health.
 
-name: Health
+name: Health:Internal
 on:
   pull_request:
     branches: [ main ]
