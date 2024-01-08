@@ -1,0 +1,128 @@
+# A CI configuration to check PR health.
+
+name: Health:Base
+
+# The workflow doing the checks for `health.yaml`. Not meant to be used externally.
+
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
+      check:
+        description: What to check for in the PR health check - any of "version,changelog,license,coverage,breaking,do-not-submit"
+        type: string
+        required: true
+      fail_on:
+        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "version,changelog,do-not-submit"
+        type: string
+        required: false
+      warn_on:
+        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "license,coverage,breaking"
+        type: string
+        required: false
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
+        required: false
+      upload_coverage:
+        description: Whether to upload the coverage to coveralls
+        default: true
+        type: boolean
+        required: false
+      coverage_web:
+        description: Whether to run `dart test -p chrome` for coverage
+        default: false
+        type: boolean
+        required: false
+      use-flutter:
+        description: >-
+          Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
+
+jobs:
+  health:
+    name: run
+    # These permissions are required for us to create comments on PRs.
+    permissions:
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          path: current_repo/
+      
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base_repo/
+        if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
+
+      - name: Write comment if not present
+        run: |
+         mkdir -p current_repo/output/
+         test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+          
+      - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+  
+      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install coverage
+        run: dart pub global activate coverage
+        if: ${{ inputs.check == 'coverage' }}
+
+      - name: Install firehose
+        run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }}
+
+      - name: Install local firehose
+        run: dart pub global activate --source path current_repo/pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
+        
+      - name: Install api_tool
+        run: dart pub global activate dart_apitool
+        if: ${{ inputs.check == 'breaking' }}
+      
+      - name: Check PR health
+        id: healthstep
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
+        run: cd current_repo/ && dart pub global run firehose:health --check ${{ inputs.check }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
+
+      - name: Upload coverage to Coveralls
+        if: ${{ inputs.upload_coverage }}
+        uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
+        with:
+          format: lcov
+          base-path: current_repo/
+          compare-sha: ${{ github.event.pull_request.base.ref }}
+          allow-empty: true
+
+      - name: Upload markdown
+        if: success() || failure()
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
+        with:
+          name: comment-${{ inputs.check }}
+          path: current_repo/output/comment.md

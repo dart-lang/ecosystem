@@ -12,17 +12,9 @@ name: Health
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
-#     with:
-#       coverage_web: true #If the coverage should run browser tests
 
-# Callers may optionally specify the version of the SDK to use when running the
-# health check. This can be useful if your package has a very recent minimum SDK
-# constraint. This is done via the `sdk` input parameter. Note that this
-# parameter is not required; it defaults to `stable` - using the most recent
-# stable release of the Dart SDK.
-# 
-# The checks can also be restricted to any subset of version, changelog, and license,
-# if needed.
+
+# Or with options:
 #
 # jobs:
 #   health:
@@ -30,10 +22,21 @@ name: Health
 #     with:
 #       sdk: beta
 #       checks: "version,changelog,license,coverage,breaking,do-not-submit"
+#       fail_on: "version,changelog,do-not-submit"
+#       warn_on: "license,coverage,breaking"
+#       coverage_web: false
+#       upload_coverage: false
+#       use-flutter: true
+
 
 on:
   workflow_call:
     inputs:
+      # Callers may optionally specify the version of the SDK to use when running the
+      # health check. This can be useful if your package has a very recent minimum SDK
+      # constraint. This is done via the `sdk` input parameter. Note that this
+      # parameter is not required; it defaults to `stable` - using the most recent
+      # stable release of the Dart SDK.
       sdk:
         description: >-
           The channel, or a specific version from a channel, to install
@@ -42,9 +45,21 @@ on:
         default: "stable"
         required: false
         type: string
+      # Restrict the checks to any subset of version, changelog, and license if
+      # needed.
       checks:
         description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
         default: "version,changelog,license,coverage,breaking,do-not-submit"
+        type: string
+        required: false
+      fail_on:
+        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "version,changelog,do-not-submit"
+        type: string
+        required: false
+      warn_on:
+        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        default: "license,coverage,breaking"
         type: string
         required: false
       local_debug:
@@ -70,7 +85,77 @@ on:
         type: boolean
 
 jobs:
-  health:
+  version:
+    if: contains(${{ inputs.checks }}, 'version')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: version
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  changelog:
+    if: contains(${{ inputs.checks }}, 'changelog')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: changelog
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  license:
+    if: contains(${{ inputs.checks }}, 'license')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: license
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  coverage:
+    if: contains(${{ inputs.checks }}, 'coverage')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: coverage
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      upload_coverage: ${{ inputs.upload_coverage }}
+      coverage_web: ${{ inputs.coverage_web }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  breaking:
+    if: contains(${{ inputs.checks }}, 'breaking')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: breaking
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  do-not-submit:
+    if: contains(${{ inputs.checks }}, 'do-not-submit')
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: do-not-submit
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      use-flutter: ${{ inputs.use-flutter }}
+
+  comment:
+    needs: [version, changelog, license, coverage, breaking, do-not-submit]
+    if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
@@ -78,68 +163,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: Download All Artifacts
+        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110
         with:
-          path: current_repo/
+          path: single-comments
+
+      - run: ls -R single-comments
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@4541d1b6b0e618acc24284e118743fc5ad0bc5de
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: github-actions[bot]
+          body-includes: '## PR Health'
       
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-        with:
-          ref: ${{ github.event.pull_request.base.ref }}
-          path: base_repo/
-          
-      - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
-        if: ${{ inputs.use-flutter }}
-        with:
-          channel: ${{ inputs.sdk }}
-  
-      - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
-        if: ${{ !inputs.use-flutter }}
-        with:
-          sdk: ${{ inputs.sdk }}
-
-      - name: Install coverage
-        run: dart pub global activate coverage
-
-      - name: Install firehose
-        run: dart pub global activate firehose
-        if:  ${{ !inputs.local_debug }}
-
-      - name: Install local firehose
-        run: dart pub global activate --source path current_repo/pkgs/firehose/
-        if:  ${{ inputs.local_debug }} 
-        
-      - name: Install api_tool
-        run: dart pub global activate dart_apitool
-      
-      - name: Check PR health
-        id: healthstep
-        if: ${{ github.event_name == 'pull_request' }}
-        continue-on-error: true # continue, so that the result is written as a comment. Fail in the last step
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.number }}
-          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --checks ${{ inputs.checks }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }}
-
-      - name: Upload coverage to Coveralls
-        if: ${{ inputs.upload_coverage }}
-        uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
-        with:
-          format: lcov
-          base-path: current_repo/
-          compare-sha: ${{ github.event.pull_request.base.ref }}
-          allow-empty: true
-
-      - name: Save PR number
+      - name: Merge all single comments
         run: |
-          mkdir -p current_repo/output/ && echo ${{ github.event.number }} > current_repo/output/issueNumber
+         mkdir output
+         echo $'## PR Health \n\n' >> output/comment.md
+         cat single-comments/*/*.md >> output/comment.md
+         echo ${{ github.event.number }} > output/issueNumber
 
+      - name: Write comment id to file
+        if: ${{ steps.fc.outputs.comment-id != 0 }} 
+        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+ 
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
         with:
           name: output
-          path: current_repo/output/
-
-      - name: Fail the workflow if "Check PR health" failed
-        if: steps.healthstep.outcome != 'success'
-        run: exit 1
+          path: output/

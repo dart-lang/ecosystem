@@ -22,8 +22,6 @@ import 'license.dart';
 
 const String _botSuffix = '[bot]';
 
-const String _githubActionsUser = 'github-actions[bot]';
-
 const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
@@ -36,16 +34,33 @@ const String _coverageBotTag = '### Coverage';
 
 const String _breakingBotTag = '### Breaking changes';
 
-const String _prHealthTag = '## PR Health';
+const checkTypes = <String>[
+  'version',
+  'license',
+  'changelog',
+  'coverage',
+  'breaking',
+  'do-not-submit',
+];
 
 class Health {
   final Directory directory;
 
-  Health(this.directory);
+  Health(
+    this.directory,
+    this.check,
+    this.warnOn,
+    this.failOn,
+    this.coverageweb,
+  );
+  final github = GithubApi();
 
-  Future<void> healthCheck(List args, bool coverageweb) async {
-    var github = GithubApi();
+  final String check;
+  final List<String> warnOn;
+  final List<String> failOn;
+  final bool coverageweb;
 
+  Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
     if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
@@ -56,35 +71,48 @@ class Health {
       return;
     }
 
-    print('Start health check for the checks $args');
-    var checks = [
-      if (args.contains('version') &&
-          !github.prLabels.contains('skip-validate-check'))
-        validateCheck,
-      if (args.contains('license') &&
-          !github.prLabels.contains('skip-license-check'))
-        licenseCheck,
-      if (args.contains('changelog') &&
-          !github.prLabels.contains('skip-changelog-check'))
-        changelogCheck,
-      if (args.contains('coverage') &&
-          !github.prLabels.contains('skip-coverage-check'))
-        (GithubApi github) => coverageCheck(github, coverageweb),
-      if (args.contains('breaking') &&
-          !github.prLabels.contains('skip-breaking-check'))
-        breakingCheck,
-      if (args.contains('do-not-submit') &&
-          !github.prLabels.contains('skip-do-not-submit-check'))
-        doNotSubmitCheck,
-    ];
-    final results = <HealthCheckResult>[];
-    for (var check in checks) {
-      results.add(await check(github));
+    print('Start health check for the check $check');
+    print('Checking for $check');
+    if (!github.prLabels.contains('skip-$check-check')) {
+      final firstResult = await checkFor(check)();
+      final HealthCheckResult finalResult;
+      if (warnOn.contains(check) && firstResult.severity == Severity.error) {
+        finalResult = firstResult.withSeverity(Severity.warning);
+      } else if (failOn.contains(check) &&
+          firstResult.severity == Severity.warning) {
+        finalResult = firstResult.withSeverity(Severity.error);
+      } else {
+        finalResult = firstResult;
+      }
+      await writeInComment(github, finalResult);
+      print('\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
+    } else {
+      print('Skipping $check, as the skip tag is present.');
     }
-    await writeInComment(github, results);
   }
 
-  Future<HealthCheckResult> validateCheck(GithubApi github) async {
+  String tagFor(String checkType) => switch (checkType) {
+        'version' => _publishBotTag2,
+        'license' => _licenseBotTag,
+        'changelog' => _changelogBotTag,
+        'coverage' => _coverageBotTag,
+        'breaking' => _breakingBotTag,
+        'do-not-submit' => _doNotSubmitBotTag,
+        String() => throw ArgumentError('Invalid check type $checkType'),
+      };
+
+  Future<HealthCheckResult> Function() checkFor(String checkType) =>
+      switch (checkType) {
+        'version' => validateCheck,
+        'license' => licenseCheck,
+        'changelog' => changelogCheck,
+        'coverage' => coverageCheck,
+        'breaking' => breakingCheck,
+        'do-not-submit' => doNotSubmitCheck,
+        String() => throw ArgumentError('Invalid check type $checkType'),
+      };
+
+  Future<HealthCheckResult> validateCheck() async {
     //TODO: Add Flutter support for PR health checks
     var results = await Firehose(directory, false).verify(github);
 
@@ -97,19 +125,17 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     ''';
 
     return HealthCheckResult(
-      'validate',
-      _publishBotTag2,
+      'version',
       results.severity,
       markdownTable,
     );
   }
 
-  Future<HealthCheckResult> breakingCheck(GithubApi github) async {
-    final repo = Repository();
-    final packages = repo.locatePackages();
-    var changeForPackage = <Package, BreakingChange>{};
-    var baseDirectory = Directory('../base_repo');
-    for (var package in packages) {
+  Future<HealthCheckResult> breakingCheck() async {
+    final filesInPR = await github.listFilesForPR();
+    final changeForPackage = <Package, BreakingChange>{};
+    final baseDirectory = Directory('../base_repo');
+    for (var package in packagesContaining(filesInPR)) {
       var currentPath =
           path.relative(package.directory.path, from: Directory.current.path);
       var basePackage = path.relative(
@@ -153,7 +179,6 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     }
     return HealthCheckResult(
       'breaking',
-      _breakingBotTag,
       changeForPackage.values.any((element) => !element.versionIsFine)
           ? Severity.warning
           : Severity.info,
@@ -179,7 +204,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     return breakingLevel;
   }
 
-  Future<HealthCheckResult> licenseCheck(GithubApi github) async {
+  Future<HealthCheckResult> licenseCheck() async {
     var files = await github.listFilesForPR();
     var allFilePaths = await getFilesWithoutLicenses(Directory.current);
 
@@ -217,13 +242,12 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
 
     return HealthCheckResult(
       'license',
-      _licenseBotTag,
       changedFilesPaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
   }
 
-  Future<HealthCheckResult> changelogCheck(GithubApi github) async {
+  Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(github);
 
     final markdownResult = '''
@@ -236,13 +260,12 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
     return HealthCheckResult(
       'changelog',
-      _changelogBotTag,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
   }
 
-  Future<HealthCheckResult> doNotSubmitCheck(GithubApi github) async {
+  Future<HealthCheckResult> doNotSubmitCheck() async {
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR();
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
@@ -268,17 +291,13 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     final hasDNS = filesWithDNS.isNotEmpty || bodyContainsDNS;
     return HealthCheckResult(
       'do-not-submit',
-      _doNotSubmitBotTag,
       hasDNS ? Severity.error : Severity.success,
       hasDNS ? markdownResult : null,
     );
   }
 
-  Future<HealthCheckResult> coverageCheck(
-    GithubApi github,
-    bool coverageWeb,
-  ) async {
-    var coverage = await Coverage(coverageWeb).compareCoverages(github);
+  Future<HealthCheckResult> coverageCheck() async {
+    var coverage = await Coverage(coverageweb).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |
@@ -290,7 +309,6 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
     return HealthCheckResult(
       'coverage',
-      _coverageBotTag,
       Severity.values[coverage.coveragePerFile.values
           .map((change) => change.severity.index)
           .fold(0, max)],
@@ -299,11 +317,9 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
   }
 
   Future<void> writeInComment(
-    GithubApi github,
-    List<HealthCheckResult> results,
-  ) async {
-    var commentText =
-        results.where((result) => result.markdown != null).map((result) {
+      GithubApi github, HealthCheckResult result) async {
+    final String markdownSummary;
+    if (result.markdown != null) {
       var markdown = result.markdown;
       var isWorseThanInfo = result.severity.index >= Severity.warning.index;
       var s = '''
@@ -318,43 +334,33 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 </details>
 
 ''';
-      return '${result.title} ${result.severity.emoji}\n\n$s';
-    }).join('\n');
-
-    var summary = '$_prHealthTag\n\n$commentText';
-    github.appendStepSummary(summary);
-
-    var existingCommentId = await allowFailure(
-      github.findCommentId(user: _githubActionsUser, searchTerm: _prHealthTag),
-      logError: print,
-    );
-
-    if (existingCommentId != null) {
-      var idFile = File('./output/commentId');
-      print('''
-Saving existing comment id $existingCommentId to file ${idFile.path}''');
-      await idFile.create(recursive: true);
-      await idFile.writeAsString(existingCommentId.toString());
+      markdownSummary = '${tagFor(result.name)} ${result.severity.emoji}\n\n$s';
+    } else {
+      markdownSummary = '';
     }
+
+    github.appendStepSummary(markdownSummary);
 
     var commentFile = File('./output/comment.md');
     print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
-    await commentFile.writeAsString(summary);
+    await commentFile.writeAsString(markdownSummary);
 
-    if (results.any((result) => result.severity == Severity.error) &&
-        exitCode == 0) {
+    if (result.severity == Severity.error && exitCode == 0) {
       exitCode = 1;
     }
   }
-}
 
-Version getNewVersion(BreakingLevel level, Version oldVersion) {
-  return switch (level) {
-    BreakingLevel.none => oldVersion,
-    BreakingLevel.nonBreaking => oldVersion.nextMinor,
-    BreakingLevel.breaking => oldVersion.nextBreaking,
-  };
+  List<Package> packagesContaining(List<GitFile> filesInPR) {
+    var files = filesInPR.where((element) => element.status.isRelevant);
+    final repo = Repository();
+    return repo.locatePackages().where((package) {
+      var relativePackageDirectory =
+          path.relative(package.directory.path, from: Directory.current.path);
+      return files.any(
+          (file) => path.isWithin(relativePackageDirectory, file.relativePath));
+    }).toList();
+  }
 }
 
 enum BreakingLevel {
@@ -369,11 +375,16 @@ enum BreakingLevel {
 
 class HealthCheckResult {
   final String name;
-  final String title;
   final Severity severity;
   final String? markdown;
 
-  HealthCheckResult(this.name, this.title, this.severity, this.markdown);
+  HealthCheckResult(this.name, this.severity, this.markdown);
+
+  HealthCheckResult withSeverity(Severity severity) => HealthCheckResult(
+        name,
+        severity,
+        markdown,
+      );
 }
 
 class BreakingChange {
