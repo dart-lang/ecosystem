@@ -51,7 +51,7 @@ on:
         type: boolean
       ignore:
         description: The files to ignore for this check.
-        default: ""
+        default: "[!*]"
         required: false
         type: string
 
