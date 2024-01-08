@@ -14,12 +14,12 @@ dependencies:
   args: ^2.3.0
   collection: ^1.17.2
   github: ^9.20.0
+  glob: ^2.1.2
   http: ^1.0.0
   path: ^1.8.0
   pub_semver: ^2.1.0
   pubspec_parse: ^1.2.3
   yaml: ^3.1.0
-  glob: ^2.1.2
 
 dev_dependencies:
   dart_flutter_team_lints: ^2.0.0

@@ -54,7 +54,7 @@ class Health {
     this.failOn,
     this.coverageweb,
     List<String> ignored,
-  ) : ignoredFiles = ignored.map((e) => Glob(e)).toList();
+  ) : ignoredFiles = ignored.map(Glob.new).toList();
   final github = GithubApi();
 
   final String check;
