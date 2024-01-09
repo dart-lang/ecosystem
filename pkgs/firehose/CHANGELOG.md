@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Set exit code for skipping workflow.
+
 ## 0.5.0
 
 - Split health checks in individual workflows.

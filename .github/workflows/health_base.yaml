@@ -71,10 +71,7 @@ jobs:
           path: base_repo/
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
-      - name: Write comment if not present
-        run: |
-         mkdir -p current_repo/output/
-         test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+      - run: mkdir -p current_repo/output/
           
       - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
         if: ${{ inputs.use-flutter }}
@@ -109,7 +106,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: cd current_repo/ && dart pub global run firehose:health --check ${{ inputs.check }} ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} --fail_on ${{ inputs.fail_on }} --warn_on ${{ inputs.warn_on }}
+        run: |
+          cd current_repo/ && \
+          dart pub global run firehose:health \
+            --check ${{ inputs.check }} \
+            ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
+            --fail_on ${{ inputs.fail_on }} \
+            --warn_on ${{ inputs.warn_on }} \
+          echo "exitcode=$?" >> $GITHUB_ENV
+
+      - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+        if: ${{ '$action_state' != 4 }}
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage }}
