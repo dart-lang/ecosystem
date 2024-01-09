@@ -89,11 +89,11 @@ jobs:
     runs-on: ubuntu-latest
     steps: 
 
-     - name: contains(${{ inputs.checks }}, 'changelog')
+     - name: ${{ contains(inputs.checks, 'changelog') }}
        run: echo ${{ inputs.checks }}
 
   version:
-    if: contains(${{ inputs.checks }}, 'version')
+    if: ${{ contains(inputs.checks, 'version') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -115,7 +115,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   license:
-    if: contains(${{ inputs.checks }}, 'license')
+    if: ${{ contains(inputs.checks, 'license') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -126,7 +126,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   coverage:
-    if: contains(${{ inputs.checks }}, 'coverage')
+    if: ${{ contains(inputs.checks, 'coverage') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -139,7 +139,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   breaking:
-    if: contains(${{ inputs.checks }}, 'breaking')
+    if: ${{ contains(inputs.checks, 'breaking') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -150,7 +150,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   do-not-submit:
-    if: contains(${{ inputs.checks }}, 'do-not-submit')
+    if: ${{ contains(inputs.checks, 'do-not-submit') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
