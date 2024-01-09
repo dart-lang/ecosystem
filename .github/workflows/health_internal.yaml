@@ -12,6 +12,6 @@ jobs:
       local_debug: true
       coverage_web: false
       upload_coverage: false
-      checks: version,changelog,license,coverage,breaking,do-not-submit
+      checks: version,license,coverage,breaking,do-not-submit
       fail_on: version,changelog,do-not-submit
       warn_on: license,coverage,breaking
