@@ -85,13 +85,6 @@ on:
         type: boolean
 
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    steps: 
-
-     - name: ${{ contains(inputs.checks, 'changelog') }}
-       run: echo ${{ inputs.checks }}
-
   version:
     if: ${{ contains(inputs.checks, 'version') }}
     uses: ./.github/workflows/health_base.yaml
