@@ -1,6 +1,6 @@
 ## 0.5.1
 
-- Fix comment id serialization to disk.
+- Fix comment ID serialization to disk.
 
 ## 0.5.0
 
