@@ -104,7 +104,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
 
   changelog:
-    if: contains(${{ inputs.checks }}, 'changelog')
+    if: ${{ contains(inputs.checks, 'changelog') }}
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
