@@ -91,7 +91,7 @@ class GithubApi {
   /// Find a comment on the PR matching the given criteria ([user],
   /// [searchTerm]). Return the issue ID if a matching comment is found or null
   /// if there's no match.
-  Future<IssueComment?> findCommentId({
+  Future<int?> findCommentId({
     required String user,
     String? searchTerm,
   }) async {
@@ -107,7 +107,7 @@ class GithubApi {
       },
       orElse: () => null,
     );
-    return matchingComment;
+    return matchingComment?.id;
   }
 
   Future<List<GitFile>> listFilesForPR() async => await github.pullRequests
