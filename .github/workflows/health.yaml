@@ -49,7 +49,7 @@ on:
       # needed.
       checks:
         description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        default: "version,license,coverage,breaking,do-not-submit"
+        default: "version,changelog,license,coverage,breaking,do-not-submit"
         type: string
         required: false
       fail_on:
