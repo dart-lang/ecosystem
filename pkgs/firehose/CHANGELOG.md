@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Fix comment id serialization to disk.
+
 ## 0.5.0
 
 - Split health checks in individual workflows.
