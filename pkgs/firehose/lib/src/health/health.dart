@@ -87,7 +87,6 @@ class Health {
       await writeInComment(github, finalResult);
       print('\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
     } else {
-      exitCode = 4;
       print('Skipping $check, as the skip tag is present.');
     }
   }
