@@ -1,6 +1,7 @@
 ## 0.5.2
 
 - Also run health workflows on bot PRs.
+- Fix coverage handling on monorepos.
 
 ## 0.5.1
 
