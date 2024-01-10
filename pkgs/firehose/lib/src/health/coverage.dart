@@ -58,11 +58,14 @@ class Coverage {
           .where((element) => element.name == package.name)
           .firstOrNull;
       final oldCoverages = getCoverage(basePackage);
-      for (var file in filesOfInterest.map((file) => file.relativePath)) {
-        var oldCoverage = oldCoverages[file];
-        var newCoverage = newCoverages[file];
-        print('Compage coverage for $file: $oldCoverage vs $newCoverage');
-        coverageResult[file] = Change(
+      var filePaths = filesOfInterest
+          .where((file) => file.isInPackage(package))
+          .map((file) => file.relativePath);
+      for (var filePath in filePaths) {
+        var oldCoverage = oldCoverages[filePath];
+        var newCoverage = newCoverages[filePath];
+        print('Compage coverage for $filePath: $oldCoverage vs $newCoverage');
+        coverageResult[filePath] = Change(
           oldCoverage: oldCoverage,
           newCoverage: newCoverage,
         );
