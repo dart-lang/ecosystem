@@ -66,11 +66,6 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    if ((github.actor ?? '').endsWith(_botSuffix)) {
-      print('Skipping package validation for ${github.actor} PRs.');
-      return;
-    }
-
     print('Start health check for the check $check');
     print('Checking for $check');
     if (!github.prLabels.contains('skip-$check-check')) {

@@ -1,3 +1,7 @@
+## 0.5.2
+
+- Also run health workflows on bot PRs.
+
 ## 0.5.1
 
 - Fix comment ID serialization to disk.
