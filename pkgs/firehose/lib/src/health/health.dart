@@ -20,8 +20,6 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
-const String _botSuffix = '[bot]';
-
 const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
