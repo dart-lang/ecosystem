@@ -83,6 +83,11 @@ on:
         default: false
         required: false
         type: boolean
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   version:
