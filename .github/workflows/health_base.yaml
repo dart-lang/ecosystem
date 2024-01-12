@@ -50,6 +50,11 @@ on:
         default: false
         required: false
         type: boolean
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   health:
@@ -64,11 +69,13 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           path: current_repo/
+          submodules: ${{ inputs.checkout_submodules }}
       
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
+          submodules: ${{ inputs.checkout_submodules }}
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
