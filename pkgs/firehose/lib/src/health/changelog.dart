@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
 import '../github.dart';
@@ -11,11 +12,11 @@ import '../repo.dart';
 import '../utils.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
-    GithubApi github) async {
+    GithubApi github, List<Glob> ignoredFiles) async {
   final repo = Repository();
-  final packages = repo.locatePackages();
+  final packages = repo.locatePackages(ignoredFiles);
 
-  final files = await github.listFilesForPR();
+  final files = await github.listFilesForPR(ignoredFiles);
 
   var packagesWithoutChangedChangelog =
       collectPackagesWithoutChangelogChanges(packages, files);

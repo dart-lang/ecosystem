@@ -116,7 +116,8 @@ jobs:
             --check ${{ inputs.check }} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
-            --warn_on ${{ inputs.warn_on }}
+            --warn_on ${{ inputs.warn_on }} \
+            --ignore ${{ inputs.ignore }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}

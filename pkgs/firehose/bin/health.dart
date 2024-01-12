@@ -16,7 +16,7 @@ void main(List<String> arguments) async {
     )
     ..addMultiOption(
       'ignore',
-      help: 'Check PR health.',
+      help: 'File which should be ignored by the health workflow.',
     )
     ..addMultiOption(
       'warn_on',

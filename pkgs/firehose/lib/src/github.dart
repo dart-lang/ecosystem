@@ -5,7 +5,9 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
+import 'package:glob/glob.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -110,11 +112,16 @@ class GithubApi {
     return matchingComment?.id;
   }
 
-  Future<List<GitFile>> listFilesForPR() async => await github.pullRequests
-      .listFiles(repoSlug!, issueNumber!)
-      .map((prFile) =>
-          GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
-      .toList();
+  Future<List<GitFile>> listFilesForPR([
+    List<Glob> ignoredFiles = const [],
+  ]) async =>
+      await github.pullRequests
+          .listFiles(repoSlug!, issueNumber!)
+          .map((prFile) =>
+              GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
+          .where((file) =>
+              ignoredFiles.none((glob) => glob.matches(file.relativePath)))
+          .toList();
 
   /// Write a notice message to the github log.
   void notice({required String message}) {

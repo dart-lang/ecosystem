@@ -82,7 +82,7 @@ on:
         default: false
         required: false
         type: boolean
-      ignore_license:
+      ignore:
         description: Which files to ignore when checking for licenses.
         required: false
         type: string
@@ -98,6 +98,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore }}
 
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
@@ -109,6 +110,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -120,7 +122,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
-      ignore: ${{ inputs.ignore_license }}
+      ignore: ${{ inputs.ignore }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -134,6 +136,7 @@ jobs:
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -145,6 +148,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -156,6 +160,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      ignore: ${{ inputs.ignore }}
 
   comment:
     needs: [version, changelog, license, coverage, breaking, do-not-submit]

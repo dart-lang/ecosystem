@@ -110,7 +110,7 @@ class Health {
 
   Future<HealthCheckResult> validateCheck() async {
     //TODO: Add Flutter support for PR health checks
-    var results = await Firehose(directory, false).verify(github);
+    var results = await Firehose(directory, false).verify(github, ignoredFiles);
 
     var markdownTable = '''
 | Package | Version | Status |
@@ -128,7 +128,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR();
+    final filesInPR = await github.listFilesForPR(ignoredFiles);
     final changeForPackage = <Package, BreakingChange>{};
     final baseDirectory = Directory('../base_repo');
     for (var package in packagesContaining(filesInPR)) {
@@ -201,7 +201,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR();
+    var files = await github.listFilesForPR(ignoredFiles);
     var allFilePaths =
         await getFilesWithoutLicenses(Directory.current, ignoredFiles);
 
@@ -245,7 +245,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   }
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(github);
+    var filePaths = await packagesWithoutChangelog(github, ignoredFiles);
 
     final markdownResult = '''
 | Package | Changed Files |
@@ -264,7 +264,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR();
+    final files = await github.listFilesForPR(ignoredFiles);
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -294,7 +294,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(coverageweb).compareCoverages(github);
+    var coverage =
+        await Coverage(coverageweb, ignoredFiles).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |
@@ -351,7 +352,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     final repo = Repository();
-    return repo.locatePackages().where((package) {
+    return repo.locatePackages(ignoredFiles).where((package) {
       var relativePackageDirectory =
           path.relative(package.directory.path, from: Directory.current.path);
       return files.any(

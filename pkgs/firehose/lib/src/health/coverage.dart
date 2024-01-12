@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
 import '../github.dart';
@@ -14,11 +15,12 @@ import 'lcov.dart';
 
 class Coverage {
   final bool coverageWeb;
+  final List<Glob> ignoredFiles;
 
-  Coverage(this.coverageWeb);
+  Coverage(this.coverageWeb, this.ignoredFiles);
 
   Future<CoverageResult> compareCoverages(GithubApi github) async {
-    var files = await github.listFilesForPR();
+    var files = await github.listFilesForPR(ignoredFiles);
     var basePath = '../base_repo/';
 
     return compareCoveragesFor(files, basePath);
@@ -26,7 +28,7 @@ class Coverage {
 
   CoverageResult compareCoveragesFor(List<GitFile> files, String basePath) {
     var repository = Repository();
-    var packages = repository.locatePackages();
+    var packages = repository.locatePackages(ignoredFiles);
     print('Found packages $packages at ${Directory.current}');
 
     var filesOfInterest = files
@@ -40,7 +42,7 @@ class Coverage {
     var base = Directory(basePath);
 
     var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages();
+    var basePackages = baseRepository.locatePackages(ignoredFiles);
     print('Found packages $basePackages at $base');
 
     var changedPackages = packages
