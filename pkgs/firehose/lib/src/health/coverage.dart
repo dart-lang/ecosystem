@@ -17,7 +17,9 @@ class Coverage {
   final bool coverageWeb;
   final List<Glob> ignoredFiles;
 
-  Coverage(this.coverageWeb, this.ignoredFiles);
+  final List<Glob> ignoredPackages;
+
+  Coverage(this.coverageWeb, this.ignoredFiles, this.ignoredPackages);
 
   Future<CoverageResult> compareCoverages(GithubApi github) async {
     var files = await github.listFilesForPR(ignoredFiles);
@@ -28,7 +30,7 @@ class Coverage {
 
   CoverageResult compareCoveragesFor(List<GitFile> files, String basePath) {
     var repository = Repository();
-    var packages = repository.locatePackages(ignoredFiles);
+    var packages = repository.locatePackages(ignoredPackages);
     print('Found packages $packages at ${Directory.current}');
 
     var filesOfInterest = files

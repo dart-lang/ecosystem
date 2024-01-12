@@ -15,4 +15,4 @@ jobs:
       checks: version,changelog,license,coverage,breaking,do-not-submit
       fail_on: version,changelog,do-not-submit
       warn_on: license,coverage,breaking
-      ignore_license: '**.g.dart'
+      ignore: '**.g.dart'

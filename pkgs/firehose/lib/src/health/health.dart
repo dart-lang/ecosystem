@@ -51,15 +51,21 @@ class Health {
     this.warnOn,
     this.failOn,
     this.coverageweb,
-    List<String> ignored,
-  ) : ignoredFiles = ignored.map(Glob.new).toList();
+    List<String> ignoredPackages,
+    List<String> ignoredLicense,
+    List<String> ignoredCoverage,
+  )   : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
+        ignoredFilesForCoverage = ignoredCoverage.map(Glob.new).toList(),
+        ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList();
   final github = GithubApi();
 
   final String check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
-  final List<Glob> ignoredFiles;
+  final List<Glob> ignoredPackages;
+  final List<Glob> ignoredFilesForLicense;
+  final List<Glob> ignoredFilesForCoverage;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -110,7 +116,8 @@ class Health {
 
   Future<HealthCheckResult> validateCheck() async {
     //TODO: Add Flutter support for PR health checks
-    var results = await Firehose(directory, false).verify(github, ignoredFiles);
+    var results =
+        await Firehose(directory, false).verify(github, ignoredPackages);
 
     var markdownTable = '''
 | Package | Version | Status |
@@ -128,7 +135,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR(ignoredFiles);
+    final filesInPR = await github.listFilesForPR();
     final changeForPackage = <Package, BreakingChange>{};
     final baseDirectory = Directory('../base_repo');
     for (var package in packagesContaining(filesInPR)) {
@@ -201,9 +208,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(ignoredFiles);
-    var allFilePaths =
-        await getFilesWithoutLicenses(Directory.current, ignoredFiles);
+    var files = await github.listFilesForPR(ignoredFilesForLicense);
+    var allFilePaths = await getFilesWithoutLicenses(
+      Directory.current,
+      ignoredFilesForLicense,
+    );
 
     var groupedPaths = allFilePaths
         .groupListsBy((path) => files.any((f) => f.relativePath == path));
@@ -245,7 +254,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   }
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(github, ignoredFiles);
+    var filePaths = await packagesWithoutChangelog(github, ignoredPackages);
 
     final markdownResult = '''
 | Package | Changed Files |
@@ -264,7 +273,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR(ignoredFiles);
+    final files = await github.listFilesForPR();
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -294,8 +303,11 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage =
-        await Coverage(coverageweb, ignoredFiles).compareCoverages(github);
+    var coverage = await Coverage(
+      coverageweb,
+      ignoredFilesForCoverage,
+      ignoredPackages,
+    ).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |
@@ -352,7 +364,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     final repo = Repository();
-    return repo.locatePackages(ignoredFiles).where((package) {
+    return repo.locatePackages(ignoredPackages).where((package) {
       var relativePackageDirectory =
           path.relative(package.directory.path, from: Directory.current.path);
       return files.any(

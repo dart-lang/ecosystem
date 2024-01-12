@@ -94,10 +94,10 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
   Future<VerificationResults> verify(
     GithubApi github, [
-    List<Glob> ignoredFiles = const [],
+    List<Glob> ignoredPackages = const [],
   ]) async {
     var repo = Repository();
-    var packages = repo.locatePackages(ignoredFiles);
+    var packages = repo.locatePackages(ignoredPackages);
 
     var pub = Pub();
 
