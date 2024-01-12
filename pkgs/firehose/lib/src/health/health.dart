@@ -21,8 +21,6 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
-const String _botSuffix = '[bot]';
-
 const String _publishBotTag2 = '### Package publish validation';
 
 const String _licenseBotTag = '### License Headers';
@@ -68,11 +66,6 @@ class Health {
     if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
-
-    if ((github.actor ?? '').endsWith(_botSuffix)) {
-      print('Skipping package validation for ${github.actor} PRs.');
-      return;
-    }
 
     print('Start health check for the check $check');
     print('Checking for $check');
