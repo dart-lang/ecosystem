@@ -49,18 +49,6 @@ on:
         default: false
         required: false
         type: boolean
-      ignore_license:
-        description: Which files to ignore for the license check.
-        required: false
-        type: string
-      ignore_coverage:
-        description: Which files to ignore for the coverage check.
-        required: false
-        type: string
-      ignore_packages:
-        description: Which packages to ignore.
-        required: false
-        type: string
 
 jobs:
   health:
@@ -123,10 +111,7 @@ jobs:
             --check ${{ inputs.check }} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
-            --warn_on ${{ inputs.warn_on }} \
-            --ignore_license ${{ inputs.ignore_license }} \
-            --ignore_coverage ${{ inputs.ignore_coverage }} \
-            --ignore_packages ${{ inputs.ignore_packages }}
+            --warn_on ${{ inputs.warn_on }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}
