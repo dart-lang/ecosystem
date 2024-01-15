@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:github/src/common/model/repos.dart';
-import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -90,8 +89,7 @@ class FakeGithubApi implements GithubApi {
   int? get issueNumber => 1;
 
   @override
-  Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
+  Future<List<GitFile>> listFilesForPR(Directory directory) async {
     return files;
   }
 
