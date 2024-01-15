@@ -16,18 +16,6 @@ void main(List<String> arguments) async {
       help: 'Check PR health.',
     )
     ..addMultiOption(
-      'ignore_packages',
-      help: 'Which packages to ignore.',
-    )
-    ..addMultiOption(
-      'ignore_license',
-      help: 'Which files to ignore for the license check.',
-    )
-    ..addMultiOption(
-      'ignore_coverage',
-      help: 'Which files to ignore for the coverage check.',
-    )
-    ..addMultiOption(
       'warn_on',
       allowed: checkTypes,
       help: 'Which checks to display warnings on',
@@ -45,9 +33,6 @@ void main(List<String> arguments) async {
   var check = parsedArgs['check'] as String;
   var warnOn = parsedArgs['warn_on'] as List<String>;
   var failOn = parsedArgs['fail_on'] as List<String>;
-  var ignorePackages = parsedArgs['ignore_packages'] as List<String>;
-  var ignoreLicense = parsedArgs['ignore_license'] as List<String>;
-  var ignoreCoverage = parsedArgs['ignore_coverage'] as List<String>;
   var coverageWeb = parsedArgs['coverage_web'] as bool;
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
@@ -60,8 +45,5 @@ void main(List<String> arguments) async {
     failOn,
     coverageWeb,
     GithubApi(),
-    ignorePackages,
-    ignoreLicense,
-    ignoreCoverage,
   ).healthCheck();
 }
