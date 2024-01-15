@@ -96,7 +96,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     GithubApi github, [
     List<Glob> ignoredPackages = const [],
   ]) async {
-    var repo = Repository();
+    var repo = Repository(directory);
     var packages = repo.locatePackages(ignoredPackages);
 
     var pub = Pub();

@@ -295,7 +295,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
-        .where((file) => File(path.join(directory.path, file.relativePath))
+        .where((file) => File(file.pathInRepository)
             .readAsStringSync()
             .contains('DO_NOT${'_'}SUBMIT'))
         .toList();
@@ -382,12 +382,11 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     final repo = Repository(directory);
-    return repo.locatePackages(ignoredPackages).where((package) {
-      var relativePackageDirectory =
-          path.relative(package.directory.path, from: directory.path);
-      return files.any(
-          (file) => path.isWithin(relativePackageDirectory, file.filename));
-    }).toList();
+    return repo
+        .locatePackages(ignoredPackages)
+        .where((package) => files.any((file) =>
+            path.isWithin(package.directory.path, file.pathInRepository)))
+        .toList();
   }
 }
 

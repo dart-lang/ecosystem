@@ -22,7 +22,7 @@ void main() {
         directory,
       ),
     ]);
-    for (var check in ['breaking']) {
+    for (var check in checkTypes) {
       var comment = await checkFor(check, fakeGithubApi, directory);
       var goldenFile =
           File(p.join('test', 'data', 'golden', 'comment_$check.md'));
@@ -33,7 +33,7 @@ void main() {
         expect(comment, goldenComment);
       }
     }
-  });
+  }, timeout: const Timeout(Duration(minutes: 2)));
 }
 
 Future<String> checkFor(

@@ -27,7 +27,6 @@ Unrelated files missing license headers
 | :--- |
 |pkgs/package2/test/package2_test.dart|
 |pkgs/package2/lib/package2.dart|
-|pkgs/package2/bin/package2.dart|
 |pkgs/package1/test/package1_test.dart|
 |pkgs/package1/lib/package1.dart|
 |pkgs/package3/test/package3_test.dart|

@@ -1,17 +1,19 @@
-### Package publish validation :heavy_check_mark:
+### Package publish validation :exclamation:
 
-<details>
+<details open>
 <summary>
 Details
 </summary>
 
 | Package | Version | Status |
 | :--- | ---: | :--- |
-| package:firehose | 0.5.2 | already published at pub.dev |
+| package:package1 | 1.0.0 | (error) pub publish dry-run failed; add the `publish-ignore-warnings` label to ignore |
+| package:package2 | 1.0.0 | (error) pub publish dry-run failed; add the `publish-ignore-warnings` label to ignore |
+| package:package3 | 1.0.0 | (error) pub publish dry-run failed; add the `publish-ignore-warnings` label to ignore |
 
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
     
 
-
+This check can be disabled by tagging the PR with `skip-version-check`
 </details>
 

@@ -53,9 +53,9 @@ List<Package> collectPackagesWithoutChangelogChanges(
   print('Collecting packages without changed changelogs:');
   final packagesWithoutChangedChangelog =
       packages.where((package) => package.changelog.exists).where((package) {
-    var changelogPath =
-        path.relative(package.changelog.file.path, from: directory.path);
-    return !files.map((e) => e.filename).contains(changelogPath);
+    return !files
+        .map((e) => e.pathInRepository)
+        .contains(package.changelog.file.path);
   }).toList();
   print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
   return packagesWithoutChangedChangelog;

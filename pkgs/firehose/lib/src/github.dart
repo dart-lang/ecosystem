@@ -121,7 +121,7 @@ class GithubApi {
                 directory,
               ))
           .where((file) =>
-              ignoredFiles.none((glob) => glob.matches(file.relativePath)))
+              ignoredFiles.none((glob) => glob.matches(file.filename)))
           .toList();
 
   /// Write a notice message to the github log.
@@ -143,13 +143,12 @@ class GitFile {
   final Directory directory;
 
   bool isInPackage(Package package) {
-    return path.isWithin(
-        package.directory.path, path.join(directory.path, filename));
+    return path.isWithin(package.directory.path, pathInRepository);
   }
 
-  GitFile(this.filename, this.status, this.directory);
+  String get pathInRepository => path.join(directory.path, filename);
 
-  String get relativePath => path.relative(filename, from: directory.path);
+  GitFile(this.filename, this.status, this.directory);
 
   @override
   String toString() => '$filename: $status';
