@@ -25,6 +25,8 @@ void main() {
         directory,
       ),
     ]);
+    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
     for (var check in checkTypes) {
       var comment = await checkFor(check, fakeGithubApi, directory);
       var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
