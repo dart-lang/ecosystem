@@ -116,9 +116,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ['test', '--coverage=coverage'],
           workingDirectory: package.directory.path,
         );
-        print(directory.listSync(recursive: true));
-        print(resultVm.stdout);
-        print(resultVm.stderr);
+        print('dart test stdout: ${resultVm.stdout}');
+        print('dart test stderr: ${resultVm.stderr}');
         print('Compute coverage from runs');
         var resultLcov = Process.runSync(
           'dart',
@@ -137,8 +136,9 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print(resultLcov.stdout);
-        print(resultLcov.stderr);
+        print(directory.listSync(recursive: true)); //DO_NOT_SUBMIT
+        print('dart coverage stdout: ${resultLcov.stdout}');
+        print('dart coverage stderr: ${resultLcov.stderr}');
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,
