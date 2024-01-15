@@ -1,3 +1,7 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:firehose/src/github.dart';
@@ -8,7 +12,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('test name', () async {
-    final directory = Directory(p.join('test', 'data', 'test_repo'));
+    final directory = Directory(p.join('test_data', 'test_repo'));
     var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
       GitFile(
         'pkgs/package1/bin/package1.dart',
@@ -23,8 +27,7 @@ void main() {
     ]);
     for (var check in checkTypes) {
       var comment = await checkFor(check, fakeGithubApi, directory);
-      var goldenFile =
-          File(p.join('test', 'data', 'golden', 'comment_$check.md'));
+      var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
       var goldenComment = goldenFile.readAsStringSync();
       if (Platform.environment.containsKey('RESET_GOLDEN')) {
         goldenFile.writeAsStringSync(comment);
@@ -48,7 +51,7 @@ Future<String> checkFor(
     [],
     false,
     fakeGithubApi,
-    base: Directory(p.join('test', 'data', 'base_test_repo')),
+    base: Directory(p.join('test_data', 'base_test_repo')),
     comment: comment,
   ).healthCheck();
   return await File(comment).readAsString();
