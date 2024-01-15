@@ -17,17 +17,14 @@ void main(List<String> arguments) async {
     )
     ..addMultiOption(
       'ignore_packages',
-      defaultsTo: [],
       help: 'Which packages to ignore.',
     )
     ..addMultiOption(
       'ignore_license',
-      defaultsTo: [],
       help: 'Which files to ignore for the license check.',
     )
     ..addMultiOption(
       'ignore_coverage',
-      defaultsTo: [],
       help: 'Which files to ignore for the coverage check.',
     )
     ..addMultiOption(
