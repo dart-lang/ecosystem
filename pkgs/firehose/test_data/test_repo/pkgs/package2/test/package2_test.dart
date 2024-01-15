@@ -6,7 +6,7 @@ void main() {
   test('calculate', () {
     expect(p2.calculate(), 42);
   });
-  test('calculate', () {
+  test('calculate anotherlib', () {
     expect(anotherLib.calculateUnused(), 42);
   });
 }

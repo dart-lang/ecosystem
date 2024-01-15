@@ -29,7 +29,7 @@ Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir) async {
         }
       })
       .whereType<String>()
-      .sorted((a, b) => a.compareTo(b))
+      .sortedBy((fileName) => fileName)
       .toList();
   print('''
 Done, found ${filesWithoutLicenses.length} files without license headers''');

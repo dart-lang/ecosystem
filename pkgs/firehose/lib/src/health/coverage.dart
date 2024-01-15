@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 import '../github.dart';
@@ -45,6 +46,7 @@ class Coverage {
     var changedPackages = packages
         .where((package) =>
             filesOfInterest.any((file) => file.isInPackage(package)))
+        .sortedBy((package) => package.name)
         .toList();
 
     print('The packages of interest are $changedPackages');
@@ -57,14 +59,15 @@ class Coverage {
           .where((element) => element.name == package.name)
           .firstOrNull;
       final oldCoverages = getCoverage(basePackage);
-      var filePaths = filesOfInterest
+      var filenames = filesOfInterest
           .where((file) => file.isInPackage(package))
-          .map((file) => file.filename);
-      for (var filePath in filePaths) {
-        var oldCoverage = oldCoverages[filePath];
-        var newCoverage = newCoverages[filePath];
-        print('Compage coverage for $filePath: $oldCoverage vs $newCoverage');
-        coverageResult[filePath] = Change(
+          .map((file) => file.filename)
+          .sortedBy((filename) => filename);
+      for (var filename in filenames) {
+        var oldCoverage = oldCoverages[filename];
+        var newCoverage = newCoverages[filename];
+        print('Compage coverage for $filename: $oldCoverage vs $newCoverage');
+        coverageResult[filename] = Change(
           oldCoverage: oldCoverage,
           newCoverage: newCoverage,
         );
@@ -98,7 +101,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           workingDirectory: package.directory.path,
         );
         if (coverageWeb) {
-          print('Get test coverage for web');
+          print('Run tests with coverage for web');
           var resultChrome = Process.runSync(
             'dart',
             ['test', '-p', 'chrome', '--coverage=coverage'],
@@ -107,7 +110,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           print(resultChrome.stdout);
           print(resultChrome.stderr);
         }
-        print('Get test coverage for vm');
+        print('Run tests with coverage for vm');
         var resultVm = Process.runSync(
           'dart',
           ['test', '--coverage=coverage'],
@@ -115,6 +118,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         );
         print(resultVm.stdout);
         print(resultVm.stderr);
+        print('Compute coverage from runs');
         var resultLcov = Process.runSync(
           'dart',
           [
