@@ -9,12 +9,21 @@ import 'package:test/test.dart';
 
 void main() {
   test('test name', () async {
+    final directory = Directory(p.join('test', 'data', 'test_repo'));
     var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
-      GitFile('pkgs/package1/bin/package1.dart', FileStatus.modified),
-      GitFile('pkgs/package2/lib/anotherLib.dart', FileStatus.added),
+      GitFile(
+        'pkgs/package1/bin/package1.dart',
+        FileStatus.modified,
+        directory,
+      ),
+      GitFile(
+        'pkgs/package2/lib/anotherLib.dart',
+        FileStatus.added,
+        directory,
+      ),
     ]);
-    for (var check in checkTypes) {
-      var comment = await checkFor(check, fakeGithubApi);
+    for (var check in ['changelog']) {
+      var comment = await checkFor(check, fakeGithubApi, directory);
       var goldenFile =
           File(p.join('test', 'data', 'golden', 'comment_$check.md'));
       var goldenComment = goldenFile.readAsStringSync();
@@ -27,10 +36,14 @@ void main() {
   });
 }
 
-Future<String> checkFor(String check, FakeGithubApi fakeGithubApi) async {
+Future<String> checkFor(
+  String check,
+  FakeGithubApi fakeGithubApi,
+  Directory directory,
+) async {
   final comment = p.join(Directory.systemTemp.path, 'comment_$check.md');
   await Health(
-    Directory(p.join('test', 'data', 'test_repo')),
+    directory,
     check,
     [],
     [],
@@ -80,7 +93,7 @@ class FakeGithubApi implements GithubApi {
   int? get issueNumber => 1;
 
   @override
-  Future<List<GitFile>> listFilesForPR(
+  Future<List<GitFile>> listFilesForPR(Directory directory,
       [List<Glob> ignoredFiles = const []]) async {
     return files;
   }

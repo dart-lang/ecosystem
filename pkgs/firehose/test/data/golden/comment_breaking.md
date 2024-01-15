@@ -1,6 +1,6 @@
-### Breaking changes :heavy_check_mark:
+### Breaking changes :warning:
 
-<details>
+<details open>
 <summary>
 Details
 </summary>
@@ -8,9 +8,9 @@ Details
 | Package | Change | Current Version | New Version | Needed Version | Looking good? |
 | :--- | :--- | ---: | ---: | ---: | ---: |
 |package1|None|1.0.0|1.0.0|1.0.0|:heavy_check_mark:|
-|package2|None|1.0.0|1.0.0|1.0.0|:heavy_check_mark:|
+|package2|Non-Breaking|1.0.0|1.0.0|**1.1.0** <br> Got "1.0.0" expected >= "1.1.0" (non-breaking changes)|:warning:|
 
 
-
+This check can be disabled by tagging the PR with `skip-breaking-check`
 </details>
 

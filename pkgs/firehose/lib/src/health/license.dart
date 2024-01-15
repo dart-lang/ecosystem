@@ -25,8 +25,7 @@ Future<List<String>> getFilesWithoutLicenses(
         var fileContents = File(file.path).readAsStringSync();
         var fileContainsCopyright = fileContents.contains('// Copyright (c)');
         if (!fileContainsCopyright) {
-          var relativePath =
-              path.relative(file.path, from: Directory.current.path);
+          var relativePath = path.relative(file.path, from: repositoryDir.path);
           if (ignoredFiles.none((regex) => regex.matches(relativePath))) {
             print(relativePath);
             return relativePath;

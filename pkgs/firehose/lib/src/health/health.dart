@@ -148,7 +148,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR();
+    final filesInPR = await github.listFilesForPR(directory);
     final changeForPackage = <Package, BreakingChange>{};
     for (var package in packagesContaining(filesInPR)) {
       print('Look for changes in $package with base $baseDirectory');
@@ -220,14 +220,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(ignoredFilesForLicense);
+    var files = await github.listFilesForPR(directory, ignoredFilesForLicense);
     var allFilePaths = await getFilesWithoutLicenses(
-      Directory.current,
+      directory,
       ignoredFilesForLicense,
     );
 
-    var groupedPaths = allFilePaths
-        .groupListsBy((path) => files.any((f) => f.relativePath == path));
+    var groupedPaths = allFilePaths.groupListsBy((filePath) {
+      return files.any((f) => f.filename == filePath);
+    });
 
     var unchangedFilesPaths = groupedPaths[false] ?? [];
     var unchangedMarkdown = '''
@@ -275,7 +276,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     final markdownResult = '''
 | Package | Changed Files |
 | :--- | :--- |
-${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.relativePath).join('<br />')} |').join('\n')}
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.filename).join('<br />')} |').join('\n')}
 
 Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 ''';
@@ -289,7 +290,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR();
+    final files = await github.listFilesForPR(directory);
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>

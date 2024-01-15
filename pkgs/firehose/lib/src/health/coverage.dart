@@ -28,7 +28,7 @@ class Coverage {
   );
 
   Future<CoverageResult> compareCoverages(GithubApi github) async {
-    var files = await github.listFilesForPR(ignoredFiles);
+    var files = await github.listFilesForPR(directory, ignoredFiles);
     var basePath = '../base_repo/';
 
     return compareCoveragesFor(files, basePath);

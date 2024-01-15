@@ -1,6 +1,6 @@
-### License Headers :heavy_check_mark:
+### License Headers :exclamation:
 
-<details>
+<details open>
 <summary>
 Details
 </summary>
@@ -13,7 +13,8 @@ Details
 
 | Files |
 | :--- |
-| _no missing headers_  |
+|pkgs/package2/lib/anotherLib.dart|
+|pkgs/package1/bin/package1.dart|
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
 
@@ -24,31 +25,19 @@ Unrelated files missing license headers
 
 | Files |
 | :--- |
-|test/health_test.dart|
-|test/data/test_repo/pkgs/package2/test/package2_test.dart|
-|test/data/test_repo/pkgs/package2/lib/package2.dart|
-|test/data/test_repo/pkgs/package2/lib/anotherLib.dart|
-|test/data/test_repo/pkgs/package2/bin/package2.dart|
-|test/data/test_repo/pkgs/package1/test/package1_test.dart|
-|test/data/test_repo/pkgs/package1/lib/package1.dart|
-|test/data/test_repo/pkgs/package1/bin/package1.dart|
-|test/data/test_repo/pkgs/package3/test/package3_test.dart|
-|test/data/test_repo/pkgs/package3/lib/package3.dart|
-|test/data/test_repo/pkgs/package3/bin/package3.dart|
-|test/data/base_test_repo/pkgs/package2/test/package2_test.dart|
-|test/data/base_test_repo/pkgs/package2/lib/package2.dart|
-|test/data/base_test_repo/pkgs/package2/bin/package2.dart|
-|test/data/base_test_repo/pkgs/package1/test/package1_test.dart|
-|test/data/base_test_repo/pkgs/package1/lib/package1.dart|
-|test/data/base_test_repo/pkgs/package1/bin/package1.dart|
-|test/data/base_test_repo/pkgs/package3/test/package3_test.dart|
-|test/data/base_test_repo/pkgs/package3/lib/package3.dart|
-|test/data/base_test_repo/pkgs/package3/bin/package3.dart|
+|pkgs/package2/test/package2_test.dart|
+|pkgs/package2/lib/package2.dart|
+|pkgs/package2/bin/package2.dart|
+|pkgs/package1/test/package1_test.dart|
+|pkgs/package1/lib/package1.dart|
+|pkgs/package3/test/package3_test.dart|
+|pkgs/package3/lib/package3.dart|
+|pkgs/package3/bin/package3.dart|
 </details>
 
 
 
 
-
+This check can be disabled by tagging the PR with `skip-license-check`
 </details>
 

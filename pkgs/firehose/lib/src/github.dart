@@ -109,13 +109,17 @@ class GithubApi {
     return matchingComment?.id;
   }
 
-  Future<List<GitFile>> listFilesForPR([
+  Future<List<GitFile>> listFilesForPR(
+    Directory directory, [
     List<Glob> ignoredFiles = const [],
   ]) async =>
       await _github.pullRequests
           .listFiles(repoSlug!, issueNumber!)
-          .map((prFile) =>
-              GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
+          .map((prFile) => GitFile(
+                prFile.filename!,
+                FileStatus.fromString(prFile.status!),
+                directory,
+              ))
           .where((file) =>
               ignoredFiles.none((glob) => glob.matches(file.relativePath)))
           .toList();
@@ -136,16 +140,16 @@ class GithubApi {
 class GitFile {
   final String filename;
   final FileStatus status;
+  final Directory directory;
 
   bool isInPackage(Package package) {
     print('Check if $relativePath is in ${package.directory.path}');
     return path.isWithin(package.directory.path, relativePath);
   }
 
-  GitFile(this.filename, this.status);
+  GitFile(this.filename, this.status, this.directory);
 
-  String get relativePath =>
-      path.relative(filename, from: Directory.current.path);
+  String get relativePath => path.relative(filename, from: directory.path);
 
   @override
   String toString() => '$filename: $status';

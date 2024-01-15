@@ -5,8 +5,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 /// Execute the given CLI command asynchronously, streaming stdout and stderr to
 /// the console.
 ///
@@ -111,11 +109,6 @@ bool expectEnv(String? value, String name) {
   } else {
     return true;
   }
-}
-
-extension FileExtension on File {
-  String get relativePath =>
-      path.relative(this.path, from: Directory.current.path);
 }
 
 enum Severity {
