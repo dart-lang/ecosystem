@@ -5,7 +5,6 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
