@@ -11,7 +11,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('test name', () async {
+  test('Check health workflow against golden files', () async {
     final directory = Directory(p.join('test_data', 'test_repo'));
     var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
       GitFile(
