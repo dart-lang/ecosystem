@@ -7,8 +7,6 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:glob/glob.dart';
-
 import 'src/github.dart';
 import 'src/pub.dart';
 import 'src/repo.dart';
@@ -92,12 +90,9 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     github.close();
   }
 
-  Future<VerificationResults> verify(
-    GithubApi github, [
-    List<Glob> ignoredPackages = const [],
-  ]) async {
+  Future<VerificationResults> verify(GithubApi github) async {
     var repo = Repository(directory);
-    var packages = repo.locatePackages(ignoredPackages);
+    var packages = repo.locatePackages();
 
     var pub = Pub();
 
