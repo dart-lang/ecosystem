@@ -136,7 +136,6 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print(directory.listSync(recursive: true)); //DO_NOT_SUBMIT
         print('dart coverage stdout: ${resultLcov.stdout}');
         print('dart coverage stderr: ${resultLcov.stderr}');
         return parseLCOV(
