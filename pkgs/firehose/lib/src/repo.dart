@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -40,11 +39,9 @@ class Repository {
   /// `publish_to: none` key.
   ///
   /// Once we find a package, we don't look for packages in sub-directories.
-  List<Package> locatePackages([List<Glob> ignore = const []]) {
+  List<Package> locatePackages() {
     final packages = <Package>[];
     _recurseAndGather(baseDirectory, packages);
-    packages.removeWhere((package) =>
-        ignore.any((glob) => glob.matches(package.directory.path)));
     packages.sort((a, b) => a.name.compareTo(b.name));
     return packages;
   }
