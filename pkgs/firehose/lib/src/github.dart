@@ -21,16 +21,13 @@ class GithubApi {
 
   static Map<String, String> get _env => Platform.environment;
 
-  /// When true, details of any RPC error are printed to the console.
-  final bool verbose;
-
-  GithubApi({this.verbose = false, RepositorySlug? repoSlug, int? issueNumber})
+  GithubApi({RepositorySlug? repoSlug, int? issueNumber})
       : _repoSlug = repoSlug,
         _issueNumber = issueNumber;
 
   final http.Client _client = DelayedClient(const Duration(milliseconds: 50));
 
-  late GitHub github = githubAuthToken != null
+  late final GitHub _github = githubAuthToken != null
       ? GitHub(
           auth: Authentication.withToken(githubAuthToken),
           client: _client,
@@ -97,7 +94,7 @@ class GithubApi {
     required String user,
     String? searchTerm,
   }) async {
-    final matchingComment = await github.issues
+    final matchingComment = await _github.issues
         .listCommentsByIssue(repoSlug!, issueNumber!)
         .map<IssueComment?>((comment) => comment)
         .firstWhere(
@@ -115,7 +112,7 @@ class GithubApi {
   Future<List<GitFile>> listFilesForPR([
     List<Glob> ignoredFiles = const [],
   ]) async =>
-      await github.pullRequests
+      await _github.pullRequests
           .listFiles(repoSlug!, issueNumber!)
           .map((prFile) =>
               GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
@@ -129,11 +126,11 @@ class GithubApi {
   }
 
   Future<String> pullrequestBody() async {
-    final pullRequest = await github.pullRequests.get(repoSlug!, issueNumber!);
+    final pullRequest = await _github.pullRequests.get(repoSlug!, issueNumber!);
     return pullRequest.body ?? '';
   }
 
-  void close() => github.dispose();
+  void close() => _github.dispose();
 }
 
 class GitFile {

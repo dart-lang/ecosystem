@@ -46,18 +46,21 @@ class Health {
   final Directory directory;
 
   Health(
-    this.directory,
-    this.check,
-    this.warnOn,
-    this.failOn,
-    this.coverageweb,
-    List<String> ignoredPackages,
-    List<String> ignoredLicense,
-    List<String> ignoredCoverage,
-  )   : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
+      this.directory,
+      this.check,
+      this.warnOn,
+      this.failOn,
+      this.coverageweb,
+      this.github,
+      List<String> ignoredPackages,
+      List<String> ignoredLicense,
+      List<String> ignoredCoverage,
+      {Directory? base})
+      : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
         ignoredFilesForCoverage = ignoredCoverage.map(Glob.new).toList(),
-        ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList();
-  final github = GithubApi();
+        ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList(),
+        baseDirectory = base ?? Directory('../base_repo');
+  final GithubApi github;
 
   final String check;
   final List<String> warnOn;
@@ -66,6 +69,7 @@ class Health {
   final List<Glob> ignoredPackages;
   final List<Glob> ignoredFilesForLicense;
   final List<Glob> ignoredFilesForCoverage;
+  final Directory baseDirectory;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -137,7 +141,6 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await github.listFilesForPR();
     final changeForPackage = <Package, BreakingChange>{};
-    final baseDirectory = Directory('../base_repo');
     for (var package in packagesContaining(filesInPR)) {
       var currentPath =
           path.relative(package.directory.path, from: Directory.current.path);
@@ -254,7 +257,11 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   }
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(github, ignoredPackages);
+    var filePaths = await packagesWithoutChangelog(
+      github,
+      ignoredPackages,
+      directory,
+    );
 
     final markdownResult = '''
 | Package | Changed Files |
@@ -307,6 +314,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       coverageweb,
       ignoredFilesForCoverage,
       ignoredPackages,
+      directory,
     ).compareCoverages(github);
 
     var markdownResult = '''
@@ -363,10 +371,10 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
-    final repo = Repository();
+    final repo = Repository(directory);
     return repo.locatePackages(ignoredPackages).where((package) {
       var relativePackageDirectory =
-          path.relative(package.directory.path, from: Directory.current.path);
+          path.relative(package.directory.path, from: directory.path);
       return files.any(
           (file) => path.isWithin(relativePackageDirectory, file.relativePath));
     }).toList();

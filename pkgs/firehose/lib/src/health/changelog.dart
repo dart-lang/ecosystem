@@ -12,8 +12,11 @@ import '../repo.dart';
 import '../utils.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
-    GithubApi github, List<Glob> ignoredPackages) async {
-  final repo = Repository();
+  GithubApi github,
+  List<Glob> ignoredPackages,
+  Directory directory,
+) async {
+  final repo = Repository(directory);
   final packages = repo.locatePackages(ignoredPackages);
 
   final files = await github.listFilesForPR();
