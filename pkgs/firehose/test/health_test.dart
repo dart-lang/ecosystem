@@ -22,7 +22,7 @@ void main() {
         directory,
       ),
     ]);
-    for (var check in ['changelog']) {
+    for (var check in ['coverage']) {
       var comment = await checkFor(check, fakeGithubApi, directory);
       var goldenFile =
           File(p.join('test', 'data', 'golden', 'comment_$check.md'));

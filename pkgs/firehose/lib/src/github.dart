@@ -143,8 +143,8 @@ class GitFile {
   final Directory directory;
 
   bool isInPackage(Package package) {
-    print('Check if $relativePath is in ${package.directory.path}');
-    return path.isWithin(package.directory.path, relativePath);
+    return path.isWithin(
+        package.directory.path, path.join(directory.path, filename));
   }
 
   GitFile(this.filename, this.status, this.directory);

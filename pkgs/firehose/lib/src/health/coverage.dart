@@ -27,27 +27,25 @@ class Coverage {
     this.directory,
   );
 
-  Future<CoverageResult> compareCoverages(GithubApi github) async {
+  Future<CoverageResult> compareCoverages(
+      GithubApi github, Directory base) async {
     var files = await github.listFilesForPR(directory, ignoredFiles);
-    var basePath = '../base_repo/';
 
-    return compareCoveragesFor(files, basePath);
+    return compareCoveragesFor(files, base);
   }
 
-  CoverageResult compareCoveragesFor(List<GitFile> files, String basePath) {
+  CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
     var repository = Repository(directory);
     var packages = repository.locatePackages(ignoredPackages);
-    print('Found packages $packages at ${Directory.current}');
+    print('Found packages $packages at $directory');
 
     var filesOfInterest = files
         .where((file) => path.extension(file.filename) == '.dart')
         .where((file) => file.status != FileStatus.removed)
-        .where((file) => isInSomePackage(packages, file.relativePath))
-        .where((file) => isNotATest(packages, file.relativePath))
+        .where((file) => isInSomePackage(packages, file.filename))
+        .where((file) => isNotATest(packages, file.filename))
         .toList();
     print('The files of interest are $filesOfInterest');
-
-    var base = Directory(basePath);
 
     var baseRepository = Repository(base);
     var basePackages = baseRepository.locatePackages(ignoredFiles);
@@ -70,7 +68,7 @@ class Coverage {
       final oldCoverages = getCoverage(basePackage);
       var filePaths = filesOfInterest
           .where((file) => file.isInPackage(package))
-          .map((file) => file.relativePath);
+          .map((file) => file.filename);
       for (var filePath in filePaths) {
         var oldCoverage = oldCoverages[filePath];
         var newCoverage = newCoverages[filePath];
@@ -85,14 +83,16 @@ class Coverage {
   }
 
   bool isNotATest(List<Package> packages, String file) {
-    return packages.every((package) =>
-        !path.isWithin(path.join(package.directory.path, 'test'), file));
+    return packages.every((package) => !path.isWithin(
+        path.join(package.directory.path, 'test'),
+        path.join(directory.path, file)));
   }
 
-  bool isInSomePackage(List<Package> packages, String file) {
-    return packages
-        .any((package) => path.isWithin(package.directory.path, file));
-  }
+  bool isInSomePackage(List<Package> packages, String file) =>
+      packages.any((package) => path.isWithin(
+            package.directory.path,
+            path.join(directory.path, file),
+          ));
 
   Map<String, double> getCoverage(Package? package) {
     if (package != null) {

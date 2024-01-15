@@ -325,7 +325,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       ignoredFilesForCoverage,
       ignoredPackages,
       directory,
-    ).compareCoverages(github);
+    ).compareCoverages(github, baseDirectory);
 
     var markdownResult = '''
 | File | Coverage |
