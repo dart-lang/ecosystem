@@ -386,7 +386,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
       var relativePackageDirectory =
           path.relative(package.directory.path, from: directory.path);
       return files.any(
-          (file) => path.isWithin(relativePackageDirectory, file.relativePath));
+          (file) => path.isWithin(relativePackageDirectory, file.filename));
     }).toList();
   }
 }
