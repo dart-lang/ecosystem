@@ -13,25 +13,37 @@ void main() {
       GitFile('pkgs/package1/bin/package1.dart', FileStatus.modified),
       GitFile('pkgs/package2/lib/anotherLib.dart', FileStatus.added),
     ]);
-    // await checkFor('version', fakeGithubApi);
-    // await checkFor('license', fakeGithubApi);
-    await checkFor('breaking', fakeGithubApi);
+    for (var check in checkTypes) {
+      var comment = await checkFor(check, fakeGithubApi);
+      var goldenFile =
+          File(p.join('test', 'data', 'golden', 'comment_$check.md'));
+      var goldenComment = goldenFile.readAsStringSync();
+      if (Platform.environment.containsKey('RESET_GOLDEN')) {
+        goldenFile.writeAsStringSync(comment);
+      } else {
+        expect(comment, goldenComment);
+      }
+    }
   });
 }
 
-Future<void> checkFor(String check, FakeGithubApi fakeGithubApi) async =>
-    await Health(
-      Directory(p.join('test', 'data', 'test_repo')),
-      check,
-      [],
-      [],
-      false,
-      fakeGithubApi,
-      [],
-      [],
-      [],
-      base: Directory(p.join('test', 'data', 'base_test_repo')),
-    ).healthCheck();
+Future<String> checkFor(String check, FakeGithubApi fakeGithubApi) async {
+  final comment = p.join(Directory.systemTemp.path, 'comment_$check.md');
+  await Health(
+    Directory(p.join('test', 'data', 'test_repo')),
+    check,
+    [],
+    [],
+    false,
+    fakeGithubApi,
+    [],
+    [],
+    [],
+    base: Directory(p.join('test', 'data', 'base_test_repo')),
+    comment: comment,
+  ).healthCheck();
+  return await File(comment).readAsString();
+}
 
 class FakeGithubApi implements GithubApi {
   final List<GitFile> files;
@@ -42,35 +54,26 @@ class FakeGithubApi implements GithubApi {
   });
 
   @override
-  // TODO: implement actor
   String? get actor => throw UnimplementedError();
 
   @override
-  void appendStepSummary(String markdownSummary) {
-    // TODO: implement appendStepSummary
-  }
+  void appendStepSummary(String markdownSummary) {}
 
   @override
-  // TODO: implement baseRef
   String? get baseRef => throw UnimplementedError();
 
   @override
-  void close() {
-    // TODO: implement close
-  }
+  void close() {}
 
   @override
   Future<int?> findCommentId({required String user, String? searchTerm}) {
-    // TODO: implement findCommentId
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement githubAuthToken
   String? get githubAuthToken => throw UnimplementedError();
 
   @override
-  // TODO: implement inGithubContext
   bool get inGithubContext => throw UnimplementedError();
 
   @override
@@ -83,21 +86,15 @@ class FakeGithubApi implements GithubApi {
   }
 
   @override
-  void notice({required String message}) {
-    // TODO: implement notice
-  }
+  void notice({required String message}) {}
 
   @override
   final List<String> prLabels;
 
   @override
-  Future<String> pullrequestBody() {
-    // TODO: implement pullrequestBody
-    throw UnimplementedError();
-  }
+  Future<String> pullrequestBody() async => 'Test body';
 
   @override
-  // TODO: implement refName
   String? get refName => throw UnimplementedError();
 
   @override
