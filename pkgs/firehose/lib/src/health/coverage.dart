@@ -116,6 +116,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ['test', '--coverage=coverage'],
           workingDirectory: package.directory.path,
         );
+        print(directory.listSync(recursive: true));
         print(resultVm.stdout);
         print(resultVm.stderr);
         print('Compute coverage from runs');
