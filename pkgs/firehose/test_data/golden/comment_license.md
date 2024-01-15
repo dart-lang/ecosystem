@@ -13,8 +13,8 @@ Details
 
 | Files |
 | :--- |
-|pkgs/package2/lib/anotherLib.dart|
 |pkgs/package1/bin/package1.dart|
+|pkgs/package2/lib/anotherLib.dart|
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
 
@@ -25,13 +25,13 @@ Unrelated files missing license headers
 
 | Files |
 | :--- |
-|pkgs/package2/test/package2_test.dart|
-|pkgs/package2/lib/package2.dart|
-|pkgs/package1/test/package1_test.dart|
 |pkgs/package1/lib/package1.dart|
-|pkgs/package3/test/package3_test.dart|
-|pkgs/package3/lib/package3.dart|
+|pkgs/package1/test/package1_test.dart|
+|pkgs/package2/lib/package2.dart|
+|pkgs/package2/test/package2_test.dart|
 |pkgs/package3/bin/package3.dart|
+|pkgs/package3/lib/package3.dart|
+|pkgs/package3/test/package3_test.dart|
 </details>
 
 

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 final license = '''
@@ -28,6 +29,7 @@ Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir) async {
         }
       })
       .whereType<String>()
+      .sorted((a, b) => a.compareTo(b))
       .toList();
   print('''
 Done, found ${filesWithoutLicenses.length} files without license headers''');
