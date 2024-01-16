@@ -14,8 +14,9 @@ import 'lcov.dart';
 
 class Coverage {
   final bool coverageWeb;
+  final List<String> experiments;
 
-  Coverage(this.coverageWeb);
+  Coverage(this.coverageWeb, this.experiments);
 
   Future<CoverageResult> compareCoverages(GithubApi github) async {
     var files = await github.listFilesForPR();
@@ -93,14 +94,26 @@ class Coverage {
 Get coverage for ${package.name} by running coverage in ${package.directory.path}''');
         Process.runSync(
           'dart',
-          ['pub', 'get'],
+          [
+            if (experiments.isNotEmpty)
+              '--enable-experiment=${experiments.join(',')}',
+            'pub',
+            'get'
+          ],
           workingDirectory: package.directory.path,
         );
         if (coverageWeb) {
           print('Get test coverage for web');
           var resultChrome = Process.runSync(
             'dart',
-            ['test', '-p', 'chrome', '--coverage=coverage'],
+            [
+              if (experiments.isNotEmpty)
+                '--enable-experiment=${experiments.join(',')}',
+              'test',
+              '-p',
+              'chrome',
+              '--coverage=coverage'
+            ],
             workingDirectory: package.directory.path,
           );
           print(resultChrome.stdout);
@@ -109,7 +122,12 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         print('Get test coverage for vm');
         var resultVm = Process.runSync(
           'dart',
-          ['test', '--coverage=coverage'],
+          [
+            if (experiments.isNotEmpty)
+              '--enable-experiment=${experiments.join(',')}',
+            'test',
+            '--coverage=coverage'
+          ],
           workingDirectory: package.directory.path,
         );
         print(resultVm.stdout);

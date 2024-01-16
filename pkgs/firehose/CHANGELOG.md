@@ -1,3 +1,7 @@
+## 0.5.3
+
+- Allow experiments to be enabled for Dart.
+
 ## 0.5.2
 
 - Also run health workflows on bot PRs.

@@ -88,6 +88,11 @@ on:
         default: false
         required: false
         type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: "\"\""
+        type: string
+        required: false
 
 jobs:
   version:
@@ -101,6 +106,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
     uses: ./.github/workflows/health_base.yaml
@@ -138,6 +144,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      experiments: ${{ inputs.experiments }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
