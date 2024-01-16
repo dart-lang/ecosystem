@@ -49,6 +49,16 @@ on:
         default: false
         required: false
         type: boolean
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: "\"\""
+        type: string
+        required: false
 
 jobs:
   health:
@@ -63,11 +73,13 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           path: current_repo/
+          submodules: ${{ inputs.checkout_submodules }}
       
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
+          submodules: ${{ inputs.checkout_submodules }}
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
@@ -111,7 +123,8 @@ jobs:
             --check ${{ inputs.check }} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
-            --warn_on ${{ inputs.warn_on }}
+            --warn_on ${{ inputs.warn_on }} \
+            --experiments ${{ inputs.experiments }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}

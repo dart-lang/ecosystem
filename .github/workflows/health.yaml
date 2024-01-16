@@ -82,6 +82,16 @@ on:
         default: false
         required: false
         type: boolean
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: "\"\""
+        type: string
+        required: false
 
 jobs:
   version:
@@ -94,6 +104,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
@@ -105,6 +116,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -116,6 +128,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -129,6 +142,8 @@ jobs:
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      experiments: ${{ inputs.experiments }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -140,6 +155,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -151,6 +167,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   comment:
     needs: [version, changelog, license, coverage, breaking, do-not-submit]

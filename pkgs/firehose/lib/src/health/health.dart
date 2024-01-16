@@ -52,6 +52,7 @@ class Health {
     this.warnOn,
     this.failOn,
     this.coverageweb,
+    this.experiments,
     this.github, {
     Directory? base,
     String? comment,
@@ -69,6 +70,7 @@ class Health {
   final List<String> failOn;
   final bool coverageweb;
   final Directory baseDirectory;
+  final List<String> experiments;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -271,24 +273,26 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
   }
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
+    final dns = 'DO_NOT${'_'}SUBMIT';
+
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR(directory);
-    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
+    print('Checking for $dns strings: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
-        .where((file) => File(file.pathInRepository)
-            .readAsStringSync()
-            .contains('DO_NOT${'_'}SUBMIT'))
+        .where((file) => File(file.relativePath).existsSync())
+        .where(
+            (file) => File(file.relativePath).readAsStringSync().contains(dns))
         .toList();
-    print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
+    print('Found files with $dns: $filesWithDNS');
 
-    final bodyContainsDNS = body.contains('DO_NOT${'_'}SUBMIT');
-    print('The body contains a DO_NOT${'_'}SUBMIT string: $bodyContainsDNS');
+    final bodyContainsDNS = body.contains(dns);
+    print('The body contains a $dns string: $bodyContainsDNS');
     final markdownResult = '''
-Body contains `DO_NOT${'_'}SUBMIT`: $bodyContainsDNS
+Body contains `$dns`: $bodyContainsDNS
 
-| Files with `DO_NOT_${'SUBMIT'}` |
+| Files with `$dns` |
 | :--- |
 ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 ''';
@@ -302,7 +306,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(coverageweb, directory)
+    var coverage =
+        await Coverage(coverageweb, directory, experiments)
         .compareCoverages(github, baseDirectory);
 
     var markdownResult = '''
