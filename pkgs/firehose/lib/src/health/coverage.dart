@@ -95,7 +95,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         Process.runSync(
           'dart',
           [
-            if (experiments.isNotEmpty) 'enable-experiment=$experiments',
+            if (experiments.isNotEmpty)
+              'enable-experiment=${experiments.join(',')}',
             'pub',
             'get'
           ],
@@ -106,7 +107,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           var resultChrome = Process.runSync(
             'dart',
             [
-              if (experiments.isNotEmpty) 'enable-experiment=$experiments',
+              if (experiments.isNotEmpty)
+                'enable-experiment=${experiments.join(',')}',
               'test',
               '-p',
               'chrome',
@@ -121,7 +123,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         var resultVm = Process.runSync(
           'dart',
           [
-            if (experiments.isNotEmpty) 'enable-experiment=$experiments',
+            if (experiments.isNotEmpty)
+              'enable-experiment=${experiments.join(',')}',
             'test',
             '--coverage=coverage'
           ],
