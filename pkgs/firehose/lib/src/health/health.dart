@@ -50,6 +50,7 @@ class Health {
     this.warnOn,
     this.failOn,
     this.coverageweb,
+    this.experiments,
   );
   final github = GithubApi();
 
@@ -57,6 +58,7 @@ class Health {
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
+  final List<String> experiments;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -290,7 +292,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(coverageweb).compareCoverages(github);
+    var coverage =
+        await Coverage(coverageweb, experiments).compareCoverages(github);
 
     var markdownResult = '''
 | File | Coverage |

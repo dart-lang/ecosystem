@@ -55,6 +55,11 @@ on:
         default: false
         required: false
         type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: ""
+        type: string
+        required: false
 
 jobs:
   health:
@@ -119,7 +124,8 @@ jobs:
             --check ${{ inputs.check }} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
-            --warn_on ${{ inputs.warn_on }}
+            --warn_on ${{ inputs.warn_on }} \
+            --experiments ${{ inputs.experiments }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}
