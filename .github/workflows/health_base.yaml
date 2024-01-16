@@ -57,7 +57,7 @@ on:
         type: boolean
       experiments:
         description: Which experiments should be enabled for Dart.
-        default: ""
+        default: "\"\""
         type: string
         required: false
 
