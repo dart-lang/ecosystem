@@ -96,7 +96,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           'dart',
           [
             if (experiments.isNotEmpty)
-              'enable-experiment=${experiments.join(',')}',
+              '--enable-experiment=${experiments.join(',')}',
             'pub',
             'get'
           ],
@@ -108,7 +108,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             'dart',
             [
               if (experiments.isNotEmpty)
-                'enable-experiment=${experiments.join(',')}',
+                '--enable-experiment=${experiments.join(',')}',
               'test',
               '-p',
               'chrome',
@@ -124,7 +124,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           'dart',
           [
             if (experiments.isNotEmpty)
-              'enable-experiment=${experiments.join(',')}',
+              '--enable-experiment=${experiments.join(',')}',
             'test',
             '--coverage=coverage'
           ],
