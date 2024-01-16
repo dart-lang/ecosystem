@@ -36,7 +36,9 @@ void main(List<String> arguments) async {
   var check = parsedArgs['check'] as String;
   var warnOn = parsedArgs['warn_on'] as List<String>;
   var failOn = parsedArgs['fail_on'] as List<String>;
-  var experiments = parsedArgs['experiments'] as List<String>;
+  var experiments = (parsedArgs['experiments'] as List<String>)
+      .where((name) => name.isNotEmpty)
+      .toList();
   var coverageWeb = parsedArgs['coverage_web'] as bool;
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
