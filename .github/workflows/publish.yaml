@@ -77,6 +77,12 @@ on:
         default: true
         required: false
         type: boolean
+      checkout_submodules:
+        description: >-
+          Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -91,10 +97,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          submodules: ${{ inputs.checkout_submodules }}
+
       - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
+          
 
       - uses: dart-lang/setup-dart@b64355ae6ca0b5d484f0106a033dd1388965d06d
         if: ${{ !inputs.use-flutter }}
