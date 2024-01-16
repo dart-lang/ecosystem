@@ -26,6 +26,7 @@ void main(List<String> arguments) async {
     )
     ..addMultiOption(
       'experiments',
+      defaultsTo: [],
       help: 'Which experiments should be enabled for Dart',
     )
     ..addFlag(

@@ -270,9 +270,9 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
         .where((file) => File(file.relativePath).existsSync())
-        .where((file) {
-      return File(file.relativePath).readAsStringSync().contains(dns);
-    }).toList();
+        .where(
+            (file) => File(file.relativePath).readAsStringSync().contains(dns))
+        .toList();
     print('Found files with $dns: $filesWithDNS');
 
     final bodyContainsDNS = body.contains(dns);
