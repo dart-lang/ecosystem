@@ -281,9 +281,9 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
-        .where((file) => File(file.relativePath).existsSync())
-        .where(
-            (file) => File(file.relativePath).readAsStringSync().contains(dns))
+        .where((file) => File(file.pathInRepository).existsSync())
+        .where((file) =>
+            File(file.pathInRepository).readAsStringSync().contains(dns))
         .toList();
     print('Found files with $dns: $filesWithDNS');
 
@@ -306,8 +306,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage =
-        await Coverage(coverageweb, directory, experiments)
+    var coverage = await Coverage(coverageweb, directory, experiments)
         .compareCoverages(github, baseDirectory);
 
     var markdownResult = '''

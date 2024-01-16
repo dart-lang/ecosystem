@@ -52,6 +52,7 @@ Future<String> checkFor(
     [],
     [],
     false,
+    [],
     fakeGithubApi,
     base: Directory(p.join('test_data', 'base_test_repo')),
     comment: comment,
