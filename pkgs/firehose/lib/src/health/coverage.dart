@@ -86,6 +86,8 @@ class Coverage {
   }
 
   Map<String, double> getCoverage(Package? package) {
+    print(
+        'Experiments: $experiments, ${experiments.length}, ${experiments.map((e) => e.codeUnits).toList()}');
     if (package != null) {
       var hasTests =
           Directory(path.join(package.directory.path, 'test')).existsSync();
