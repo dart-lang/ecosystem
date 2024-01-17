@@ -8,23 +8,27 @@ import 'package:path/path.dart' as path;
 
 import '../github.dart';
 import '../repo.dart';
-import '../utils.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
-    GithubApi github) async {
-  final repo = Repository();
+  GithubApi github,
+  Directory directory,
+) async {
+  final repo = Repository(directory);
   final packages = repo.locatePackages();
 
-  final files = await github.listFilesForPR();
+  final files = await github.listFilesForPR(directory);
 
-  var packagesWithoutChangedChangelog =
-      collectPackagesWithoutChangelogChanges(packages, files);
+  var packagesWithoutChangedChangelog = collectPackagesWithoutChangelogChanges(
+    packages,
+    files,
+    directory,
+  );
 
   print('Collecting files without license headers in those packages:');
   var packagesWithChanges = <Package, List<GitFile>>{};
   for (final file in files) {
     for (final package in packagesWithoutChangedChangelog) {
-      if (fileNeedsEntryInChangelog(package, file.relativePath)) {
+      if (fileNeedsEntryInChangelog(package, file.filename, directory)) {
         print(file);
         packagesWithChanges.update(
           package,
@@ -40,21 +44,24 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
 }
 
 List<Package> collectPackagesWithoutChangelogChanges(
-    List<Package> packages, List<GitFile> files) {
+  List<Package> packages,
+  List<GitFile> files,
+  Directory directory,
+) {
   print('Collecting packages without changed changelogs:');
-  final packagesWithoutChangedChangelog = packages
-      .where((package) => package.changelog.exists)
-      .where((package) => !files
-          .map((e) => e.relativePath)
-          .contains(package.changelog.file.relativePath))
-      .toList();
+  final packagesWithoutChangedChangelog =
+      packages.where((package) => package.changelog.exists).where((package) {
+    return !files
+        .map((e) => e.pathInRepository)
+        .contains(package.changelog.file.path);
+  }).toList();
   print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
   return packagesWithoutChangedChangelog;
 }
 
-bool fileNeedsEntryInChangelog(Package package, String file) {
+bool fileNeedsEntryInChangelog(Package package, String file, Directory d) {
   final directoryPath = package.directory.path;
-  final directory = path.relative(directoryPath, from: Directory.current.path);
+  final directory = path.relative(directoryPath, from: d.path);
   final isInPackage = path.isWithin(directory, file);
   final isInLib = path.isWithin(path.join(directory, 'lib'), file);
   final isInBin = path.isWithin(path.join(directory, 'bin'), file);

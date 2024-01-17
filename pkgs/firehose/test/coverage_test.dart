@@ -33,8 +33,8 @@ void main() {
   });
   test('Compare coverage', () async {
     var coverages = FakeHealth().compareCoveragesFor(
-      [GitFile('testfile.dart', FileStatus.modified)],
-      'base_path_does_not_exist',
+      [GitFile('testfile.dart', FileStatus.modified, Directory.current)],
+      Directory('base_path_does_not_exist'),
     );
 
     expect(coverages.coveragePerFile,
@@ -43,7 +43,7 @@ void main() {
 }
 
 class FakeHealth extends Coverage {
-  FakeHealth() : super(true, []);
+  FakeHealth() : super(true, Directory.current, []);
 
   @override
   Map<String, double> getCoverage(Package? package) {

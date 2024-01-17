@@ -44,6 +44,8 @@ const checkTypes = <String>[
 class Health {
   final Directory directory;
 
+  final String commentPath;
+
   Health(
     this.directory,
     this.check,
@@ -51,13 +53,23 @@ class Health {
     this.failOn,
     this.coverageweb,
     this.experiments,
-  );
-  final github = GithubApi();
+    this.github, {
+    Directory? base,
+    String? comment,
+  })  : baseDirectory = base ?? Directory('../base_repo'),
+        commentPath = comment ??
+            path.join(
+              directory.path,
+              'output',
+              'comment.md',
+            );
+  final GithubApi github;
 
   final String check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
+  final Directory baseDirectory;
   final List<String> experiments;
 
   Future<void> healthCheck() async {
@@ -127,35 +139,34 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR();
+    final filesInPR = await github.listFilesForPR(directory);
     final changeForPackage = <Package, BreakingChange>{};
-    final baseDirectory = Directory('../base_repo');
     for (var package in packagesContaining(filesInPR)) {
-      var currentPath =
-          path.relative(package.directory.path, from: Directory.current.path);
-      var basePackage = path.relative(
-        path.join(baseDirectory.absolute.path, currentPath),
-        from: currentPath,
-      );
-      print('Look for changes in $currentPath with base $basePackage');
+      print('Look for changes in $package with base $baseDirectory');
+      var relativePath =
+          path.relative(package.directory.path, from: directory.path);
+      var baseRelativePath = path.relative(
+          path.join(baseDirectory.path, relativePath),
+          from: directory.path);
+      var tempDirectory = Directory.systemTemp..createSync();
+      var reportPath = path.join(tempDirectory.path, 'report.json');
       var runApiTool = Process.runSync(
         'dart',
         [
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
-          ...['--old', basePackage],
-          ...['--new', '.'],
+          ...['--old', baseRelativePath],
+          ...['--new', relativePath],
           ...['--report-format', 'json'],
-          ...['--report-file-path', 'report.json'],
+          ...['--report-file-path', reportPath],
         ],
-        workingDirectory: currentPath,
+        workingDirectory: directory.path,
       );
       print(runApiTool.stderr);
       print(runApiTool.stdout);
 
-      final reportFile = File(path.join(currentPath, 'report.json'));
-      var fullReportString = reportFile.readAsStringSync();
+      var fullReportString = File(reportPath).readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
       var report = decoded['report'] as Map<String, dynamic>;
 
@@ -200,11 +211,12 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR();
-    var allFilePaths = await getFilesWithoutLicenses(Directory.current);
+    var files = await github.listFilesForPR(directory);
+    var allFilePaths = await getFilesWithoutLicenses(directory);
 
-    var groupedPaths = allFilePaths
-        .groupListsBy((path) => files.any((f) => f.relativePath == path));
+    var groupedPaths = allFilePaths.groupListsBy((filePath) {
+      return files.any((f) => f.filename == filePath);
+    });
 
     var unchangedFilesPaths = groupedPaths[false] ?? [];
     var unchangedMarkdown = '''
@@ -243,12 +255,12 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   }
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(github);
+    var filePaths = await packagesWithoutChangelog(github, directory);
 
     final markdownResult = '''
 | Package | Changed Files |
 | :--- | :--- |
-${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.relativePath).join('<br />')} |').join('\n')}
+${filePaths.entries.map((e) => '| package:${e.key.name} | ${e.value.map((e) => e.filename).join('<br />')} |').join('\n')}
 
 Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 ''';
@@ -264,14 +276,14 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     final dns = 'DO_NOT${'_'}SUBMIT';
 
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR();
+    final files = await github.listFilesForPR(directory);
     print('Checking for $dns strings: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
-        .where((file) => File(file.relativePath).existsSync())
-        .where(
-            (file) => File(file.relativePath).readAsStringSync().contains(dns))
+        .where((file) => File(file.pathInRepository).existsSync())
+        .where((file) =>
+            File(file.pathInRepository).readAsStringSync().contains(dns))
         .toList();
     print('Found files with $dns: $filesWithDNS');
 
@@ -294,8 +306,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage =
-        await Coverage(coverageweb, experiments).compareCoverages(github);
+    var coverage = await Coverage(coverageweb, directory, experiments)
+        .compareCoverages(github, baseDirectory);
 
     var markdownResult = '''
 | File | Coverage |
@@ -339,7 +351,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 
     github.appendStepSummary(markdownSummary);
 
-    var commentFile = File('./output/comment.md');
+    var commentFile = File(commentPath);
     print('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(markdownSummary);
@@ -351,13 +363,12 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
-    final repo = Repository();
-    return repo.locatePackages().where((package) {
-      var relativePackageDirectory =
-          path.relative(package.directory.path, from: Directory.current.path);
-      return files.any(
-          (file) => path.isWithin(relativePackageDirectory, file.relativePath));
-    }).toList();
+    final repo = Repository(directory);
+    return repo
+        .locatePackages()
+        .where((package) => files.any((file) =>
+            path.isWithin(package.directory.path, file.pathInRepository)))
+        .toList();
   }
 }
 

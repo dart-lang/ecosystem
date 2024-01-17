@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 import '../github.dart';
@@ -14,31 +15,30 @@ import 'lcov.dart';
 
 class Coverage {
   final bool coverageWeb;
+  final Directory directory;
   final List<String> experiments;
 
-  Coverage(this.coverageWeb, this.experiments);
+  Coverage(this.coverageWeb, this.directory, this.experiments);
 
-  Future<CoverageResult> compareCoverages(GithubApi github) async {
-    var files = await github.listFilesForPR();
-    var basePath = '../base_repo/';
+  Future<CoverageResult> compareCoverages(
+      GithubApi github, Directory base) async {
+    var files = await github.listFilesForPR(directory);
 
-    return compareCoveragesFor(files, basePath);
+    return compareCoveragesFor(files, base);
   }
 
-  CoverageResult compareCoveragesFor(List<GitFile> files, String basePath) {
-    var repository = Repository();
+  CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
+    var repository = Repository(directory);
     var packages = repository.locatePackages();
-    print('Found packages $packages at ${Directory.current}');
+    print('Found packages $packages at $directory');
 
     var filesOfInterest = files
         .where((file) => path.extension(file.filename) == '.dart')
         .where((file) => file.status != FileStatus.removed)
-        .where((file) => isInSomePackage(packages, file.relativePath))
-        .where((file) => isNotATest(packages, file.relativePath))
+        .where((file) => isInSomePackage(packages, file.filename))
+        .where((file) => isNotATest(packages, file.filename))
         .toList();
     print('The files of interest are $filesOfInterest');
-
-    var base = Directory(basePath);
 
     var baseRepository = Repository(base);
     var basePackages = baseRepository.locatePackages();
@@ -47,6 +47,7 @@ class Coverage {
     var changedPackages = packages
         .where((package) =>
             filesOfInterest.any((file) => file.isInPackage(package)))
+        .sortedBy((package) => package.name)
         .toList();
 
     print('The packages of interest are $changedPackages');
@@ -59,14 +60,15 @@ class Coverage {
           .where((element) => element.name == package.name)
           .firstOrNull;
       final oldCoverages = getCoverage(basePackage);
-      var filePaths = filesOfInterest
+      var filenames = filesOfInterest
           .where((file) => file.isInPackage(package))
-          .map((file) => file.relativePath);
-      for (var filePath in filePaths) {
-        var oldCoverage = oldCoverages[filePath];
-        var newCoverage = newCoverages[filePath];
-        print('Compage coverage for $filePath: $oldCoverage vs $newCoverage');
-        coverageResult[filePath] = Change(
+          .map((file) => file.filename)
+          .sortedBy((filename) => filename);
+      for (var filename in filenames) {
+        var oldCoverage = oldCoverages[filename];
+        var newCoverage = newCoverages[filename];
+        print('Compage coverage for $filename: $oldCoverage vs $newCoverage');
+        coverageResult[filename] = Change(
           oldCoverage: oldCoverage,
           newCoverage: newCoverage,
         );
@@ -76,14 +78,16 @@ class Coverage {
   }
 
   bool isNotATest(List<Package> packages, String file) {
-    return packages.every((package) =>
-        !path.isWithin(path.join(package.directory.path, 'test'), file));
+    return packages.every((package) => !path.isWithin(
+        path.join(package.directory.path, 'test'),
+        path.join(directory.path, file)));
   }
 
-  bool isInSomePackage(List<Package> packages, String file) {
-    return packages
-        .any((package) => path.isWithin(package.directory.path, file));
-  }
+  bool isInSomePackage(List<Package> packages, String file) =>
+      packages.any((package) => path.isWithin(
+            package.directory.path,
+            path.join(directory.path, file),
+          ));
 
   Map<String, double> getCoverage(Package? package) {
     if (package != null) {
@@ -103,7 +107,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           workingDirectory: package.directory.path,
         );
         if (coverageWeb) {
-          print('Get test coverage for web');
+          print('Run tests with coverage for web');
           var resultChrome = Process.runSync(
             'dart',
             [
@@ -119,7 +123,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           print(resultChrome.stdout);
           print(resultChrome.stderr);
         }
-        print('Get test coverage for vm');
+        print('Run tests with coverage for vm');
         var resultVm = Process.runSync(
           'dart',
           [
@@ -130,8 +134,9 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print(resultVm.stdout);
-        print(resultVm.stderr);
+        print('dart test stdout: ${resultVm.stdout}');
+        print('dart test stderr: ${resultVm.stderr}');
+        print('Compute coverage from runs');
         var resultLcov = Process.runSync(
           'dart',
           [
@@ -149,8 +154,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print(resultLcov.stdout);
-        print(resultLcov.stderr);
+        print('dart coverage stdout: ${resultLcov.stdout}');
+        print('dart coverage stderr: ${resultLcov.stderr}');
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
 final license = '''
@@ -22,13 +23,13 @@ Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir) async {
         var fileContents = File(file.path).readAsStringSync();
         var fileContainsCopyright = fileContents.contains('// Copyright (c)');
         if (!fileContainsCopyright) {
-          var relativePath =
-              path.relative(file.path, from: Directory.current.path);
+          var relativePath = path.relative(file.path, from: repositoryDir.path);
           print(relativePath);
           return relativePath;
         }
       })
       .whereType<String>()
+      .sortedBy((fileName) => fileName)
       .toList();
   print('''
 Done, found ${filesWithoutLicenses.length} files without license headers''');

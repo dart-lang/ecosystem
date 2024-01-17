@@ -78,8 +78,7 @@ on:
         type: boolean
         required: false
       use-flutter:
-        description: >-
-          Whether to setup Flutter in this workflow.
+        description: Whether to setup Flutter in this workflow.
         default: false
         required: false
         type: boolean

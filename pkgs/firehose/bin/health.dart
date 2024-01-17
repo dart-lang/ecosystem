@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
@@ -51,5 +52,6 @@ void main(List<String> arguments) async {
     failOn,
     coverageWeb,
     experiments,
+    GithubApi(),
   ).healthCheck();
 }

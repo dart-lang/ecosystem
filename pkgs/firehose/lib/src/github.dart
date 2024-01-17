@@ -19,16 +19,13 @@ class GithubApi {
 
   static Map<String, String> get _env => Platform.environment;
 
-  /// When true, details of any RPC error are printed to the console.
-  final bool verbose;
-
-  GithubApi({this.verbose = false, RepositorySlug? repoSlug, int? issueNumber})
+  GithubApi({RepositorySlug? repoSlug, int? issueNumber})
       : _repoSlug = repoSlug,
         _issueNumber = issueNumber;
 
   final http.Client _client = DelayedClient(const Duration(milliseconds: 50));
 
-  late GitHub github = githubAuthToken != null
+  late final GitHub _github = githubAuthToken != null
       ? GitHub(
           auth: Authentication.withToken(githubAuthToken),
           client: _client,
@@ -95,7 +92,7 @@ class GithubApi {
     required String user,
     String? searchTerm,
   }) async {
-    final matchingComment = await github.issues
+    final matchingComment = await _github.issues
         .listCommentsByIssue(repoSlug!, issueNumber!)
         .map<IssueComment?>((comment) => comment)
         .firstWhere(
@@ -110,11 +107,15 @@ class GithubApi {
     return matchingComment?.id;
   }
 
-  Future<List<GitFile>> listFilesForPR() async => await github.pullRequests
-      .listFiles(repoSlug!, issueNumber!)
-      .map((prFile) =>
-          GitFile(prFile.filename!, FileStatus.fromString(prFile.status!)))
-      .toList();
+  Future<List<GitFile>> listFilesForPR(Directory directory) async =>
+      await _github.pullRequests
+          .listFiles(repoSlug!, issueNumber!)
+          .map((prFile) => GitFile(
+                prFile.filename!,
+                FileStatus.fromString(prFile.status!),
+                directory,
+              ))
+          .toList();
 
   /// Write a notice message to the github log.
   void notice({required String message}) {
@@ -122,26 +123,25 @@ class GithubApi {
   }
 
   Future<String> pullrequestBody() async {
-    final pullRequest = await github.pullRequests.get(repoSlug!, issueNumber!);
+    final pullRequest = await _github.pullRequests.get(repoSlug!, issueNumber!);
     return pullRequest.body ?? '';
   }
 
-  void close() => github.dispose();
+  void close() => _github.dispose();
 }
 
 class GitFile {
   final String filename;
   final FileStatus status;
+  final Directory directory;
 
   bool isInPackage(Package package) {
-    print('Check if $relativePath is in ${package.directory.path}');
-    return path.isWithin(package.directory.path, relativePath);
+    return path.isWithin(package.directory.path, pathInRepository);
   }
 
-  GitFile(this.filename, this.status);
+  String get pathInRepository => path.join(directory.path, filename);
 
-  String get relativePath =>
-      path.relative(filename, from: Directory.current.path);
+  GitFile(this.filename, this.status, this.directory);
 
   @override
   String toString() => '$filename: $status';

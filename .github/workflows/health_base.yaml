@@ -45,8 +45,7 @@ on:
         type: boolean
         required: false
       use-flutter:
-        description: >-
-          Whether to setup Flutter in this workflow.
+        description: Whether to setup Flutter in this workflow.
         default: false
         required: false
         type: boolean
@@ -131,7 +130,7 @@ jobs:
         if: ${{ '$action_state' == 1 }}
 
       - name: Upload coverage to Coveralls
-        if: ${{ inputs.upload_coverage }}
+        if: ${{ inputs.upload_coverage && inputs.check == 'coverage' }}
         uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
         with:
           format: lcov

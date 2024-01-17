@@ -1,3 +1,7 @@
+## 0.6.0
+
+- Make the health workflow testable with golden tests.
+
 ## 0.5.3
 
 - Allow experiments to be enabled for Dart.
