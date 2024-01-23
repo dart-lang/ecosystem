@@ -99,6 +99,12 @@ class FakeGithubApi implements GithubApi {
   int? get issueNumber => 1;
 
   @override
+  Future<List<GitFile>> listFilesForPR(Directory directory,
+      [List<Glob> ignoredFiles = const []]) async {
+    return files;
+  }
+
+  @override
   void notice({required String message}) {}
 
   @override
@@ -115,10 +121,4 @@ class FakeGithubApi implements GithubApi {
 
   @override
   String? get sha => 'test_sha';
-
-  @override
-  Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
-    return files;
-  }
 }
