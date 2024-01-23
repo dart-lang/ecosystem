@@ -11,24 +11,24 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-void main() {
-  test('Check health workflow against golden files', () async {
-    final directory = Directory(p.join('test_data', 'test_repo'));
-    var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
-      GitFile(
-        'pkgs/package1/bin/package1.dart',
-        FileStatus.modified,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package2/lib/anotherLib.dart',
-        FileStatus.added,
-        directory,
-      ),
-    ]);
-    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
-    await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
-    for (var check in checkTypes) {
+Future<void> main() async {
+  final directory = Directory(p.join('test_data', 'test_repo'));
+  var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
+    GitFile(
+      'pkgs/package1/bin/package1.dart',
+      FileStatus.modified,
+      directory,
+    ),
+    GitFile(
+      'pkgs/package2/lib/anotherLib.dart',
+      FileStatus.added,
+      directory,
+    ),
+  ]);
+  await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+  await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
+  for (var check in checkTypes) {
+    test('Check health workflow "$check" against golden files', () async {
       var comment = await checkFor(check, fakeGithubApi, directory);
       var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
       var goldenComment = goldenFile.readAsStringSync();
@@ -37,8 +37,8 @@ void main() {
       } else {
         expect(comment, goldenComment);
       }
-    }
-  }, timeout: const Timeout(Duration(minutes: 2)));
+    }, timeout: const Timeout(Duration(minutes: 2)));
+  }
 }
 
 Future<String> checkFor(

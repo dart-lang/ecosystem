@@ -389,13 +389,12 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     List<Glob> ignoredPackages,
   ) {
     var files = filesInPR.where((element) => element.status.isRelevant);
-    final repo = Repository();
-    return repo.locatePackages(ignoredPackages).where((package) {
-      var relativePackageDirectory =
-          path.relative(package.directory.path, from: Directory.current.path);
-      return files.any((file) =>
-          path.isWithin(relativePackageDirectory, file.pathInRepository));
-    }).toList();
+    final repo = Repository(directory);
+    return repo
+        .locatePackages(ignoredPackages)
+        .where((package) => files.any((file) =>
+            path.isWithin(package.directory.path, file.pathInRepository)))
+        .toList();
   }
 }
 
