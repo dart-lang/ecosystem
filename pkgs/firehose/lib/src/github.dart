@@ -6,6 +6,7 @@
 import 'dart:io';
 
 import 'package:github/github.dart';
+import 'package:glob/glob.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -107,7 +108,10 @@ class GithubApi {
     return matchingComment?.id;
   }
 
-  Future<List<GitFile>> listFilesForPR(Directory directory) async =>
+  Future<List<GitFile>> listFilesForPR(
+    Directory directory, [
+    List<Glob> ignoredFiles = const [],
+  ]) async =>
       await _github.pullRequests
           .listFiles(repoSlug!, issueNumber!)
           .map((prFile) => GitFile(
