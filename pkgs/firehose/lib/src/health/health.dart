@@ -48,18 +48,19 @@ class Health {
   final String commentPath;
 
   Health(
-      this.directory,
-      this.check,
-      this.warnOn,
-      this.failOn,
-      this.coverageweb,
-      this.github,
-      List<String> ignoredPackages,
-      List<String> ignoredLicense,
-      List<String> ignoredCoverage,
-      {Directory? base,
-      String? comment})
-      : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
+    this.directory,
+    this.check,
+    this.warnOn,
+    this.failOn,
+    this.coverageweb,
+    List<String> ignoredPackages,
+    List<String> ignoredLicense,
+    List<String> ignoredCoverage,
+    this.experiments,
+    this.github, {
+    Directory? base,
+    String? comment,
+  })  : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
         ignoredFilesForCoverage = ignoredCoverage.map(Glob.new).toList(),
         ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList(),
         baseDirectory = base ?? Directory('../base_repo'),
@@ -79,6 +80,7 @@ class Health {
   final List<Glob> ignoredFilesForLicense;
   final List<Glob> ignoredFilesForCoverage;
   final Directory baseDirectory;
+  final List<String> experiments;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -220,7 +222,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(directory, ignoredFilesForLicense);
+    var files = await github.listFilesForPR(directory);
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
       ignoredFilesForLicense,
@@ -289,8 +291,10 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
   }
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
+    final dns = 'DO_NOT${'_'}SUBMIT';
+
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR(directory);
+    final files = await github.listFilesForPR(directory, ignoredPackages);
     print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -299,14 +303,14 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
             .readAsStringSync()
             .contains('DO_NOT${'_'}SUBMIT'))
         .toList();
-    print('Found files with DO_NOT_${'SUBMIT'}: $filesWithDNS');
+    print('Found files with $dns: $filesWithDNS');
 
-    final bodyContainsDNS = body.contains('DO_NOT${'_'}SUBMIT');
-    print('The body contains a DO_NOT${'_'}SUBMIT string: $bodyContainsDNS');
+    final bodyContainsDNS = body.contains(dns);
+    print('The body contains a $dns string: $bodyContainsDNS');
     final markdownResult = '''
-Body contains `DO_NOT${'_'}SUBMIT`: $bodyContainsDNS
+Body contains `$dns`: $bodyContainsDNS
 
-| Files with `DO_NOT_${'SUBMIT'}` |
+| Files with `$dns` |
 | :--- |
 ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 ''';
@@ -325,7 +329,8 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       ignoredFilesForCoverage,
       ignoredPackages,
       directory,
-    ).compareCoverages(github, baseDirectory);
+      experiments,
+    ).compareCoverages(github, directory);
 
     var markdownResult = '''
 | File | Coverage |
@@ -381,12 +386,13 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 
   List<Package> packagesContaining(List<GitFile> filesInPR) {
     var files = filesInPR.where((element) => element.status.isRelevant);
-    final repo = Repository(directory);
-    return repo
-        .locatePackages(ignoredPackages)
-        .where((package) => files.any((file) =>
-            path.isWithin(package.directory.path, file.pathInRepository)))
-        .toList();
+    final repo = Repository();
+    return repo.locatePackages().where((package) {
+      var relativePackageDirectory =
+          path.relative(package.directory.path, from: Directory.current.path);
+      return files.any((file) =>
+          path.isWithin(relativePackageDirectory, file.pathInRepository));
+    }).toList();
   }
 }
 

@@ -43,7 +43,7 @@ void main() {
 }
 
 class FakeHealth extends Coverage {
-  FakeHealth() : super(true, [], [], Directory.current);
+  FakeHealth() : super(true, [], [], Directory.current, []);
 
   @override
   Map<String, double> getCoverage(Package? package) {

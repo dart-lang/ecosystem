@@ -1,3 +1,7 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
 import 'package:firehose/src/github.dart';
@@ -8,8 +12,8 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('test name', () async {
-    final directory = Directory(p.join('test', 'data', 'test_repo'));
+  test('Check health workflow against golden files', () async {
+    final directory = Directory(p.join('test_data', 'test_repo'));
     var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
       GitFile(
         'pkgs/package1/bin/package1.dart',
@@ -22,10 +26,11 @@ void main() {
         directory,
       ),
     ]);
+    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
     for (var check in checkTypes) {
       var comment = await checkFor(check, fakeGithubApi, directory);
-      var goldenFile =
-          File(p.join('test', 'data', 'golden', 'comment_$check.md'));
+      var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
       var goldenComment = goldenFile.readAsStringSync();
       if (Platform.environment.containsKey('RESET_GOLDEN')) {
         goldenFile.writeAsStringSync(comment);
@@ -48,11 +53,12 @@ Future<String> checkFor(
     [],
     [],
     false,
+    [],
+    [],
+    [],
+    [],
     fakeGithubApi,
-    [],
-    [],
-    [],
-    base: Directory(p.join('test', 'data', 'base_test_repo')),
+    base: Directory(p.join('test_data', 'base_test_repo')),
     comment: comment,
   ).healthCheck();
   return await File(comment).readAsString();
@@ -93,12 +99,6 @@ class FakeGithubApi implements GithubApi {
   int? get issueNumber => 1;
 
   @override
-  Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
-    return files;
-  }
-
-  @override
   void notice({required String message}) {}
 
   @override
@@ -115,4 +115,10 @@ class FakeGithubApi implements GithubApi {
 
   @override
   String? get sha => 'test_sha';
+
+  @override
+  Future<List<GitFile>> listFilesForPR(Directory directory,
+      [List<Glob> ignoredFiles = const []]) async {
+    return files;
+  }
 }

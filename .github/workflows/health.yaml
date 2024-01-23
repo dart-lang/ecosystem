@@ -94,6 +94,16 @@ on:
         description: Which packages to ignore.
         required: false
         type: string
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: "\"\""
+        type: string
+        required: false
 
 jobs:
   version:
@@ -107,6 +117,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
@@ -119,6 +130,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -132,6 +144,7 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
       ignore_license: ${{ inputs.ignore_license }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -147,6 +160,8 @@ jobs:
       use-flutter: ${{ inputs.use-flutter }}
       ignore_coverage: ${{ inputs.ignore_coverage }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      experiments: ${{ inputs.experiments }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -159,6 +174,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -171,6 +187,7 @@ jobs:
       local_debug: ${{ inputs.local_debug }}
       use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
 
   comment:
     needs: [version, changelog, license, coverage, breaking, do-not-submit]

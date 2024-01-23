@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 
 import 'package:firehose/src/health/license.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -20,9 +21,10 @@ void main() {
   });
 
   test('Check for licenses', () async {
-    var filesWithoutLicenses =
-        await getFilesWithoutLicenses(Directory('test/'), []);
-    expect(filesWithoutLicenses, [fileWithoutLicense.path]);
+    var directory = Directory('test/');
+    var filesWithoutLicenses = await getFilesWithoutLicenses(directory, []);
+    expect(filesWithoutLicenses,
+        [path.relative(fileWithoutLicense.path, from: directory.path)]);
   });
 
   tearDown(() async {

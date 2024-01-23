@@ -40,6 +40,10 @@ void main(List<String> arguments) async {
       allowed: checkTypes,
       help: 'Which checks should lead to workflow failure',
     )
+    ..addMultiOption(
+      'experiments',
+      help: 'Which experiments should be enabled for Dart',
+    )
     ..addFlag(
       'coverage_web',
       help: 'Whether to run web tests for coverage',
@@ -51,6 +55,9 @@ void main(List<String> arguments) async {
   var ignorePackages = parsedArgs['ignore_packages'] as List<String>;
   var ignoreLicense = parsedArgs['ignore_license'] as List<String>;
   var ignoreCoverage = parsedArgs['ignore_coverage'] as List<String>;
+  var experiments = (parsedArgs['experiments'] as List<String>)
+      .where((name) => name.isNotEmpty)
+      .toList();
   var coverageWeb = parsedArgs['coverage_web'] as bool;
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
@@ -62,9 +69,10 @@ void main(List<String> arguments) async {
     warnOn,
     failOn,
     coverageWeb,
-    GithubApi(),
     ignorePackages,
     ignoreLicense,
     ignoreCoverage,
+    experiments,
+    GithubApi(),
   ).healthCheck();
 }

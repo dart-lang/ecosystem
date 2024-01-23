@@ -61,6 +61,16 @@ on:
         description: Which packages to ignore.
         required: false
         type: string
+      checkout_submodules:
+        description: Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
+      experiments:
+        description: Which experiments should be enabled for Dart.
+        default: "\"\""
+        type: string
+        required: false
 
 jobs:
   health:
@@ -75,11 +85,13 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           path: current_repo/
+          submodules: ${{ inputs.checkout_submodules }}
       
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
+          submodules: ${{ inputs.checkout_submodules }}
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
@@ -126,13 +138,14 @@ jobs:
             --warn_on ${{ inputs.warn_on }} \
             --ignore_license ${{ inputs.ignore_license }} \
             --ignore_coverage ${{ inputs.ignore_coverage }} \
-            --ignore_packages ${{ inputs.ignore_packages }}
+            --ignore_packages ${{ inputs.ignore_packages }} \
+            --experiments ${{ inputs.experiments }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}
 
       - name: Upload coverage to Coveralls
-        if: ${{ inputs.upload_coverage }}
+        if: ${{ inputs.upload_coverage && inputs.check == 'coverage' }}
         uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
         with:
           format: lcov
