@@ -18,7 +18,7 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   final repo = Repository(directory);
   final packages = repo.locatePackages(ignoredPackages);
 
-  final files = await github.listFilesForPR(directory);
+  final files = await github.listFilesForPR(directory, ignoredPackages);
 
   var packagesWithoutChangedChangelog = collectPackagesWithoutChangelogChanges(
     packages,

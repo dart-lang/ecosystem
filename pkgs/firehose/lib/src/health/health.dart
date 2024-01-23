@@ -150,9 +150,9 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory);
+    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
-    for (var package in packagesContaining(filesInPR)) {
+    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
       print('Look for changes in $package with base $baseDirectory');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -222,7 +222,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(directory);
+    var files = await github.listFilesForPR(directory, ignoredPackages);
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
       ignoredFilesForLicense,
@@ -384,10 +384,13 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  List<Package> packagesContaining(List<GitFile> filesInPR) {
+  List<Package> packagesContaining(
+    List<GitFile> filesInPR,
+    List<Glob> ignoredPackages,
+  ) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     final repo = Repository();
-    return repo.locatePackages().where((package) {
+    return repo.locatePackages(ignoredPackages).where((package) {
       var relativePackageDirectory =
           path.relative(package.directory.path, from: Directory.current.path);
       return files.any((file) =>
