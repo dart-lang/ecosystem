@@ -17,17 +17,20 @@ Future<List<String>> getFilesWithoutLicenses(
     Directory repositoryDir, List<Glob> ignoredFiles) async {
   var dartFiles = await repositoryDir
       .list(recursive: true)
-      .where((f) => f.path.endsWith('.dart'))
+      .where((file) => file.path.endsWith('.dart'))
       .toList();
-  print('Collecting files without license headers:');
+  print('Collecting files without license headers $dartFiles:');
   var filesWithoutLicenses = dartFiles
       .map((file) {
-        var fileContents = File(file.path).readAsStringSync();
-        var fileContainsCopyright = fileContents.contains('// Copyright (c)');
-        if (!fileContainsCopyright) {
-          var relativePath = path.relative(file.path, from: repositoryDir.path);
-          print(relativePath);
-          return relativePath;
+        var relativePath = path.relative(file.path, from: repositoryDir.path);
+        if (ignoredFiles.none((glob) =>
+            glob.matches(path.relative(file.path, from: repositoryDir.path)))) {
+          var fileContents = File(file.path).readAsStringSync();
+          var fileContainsCopyright = fileContents.contains('// Copyright (c)');
+          if (!fileContainsCopyright) {
+            print(relativePath);
+            return relativePath;
+          }
         }
       })
       .whereType<String>()

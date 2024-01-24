@@ -27,26 +27,32 @@ Future<void> main() async {
   ]);
   await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
   await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
+
   for (var check in checkTypes) {
     test('Check health workflow "$check" against golden files', () async {
-      var comment = await checkFor(check, fakeGithubApi, directory);
-      var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
-      var goldenComment = goldenFile.readAsStringSync();
-      if (Platform.environment.containsKey('RESET_GOLDEN')) {
-        goldenFile.writeAsStringSync(comment);
-      } else {
-        expect(comment, goldenComment);
-      }
+      await checkGolden(check, fakeGithubApi, directory);
     }, timeout: const Timeout(Duration(minutes: 2)));
   }
+
+  test('Ignore license test', () async {
+    await checkGolden(
+      'license',
+      fakeGithubApi,
+      directory,
+      suffix: '_ignore',
+      ignoredLicense: ['pkgs/package3/**'],
+    );
+  });
 }
 
-Future<String> checkFor(
+Future<void> checkGolden(
   String check,
   FakeGithubApi fakeGithubApi,
-  Directory directory,
-) async {
-  final comment = p.join(Directory.systemTemp.path, 'comment_$check.md');
+  Directory directory, {
+  String suffix = '',
+  List<String> ignoredLicense = const [],
+}) async {
+  final commentPath = p.join(Directory.systemTemp.path, 'comment_$check.md');
   await Health(
     directory,
     check,
@@ -54,14 +60,21 @@ Future<String> checkFor(
     [],
     false,
     [],
-    [],
+    ignoredLicense,
     [],
     [],
     fakeGithubApi,
     base: Directory(p.join('test_data', 'base_test_repo')),
-    comment: comment,
+    comment: commentPath,
   ).healthCheck();
-  return await File(comment).readAsString();
+  var comment = await File(commentPath).readAsString();
+  var goldenFile =
+      File(p.join('test_data', 'golden', 'comment_$check$suffix.md'));
+  if (Platform.environment['RESET_GOLDEN'] == '1') {
+    goldenFile.writeAsStringSync(comment);
+  } else {
+    expect(comment, goldenFile.readAsStringSync());
+  }
 }
 
 class FakeGithubApi implements GithubApi {
