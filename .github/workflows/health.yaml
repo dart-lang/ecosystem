@@ -84,14 +84,17 @@ on:
         type: boolean
       ignore_license:
         description: Which files to ignore for the license check.
+        default: "\"\""
         required: false
         type: string
       ignore_coverage:
         description: Which files to ignore for the coverage check.
+        default: "\"\""
         required: false
         type: string
       ignore_packages:
         description: Which packages to ignore.
+        default: "\"\""
         required: false
         type: string
       checkout_submodules:
