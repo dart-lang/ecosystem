@@ -63,8 +63,12 @@ class Health {
   })  : ignoredPackages = ignoredPackages
             .map((pattern) => Glob(pattern, recursive: true))
             .toList(),
-        ignoredFilesForCoverage = ignoredCoverage.map(Glob.new).toList(),
-        ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList(),
+        ignoredFilesForCoverage = ignoredCoverage
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
+        ignoredFilesForLicense = ignoredLicense
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
         baseDirectory = base ?? Directory('../base_repo'),
         commentPath = comment ??
             path.join(
