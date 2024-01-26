@@ -90,7 +90,15 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    print('Start health check for the check $check');
+    print('Start health check for the check $check with');
+    print(' warnOn: $warnOn');
+    print(' failOn: $failOn');
+    print(' coverageweb: $coverageweb');
+    print(' ignoredPackages: $ignoredPackages');
+    print(' ignoredForLicense: $ignoredFilesForLicense');
+    print(' ignoredForCoverage: $ignoredFilesForCoverage');
+    print(' baseDirectory: $baseDirectory');
+    print(' experiments: $experiments');
     print('Checking for $check');
     if (!github.prLabels.contains('skip-$check-check')) {
       final firstResult = await checkFor(check)();
