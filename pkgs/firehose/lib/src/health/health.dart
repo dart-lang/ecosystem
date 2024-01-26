@@ -297,8 +297,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR(directory, ignoredPackages);
-    print(
-        'Checking for DO_NOT${'_'}SUBMIT strings with $ignoredPackages: $files');
+    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
