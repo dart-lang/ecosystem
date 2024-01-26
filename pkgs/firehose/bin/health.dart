@@ -48,17 +48,15 @@ void main(List<String> arguments) async {
       'coverage_web',
       help: 'Whether to run web tests for coverage',
     );
-  var parsedArgs = argParser.parse(arguments);
-  var check = parsedArgs['check'] as String;
-  var warnOn = parsedArgs['warn_on'] as List<String>;
-  var failOn = parsedArgs['fail_on'] as List<String>;
-  var ignorePackages = parsedArgs['ignore_packages'] as List<String>;
-  var ignoreLicense = parsedArgs['ignore_license'] as List<String>;
-  var ignoreCoverage = parsedArgs['ignore_coverage'] as List<String>;
-  var experiments = (parsedArgs['experiments'] as List<String>)
-      .where((name) => name.isNotEmpty)
-      .toList();
-  var coverageWeb = parsedArgs['coverage_web'] as bool;
+  final parsedArgs = argParser.parse(arguments);
+  final check = parsedArgs['check'] as String;
+  final warnOn = parsedArgs['warn_on'] as List<String>;
+  final failOn = parsedArgs['fail_on'] as List<String>;
+  final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
+  final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
+  final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');
+  final experiments = _listNonEmpty(parsedArgs, 'experiments');
+  final coverageWeb = parsedArgs['coverage_web'] as bool;
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
@@ -76,3 +74,6 @@ void main(List<String> arguments) async {
     GithubApi(),
   ).healthCheck();
 }
+
+List<String> _listNonEmpty(ArgResults parsedArgs, String key) =>
+    (parsedArgs[key] as List<String>).where((e) => e.isNotEmpty).toList();
