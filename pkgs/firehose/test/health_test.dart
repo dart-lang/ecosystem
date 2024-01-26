@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:github/src/common/model/repos.dart';
@@ -29,9 +30,11 @@ Future<void> main() async {
   await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
 
   for (var check in checkTypes) {
-    test('Check health workflow "$check" against golden files', () async {
-      await checkGolden(check, fakeGithubApi, directory);
-    }, timeout: const Timeout(Duration(minutes: 2)));
+    test(
+      'Check health workflow "$check" against golden files',
+      () async => await checkGolden(check, fakeGithubApi, directory),
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
   }
 
   test('Ignore license test', () async {
@@ -39,10 +42,26 @@ Future<void> main() async {
       'license',
       fakeGithubApi,
       directory,
-      suffix: '_ignore',
+      suffix: '_ignore_license',
       ignoredLicense: ['pkgs/package3/**'],
     );
   });
+
+  test(
+    'Ignore packages test',
+    () async {
+      for (var check in checkTypes) {
+        await checkGolden(
+          check,
+          fakeGithubApi,
+          directory,
+          suffix: '_ignore_package',
+          ignoredPackage: ['pkgs/package1'],
+        );
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }
 
 Future<void> checkGolden(
@@ -51,6 +70,7 @@ Future<void> checkGolden(
   Directory directory, {
   String suffix = '',
   List<String> ignoredLicense = const [],
+  List<String> ignoredPackage = const [],
 }) async {
   final commentPath = p.join(Directory.systemTemp.path, 'comment_$check.md');
   await Health(
@@ -59,7 +79,7 @@ Future<void> checkGolden(
     [],
     [],
     false,
-    [],
+    ignoredPackage,
     ignoredLicense,
     [],
     [],
@@ -114,7 +134,10 @@ class FakeGithubApi implements GithubApi {
   @override
   Future<List<GitFile>> listFilesForPR(Directory directory,
       [List<Glob> ignoredFiles = const []]) async {
-    return files;
+    return files
+        .where((element) =>
+            ignoredFiles.none((p0) => p0.matches(element.filename)))
+        .toList();
   }
 
   @override

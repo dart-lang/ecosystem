@@ -19,7 +19,7 @@ Future<List<String>> getFilesWithoutLicenses(
       .list(recursive: true)
       .where((file) => file.path.endsWith('.dart'))
       .toList();
-  print('Collecting files without license headers $dartFiles:');
+  print('Collecting files without license headers:');
   var filesWithoutLicenses = dartFiles
       .map((file) {
         var relativePath = path.relative(file.path, from: repositoryDir.path);

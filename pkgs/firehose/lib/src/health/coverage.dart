@@ -128,9 +128,12 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             ],
             workingDirectory: package.directory.path,
           );
-          print(resultChrome.stdout);
-          print(resultChrome.stderr);
+          if (resultChrome.exitCode != 0) {
+            print(resultChrome.stderr);
+          }
+          print('Dart test browser: ${resultChrome.stdout}');
         }
+
         print('Run tests with coverage for vm');
         var resultVm = Process.runSync(
           'dart',
@@ -142,8 +145,11 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print('dart test stdout: ${resultVm.stdout}');
-        print('dart test stderr: ${resultVm.stderr}');
+        if (resultVm.exitCode != 0) {
+          print(resultVm.stderr);
+        }
+        print('Dart test VM: ${resultVm.stdout}');
+
         print('Compute coverage from runs');
         var resultLcov = Process.runSync(
           'dart',
@@ -162,8 +168,10 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print('dart coverage stdout: ${resultLcov.stdout}');
-        print('dart coverage stderr: ${resultLcov.stderr}');
+        if (resultLcov.exitCode != 0) {
+          print(resultLcov.stderr);
+        }
+        print('Dart coverage: ${resultLcov.stdout}');
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,

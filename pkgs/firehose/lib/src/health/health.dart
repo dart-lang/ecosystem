@@ -60,7 +60,9 @@ class Health {
     this.github, {
     Directory? base,
     String? comment,
-  })  : ignoredPackages = ignoredPackages.map(Glob.new).toList(),
+  })  : ignoredPackages = ignoredPackages
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
         ignoredFilesForCoverage = ignoredCoverage.map(Glob.new).toList(),
         ignoredFilesForLicense = ignoredLicense.map(Glob.new).toList(),
         baseDirectory = base ?? Directory('../base_repo'),
@@ -225,7 +227,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     var files = await github.listFilesForPR(directory, ignoredPackages);
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
-      ignoredFilesForLicense,
+      [...ignoredFilesForLicense, ...ignoredPackages],
     );
 
     var groupedPaths = allFilePaths.groupListsBy((filePath) {
@@ -295,7 +297,8 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR(directory, ignoredPackages);
-    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
+    print(
+        'Checking for DO_NOT${'_'}SUBMIT strings with $ignoredPackages: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))

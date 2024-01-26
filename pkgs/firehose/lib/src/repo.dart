@@ -43,8 +43,8 @@ class Repository {
   List<Package> locatePackages([List<Glob> ignore = const []]) {
     final packages = <Package>[];
     _recurseAndGather(baseDirectory, packages);
-    packages.removeWhere((package) =>
-        ignore.any((glob) => glob.matches(package.directory.path)));
+    packages.removeWhere((package) => ignore.any((glob) => glob.matches(
+        path.relative(package.directory.path, from: baseDirectory.path))));
     packages.sort((a, b) => a.name.compareTo(b.name));
     return packages;
   }

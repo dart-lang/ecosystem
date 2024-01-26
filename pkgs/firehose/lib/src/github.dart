@@ -5,6 +5,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:glob/glob.dart';
 import 'package:http/http.dart' as http;
@@ -119,6 +120,8 @@ class GithubApi {
                 FileStatus.fromString(prFile.status!),
                 directory,
               ))
+          .where((file) =>
+              ignoredFiles.none((glob) => glob.matches(file.filename)))
           .toList();
 
   /// Write a notice message to the github log.
@@ -139,9 +142,8 @@ class GitFile {
   final FileStatus status;
   final Directory directory;
 
-  bool isInPackage(Package package) {
-    return path.isWithin(package.directory.path, pathInRepository);
-  }
+  bool isInPackage(Package package) =>
+      path.isWithin(package.directory.path, pathInRepository);
 
   String get pathInRepository => path.join(directory.path, filename);
 
