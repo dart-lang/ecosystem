@@ -1,4 +1,4 @@
-# A CI configuration to check PR health.
+# A CI configuration to check PR health. Check the docs at https://github.com/dart-lang/ecosystem/tree/main/pkgs/firehose#health.
 
 name: Health
 
