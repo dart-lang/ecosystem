@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Add `ignore` flags to the health workflow.
+
 ## 0.6.0
 
 - Make the health workflow testable with golden tests.

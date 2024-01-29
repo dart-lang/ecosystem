@@ -4,60 +4,97 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:github/src/common/model/repos.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-void main() {
-  test('Check health workflow against golden files', () async {
-    final directory = Directory(p.join('test_data', 'test_repo'));
-    var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
-      GitFile(
-        'pkgs/package1/bin/package1.dart',
-        FileStatus.modified,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package2/lib/anotherLib.dart',
-        FileStatus.added,
-        directory,
-      ),
-    ]);
-    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
-    await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
-    for (var check in checkTypes) {
-      var comment = await checkFor(check, fakeGithubApi, directory);
-      var goldenFile = File(p.join('test_data', 'golden', 'comment_$check.md'));
-      var goldenComment = goldenFile.readAsStringSync();
-      if (Platform.environment.containsKey('RESET_GOLDEN')) {
-        goldenFile.writeAsStringSync(comment);
-      } else {
-        expect(comment, goldenComment);
+Future<void> main() async {
+  final directory = Directory(p.join('test_data', 'test_repo'));
+  var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
+    GitFile(
+      'pkgs/package1/bin/package1.dart',
+      FileStatus.modified,
+      directory,
+    ),
+    GitFile(
+      'pkgs/package2/lib/anotherLib.dart',
+      FileStatus.added,
+      directory,
+    ),
+  ]);
+  await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+  await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
+
+  for (var check in checkTypes) {
+    test(
+      'Check health workflow "$check" against golden files',
+      () async => await checkGolden(check, fakeGithubApi, directory),
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+  }
+
+  test('Ignore license test', () async {
+    await checkGolden(
+      'license',
+      fakeGithubApi,
+      directory,
+      suffix: '_ignore_license',
+      ignoredLicense: ['pkgs/package3/**'],
+    );
+  });
+
+  test(
+    'Ignore packages test',
+    () async {
+      for (var check in checkTypes) {
+        await checkGolden(
+          check,
+          fakeGithubApi,
+          directory,
+          suffix: '_ignore_package',
+          ignoredPackage: ['pkgs/package1'],
+        );
       }
-    }
-  }, timeout: const Timeout(Duration(minutes: 2)));
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }
 
-Future<String> checkFor(
+Future<void> checkGolden(
   String check,
   FakeGithubApi fakeGithubApi,
-  Directory directory,
-) async {
-  final comment = p.join(Directory.systemTemp.path, 'comment_$check.md');
+  Directory directory, {
+  String suffix = '',
+  List<String> ignoredLicense = const [],
+  List<String> ignoredPackage = const [],
+}) async {
+  final commentPath = p.join(Directory.systemTemp.path, 'comment_$check.md');
   await Health(
     directory,
     check,
     [],
     [],
     false,
+    ignoredPackage,
+    ignoredLicense,
+    [],
     [],
     fakeGithubApi,
     base: Directory(p.join('test_data', 'base_test_repo')),
-    comment: comment,
+    comment: commentPath,
   ).healthCheck();
-  return await File(comment).readAsString();
+  var comment = await File(commentPath).readAsString();
+  var goldenFile =
+      File(p.join('test_data', 'golden', 'comment_$check$suffix.md'));
+  if (Platform.environment['RESET_GOLDEN'] == '1') {
+    goldenFile.writeAsStringSync(comment);
+  } else {
+    expect(comment, goldenFile.readAsStringSync());
+  }
 }
 
 class FakeGithubApi implements GithubApi {
@@ -95,8 +132,12 @@ class FakeGithubApi implements GithubApi {
   int? get issueNumber => 1;
 
   @override
-  Future<List<GitFile>> listFilesForPR(Directory directory) async {
-    return files;
+  Future<List<GitFile>> listFilesForPR(Directory directory,
+      [List<Glob> ignoredFiles = const []]) async {
+    return files
+        .where((element) =>
+            ignoredFiles.none((p0) => p0.matches(element.filename)))
+        .toList();
   }
 
   @override

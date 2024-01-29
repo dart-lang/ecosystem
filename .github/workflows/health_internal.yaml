@@ -15,3 +15,5 @@ jobs:
       checks: version,changelog,license,coverage,breaking,do-not-submit
       fail_on: version,changelog,do-not-submit
       warn_on: license,coverage,breaking
+      ignore_license: 'pkgs/firehose/test_data'
+      ignore_coverage: 'pkgs/firehose/bin'

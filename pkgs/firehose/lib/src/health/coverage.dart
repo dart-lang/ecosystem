@@ -6,6 +6,7 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
 import '../github.dart';
@@ -15,21 +16,28 @@ import 'lcov.dart';
 
 class Coverage {
   final bool coverageWeb;
+  final List<Glob> ignoredFiles;
+  final List<Glob> ignoredPackages;
   final Directory directory;
   final List<String> experiments;
 
-  Coverage(this.coverageWeb, this.directory, this.experiments);
+  Coverage(
+    this.coverageWeb,
+    this.ignoredFiles,
+    this.ignoredPackages,
+    this.directory,
+    this.experiments,
+  );
 
   Future<CoverageResult> compareCoverages(
       GithubApi github, Directory base) async {
-    var files = await github.listFilesForPR(directory);
-
+    var files = await github.listFilesForPR(directory, ignoredFiles);
     return compareCoveragesFor(files, base);
   }
 
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
     var repository = Repository(directory);
-    var packages = repository.locatePackages();
+    var packages = repository.locatePackages(ignoredPackages);
     print('Found packages $packages at $directory');
 
     var filesOfInterest = files
@@ -41,7 +49,7 @@ class Coverage {
     print('The files of interest are $filesOfInterest');
 
     var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages();
+    var basePackages = baseRepository.locatePackages(ignoredFiles);
     print('Found packages $basePackages at $base');
 
     var changedPackages = packages
@@ -120,9 +128,12 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             ],
             workingDirectory: package.directory.path,
           );
-          print(resultChrome.stdout);
-          print(resultChrome.stderr);
+          if (resultChrome.exitCode != 0) {
+            print(resultChrome.stderr);
+          }
+          print('Dart test browser: ${resultChrome.stdout}');
         }
+
         print('Run tests with coverage for vm');
         var resultVm = Process.runSync(
           'dart',
@@ -134,8 +145,11 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print('dart test stdout: ${resultVm.stdout}');
-        print('dart test stderr: ${resultVm.stderr}');
+        if (resultVm.exitCode != 0) {
+          print(resultVm.stderr);
+        }
+        print('Dart test VM: ${resultVm.stdout}');
+
         print('Compute coverage from runs');
         var resultLcov = Process.runSync(
           'dart',
@@ -154,8 +168,10 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           ],
           workingDirectory: package.directory.path,
         );
-        print('dart coverage stdout: ${resultLcov.stdout}');
-        print('dart coverage stderr: ${resultLcov.stderr}');
+        if (resultLcov.exitCode != 0) {
+          print(resultLcov.stderr);
+        }
+        print('Dart coverage: ${resultLcov.stdout}');
         return parseLCOV(
           path.join(package.directory.path, 'coverage/lcov.info'),
           relativeTo: package.repository.baseDirectory.path,

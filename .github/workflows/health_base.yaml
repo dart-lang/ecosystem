@@ -49,6 +49,21 @@ on:
         default: false
         required: false
         type: boolean
+      ignore_license:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_coverage:
+        description: Which files to ignore for the coverage check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_packages:
+        description: Which packages to ignore.
+        default: "\"\""
+        required: false
+        type: string
       checkout_submodules:
         description: Whether to checkout submodules of git repositories.
         default: false
@@ -124,6 +139,9 @@ jobs:
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
+            --ignore_license ${{ inputs.ignore_license }} \
+            --ignore_coverage ${{ inputs.ignore_coverage }} \
+            --ignore_packages ${{ inputs.ignore_packages }} \
             --experiments ${{ inputs.experiments }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md

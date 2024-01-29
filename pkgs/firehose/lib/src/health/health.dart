@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
@@ -52,11 +53,23 @@ class Health {
     this.warnOn,
     this.failOn,
     this.coverageweb,
+    List<String> ignoredPackages,
+    List<String> ignoredLicense,
+    List<String> ignoredCoverage,
     this.experiments,
     this.github, {
     Directory? base,
     String? comment,
-  })  : baseDirectory = base ?? Directory('../base_repo'),
+  })  : ignoredPackages = ignoredPackages
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
+        ignoredFilesForCoverage = ignoredCoverage
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
+        ignoredFilesForLicense = ignoredLicense
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
+        baseDirectory = base ?? Directory('../base_repo'),
         commentPath = comment ??
             path.join(
               directory.path,
@@ -69,6 +82,9 @@ class Health {
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
+  final List<Glob> ignoredPackages;
+  final List<Glob> ignoredFilesForLicense;
+  final List<Glob> ignoredFilesForCoverage;
   final Directory baseDirectory;
   final List<String> experiments;
 
@@ -78,7 +94,15 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    print('Start health check for the check $check');
+    print('Start health check for the check $check with');
+    print(' warnOn: $warnOn');
+    print(' failOn: $failOn');
+    print(' coverageweb: $coverageweb');
+    print(' ignoredPackages: $ignoredPackages');
+    print(' ignoredForLicense: $ignoredFilesForLicense');
+    print(' ignoredForCoverage: $ignoredFilesForCoverage');
+    print(' baseDirectory: $baseDirectory');
+    print(' experiments: $experiments');
     print('Checking for $check');
     if (!github.prLabels.contains('skip-$check-check')) {
       final firstResult = await checkFor(check)();
@@ -121,7 +145,8 @@ class Health {
 
   Future<HealthCheckResult> validateCheck() async {
     //TODO: Add Flutter support for PR health checks
-    var results = await Firehose(directory, false).verify(github);
+    var results =
+        await Firehose(directory, false).verify(github, ignoredPackages);
 
     var markdownTable = '''
 | Package | Version | Status |
@@ -139,9 +164,9 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory);
+    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
-    for (var package in packagesContaining(filesInPR)) {
+    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
       print('Look for changes in $package with base $baseDirectory');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -211,8 +236,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(directory);
-    var allFilePaths = await getFilesWithoutLicenses(directory);
+    var files = await github.listFilesForPR(directory, ignoredPackages);
+    var allFilePaths = await getFilesWithoutLicenses(
+      directory,
+      [...ignoredFilesForLicense, ...ignoredPackages],
+    );
 
     var groupedPaths = allFilePaths.groupListsBy((filePath) {
       return files.any((f) => f.filename == filePath);
@@ -255,7 +283,11 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   }
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(github, directory);
+    var filePaths = await packagesWithoutChangelog(
+      github,
+      ignoredPackages,
+      directory,
+    );
 
     final markdownResult = '''
 | Package | Changed Files |
@@ -276,14 +308,14 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     final dns = 'DO_NOT${'_'}SUBMIT';
 
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR(directory);
-    print('Checking for $dns strings: $files');
+    final files = await github.listFilesForPR(directory, ignoredPackages);
+    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
-        .where((file) => File(file.pathInRepository).existsSync())
-        .where((file) =>
-            File(file.pathInRepository).readAsStringSync().contains(dns))
+        .where((file) => File(file.pathInRepository)
+            .readAsStringSync()
+            .contains('DO_NOT${'_'}SUBMIT'))
         .toList();
     print('Found files with $dns: $filesWithDNS');
 
@@ -306,8 +338,13 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(coverageweb, directory, experiments)
-        .compareCoverages(github, baseDirectory);
+    var coverage = await Coverage(
+      coverageweb,
+      ignoredFilesForCoverage,
+      ignoredPackages,
+      directory,
+      experiments,
+    ).compareCoverages(github, directory);
 
     var markdownResult = '''
 | File | Coverage |
@@ -361,11 +398,13 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     }
   }
 
-  List<Package> packagesContaining(List<GitFile> filesInPR) {
+  List<Package> packagesContaining(
+    List<GitFile> filesInPR,
+    List<Glob> ignoredPackages,
+  ) {
     var files = filesInPR.where((element) => element.status.isRelevant);
-    final repo = Repository(directory);
-    return repo
-        .locatePackages()
+    return Repository(directory)
+        .locatePackages(ignoredPackages)
         .where((package) => files.any((file) =>
             path.isWithin(package.directory.path, file.pathInRepository)))
         .toList();
