@@ -216,7 +216,7 @@ jobs:
       - run: ls -R single-comments
 
       - name: Find Comment
-        uses: peter-evans/find-comment@4541d1b6b0e618acc24284e118743fc5ad0bc5de
+        uses: peter-evans/find-comment@a66f4556a6b261f6add2b6e173c46c5a0dcef998
         id: fc
         with:
           issue-number: ${{ github.event.number }}
