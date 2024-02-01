@@ -129,7 +129,7 @@ jobs:
           echo "COMMENT_ID=$COMMENT_ID" >> $GITHUB_ENV
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@0f44b017d10caeea6a4c1b410ba0521ad8a02815
+        uses: peter-evans/create-or-update-comment@3509deb8e3e0d7847ba5297bcac581b636533971
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID == '') }}
         continue-on-error: true
         with:
@@ -138,7 +138,7 @@ jobs:
           edit-mode: replace
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@0f44b017d10caeea6a4c1b410ba0521ad8a02815
+        uses: peter-evans/create-or-update-comment@3509deb8e3e0d7847ba5297bcac581b636533971
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID != '') }}
         with:
           comment-id: ${{ env.COMMENT_ID }}
