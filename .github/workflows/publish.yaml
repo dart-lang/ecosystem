@@ -126,7 +126,7 @@ jobs:
         if:  ${{ !inputs.local_debug }}
 
       - name: Install local firehose
-        run: dart pub global activate --source path current_repo/pkgs/firehose/
+        run: dart pub global activate --source path pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
         
       - name: Validate packages
