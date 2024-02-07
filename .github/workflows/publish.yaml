@@ -46,6 +46,15 @@ name: Publish
 #     with:
 #       write-comments: false
 
+# It is also possible to ignore certain packages in the repository 
+# via a glob.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       ignore-packages: pkgs/non-published-package
+
 on:
   workflow_call:
     inputs:
