@@ -93,5 +93,9 @@ ArgParser _createArgs() {
       useFlutterFlag,
       negatable: true,
       help: 'Whether this is a Flutter project.',
+    )
+    ..addMultiOption(
+      'ignore-packages',
+      help: 'Which packages to ignore.',
     );
 }
