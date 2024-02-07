@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/github.dart';
+import 'package:glob/glob.dart';
 
 const helpFlag = 'help';
 const validateFlag = 'validate';
@@ -26,6 +27,10 @@ void main(List<String> arguments) async {
     final validate = argResults[validateFlag] as bool;
     final publish = argResults[publishFlag] as bool;
     final useFlutter = argResults[useFlutterFlag] as bool;
+    final ignoredPackages = (argResults['ignore-packages'] as List<String>)
+        .where((pattern) => pattern.isNotEmpty)
+        .map((pattern) => Glob(pattern, recursive: true))
+        .toList();
 
     if (!validate && !publish) {
       _usage(argParser,
@@ -41,7 +46,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    final firehose = Firehose(Directory.current, useFlutter);
+    final firehose = Firehose(Directory.current, useFlutter, ignoredPackages);
 
     if (validate) {
       await firehose.validate();

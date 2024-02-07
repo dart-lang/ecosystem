@@ -83,6 +83,11 @@ on:
         default: false
         required: false
         type: boolean
+      ignore-packages:
+        description: Which packages to ignore.
+        default: "\"\""
+        required: false
+        type: string
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -119,7 +124,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
+        run: dart pub global run firehose \
+               --validate \
+               ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
+               --ignore-packages ${{ inputs.ignore-packages }}
 
       - name: Get comment id
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments }}
