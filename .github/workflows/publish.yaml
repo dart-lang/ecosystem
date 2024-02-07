@@ -88,6 +88,11 @@ on:
         default: "\"\""
         required: false
         type: string
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
+        required: false
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -118,7 +123,12 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }}
 
+      - name: Install local firehose
+        run: dart pub global activate --source path current_repo/pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
+        
       - name: Validate packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

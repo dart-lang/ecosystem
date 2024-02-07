@@ -3,81 +3,17 @@
 # We don't use the regular publish.yaml script here in order to dogfood the
 # publishing code at head.
 
-name: Publish
-
+name: Publish:Internal
 on:
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
     tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+*' ]
-
-env:
-  use-flutter: false
-  write-comments: false
-
 jobs:
   publish:
-    if: github.repository_owner == 'dart-lang'
-
-    # These permissions are required for authentication using OIDC and to enable
-    # us to create comments on PRs.
-    permissions:
-      id-token: write
-      pull-requests: write
-
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: dart-lang/setup-dart@fedb1266e91cf51be2fdb382869461a434b920a3
-
-      - name: Pub get
-        working-directory: pkgs/firehose
-        run: dart pub get
-
-      - name: Validate packages
-        if: ${{ github.event_name == 'pull_request' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.number }}
-          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pkgs/firehose/bin/firehose.dart --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[env.use-flutter] }}
-
-      - name: Get comment id
-        if: ${{ (hashFiles('output/comment.md') != '') && fromJSON(env.write-comments ) }}
-        run: |
-          touch -a output/commentId
-          COMMENT_ID=$(cat output/commentId)
-          echo "COMMENT_ID=$COMMENT_ID" >> $GITHUB_ENV
-
-      - name: Create comment
-        uses: peter-evans/create-or-update-comment@3509deb8e3e0d7847ba5297bcac581b636533971
-        if: ${{ (hashFiles('output/comment.md') != '') && fromJSON(env.write-comments ) && (env.COMMENT_ID == '') }}
-        with:
-          issue-number: ${{ github.event.number }}
-          body-path: 'output/comment.md'
-          edit-mode: replace
-
-      - name: Update comment
-        uses: peter-evans/create-or-update-comment@3509deb8e3e0d7847ba5297bcac581b636533971
-        if: ${{ (hashFiles('output/comment.md') != '') && fromJSON(env.write-comments ) && (env.COMMENT_ID != '') }}
-        with:
-          comment-id: ${{ env.COMMENT_ID }}
-          body-path: 'output/comment.md'
-          edit-mode: replace
-
-      - name: Save PR number
-        if: ${{ !fromJSON(env.write-comments ) }}
-        run: |
-          mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
-
-      - name: Upload folder with number and markdown
-        if: ${{ !fromJSON(env.write-comments ) }}
-        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392
-        with:
-          name: output
-          path: output/
-
-      - name: Publish tagged package
-        if: ${{ github.event_name == 'push' }}
-        run: dart pkgs/firehose/bin/firehose.dart --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[env.use-flutter] }}
+    uses: ./.github/workflows/publish.yaml
+    with:
+      local_debug: true
+      use-flutter: false
+      write-comments: false
