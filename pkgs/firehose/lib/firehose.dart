@@ -25,8 +25,9 @@ const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 class Firehose {
   final Directory directory;
   final bool useFlutter;
+  final List<Glob> ignoredPackages;
 
-  Firehose(this.directory, this.useFlutter);
+  Firehose(this.directory, this.useFlutter, this.ignoredPackages);
 
   /// Validate the packages in the repository.
   ///
@@ -92,10 +93,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     github.close();
   }
 
-  Future<VerificationResults> verify(
-    GithubApi github, [
-    List<Glob> ignoredPackages = const [],
-  ]) async {
+  Future<VerificationResults> verify(GithubApi github) async {
     var repo = Repository(directory);
     var packages = repo.locatePackages(ignoredPackages);
 

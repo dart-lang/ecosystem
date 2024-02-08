@@ -6,7 +6,7 @@ on:
   workflow_call:
   workflow_run:
     workflows:
-      - Publish
+      - Publish:Internal
       - Health:Internal
     types:
       - completed

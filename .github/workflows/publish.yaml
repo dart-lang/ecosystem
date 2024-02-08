@@ -46,6 +46,15 @@ name: Publish
 #     with:
 #       write-comments: false
 
+# It is also possible to ignore certain packages in the repository 
+# via a glob.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       ignore-packages: pkgs/non-published-package
+
 on:
   workflow_call:
     inputs:
@@ -83,6 +92,16 @@ on:
         default: false
         required: false
         type: boolean
+      ignore-packages:
+        description: Which packages to ignore.
+        default: "\"\""
+        required: false
+        type: string
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
+        required: false
 
 jobs:
   # Note that this job does not require the specified environment.
@@ -113,13 +132,22 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate firehose
+        if:  ${{ !inputs.local_debug }}
 
+      - name: Install local firehose
+        run: dart pub global activate --source path pkgs/firehose/
+        if:  ${{ inputs.local_debug }} 
+        
       - name: Validate packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
-        run: dart pub global run firehose --validate ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
+        run: |
+             dart pub global run firehose \
+               --validate \
+               ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
+               --ignore-packages ${{ inputs.ignore-packages }}
 
       - name: Get comment id
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments }}

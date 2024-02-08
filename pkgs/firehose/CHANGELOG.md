@@ -1,3 +1,7 @@
+## 0.7.0
+
+- Add `ignore-packages` flag to the publish workflow.
+
 ## 0.6.1
 
 - Add `ignore` flags to the health workflow.
