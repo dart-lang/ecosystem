@@ -41,11 +41,12 @@ extension GitDirExtension on GitDir {
   }
 }
 
-Future<void> runProc(
+Future<int> runProc(
   String description,
   String proc,
   List<String> args, {
   required String workingDirectory,
+  bool throwOnFailure = true,
 }) async {
   printHeader(description);
 
@@ -64,9 +65,11 @@ Future<void> runProc(
 
   final exitCode = await ghProc.exitCode;
 
-  if (exitCode != 0) {
+  if (throwOnFailure && exitCode != 0) {
     throw ProcessException(proc, args, 'Process failed', exitCode);
   }
+
+  return exitCode;
 }
 
 Future<void> withSystemTemp(

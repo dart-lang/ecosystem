@@ -17,4 +17,5 @@ available tweaks:
   github-actions: ensure GitHub actions use the latest versions and are keyed by SHA
   monorepo: regenerate the latest configuration files for package:mono_repo
   no-response: configure a 'no response' bot to handle needs-info labels
+  reformat: file a PR for a run of `dart format`
 ```
