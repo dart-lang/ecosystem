@@ -99,7 +99,7 @@ jobs:
 
       - run: mkdir -p current_repo/output/
           
-      - uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225
+      - uses: subosito/flutter-action@62f096cacda5168a3bd7b95793373be14fa4fbaf
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
