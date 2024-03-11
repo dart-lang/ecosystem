@@ -306,6 +306,8 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
   Future<HealthCheckResult> doNotSubmitCheck() async {
     final dns = 'DO_NOT${'_'}SUBMIT';
+    // To avoid trying to read non-text files.
+    const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR(directory, ignoredPackages);
@@ -313,6 +315,8 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
+        .where((file) =>
+            supportedExtensions.contains(path.extension(file.filename)))
         .where((file) => File(file.pathInRepository)
             .readAsStringSync()
             .contains('DO_NOT${'_'}SUBMIT'))
