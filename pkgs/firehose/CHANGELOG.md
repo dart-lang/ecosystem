@@ -1,3 +1,7 @@
+## 0.8.0
+
+- Only check text files for do not submit strings.
+
 ## 0.7.0
 
 - Add `ignore-packages` flag to the publish workflow.
