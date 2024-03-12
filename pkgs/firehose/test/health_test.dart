@@ -25,6 +25,11 @@ Future<void> main() async {
       FileStatus.added,
       directory,
     ),
+    GitFile(
+      'pkgs/package2/someImage.png',
+      FileStatus.added,
+      directory,
+    ),
   ]);
   await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
   await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
