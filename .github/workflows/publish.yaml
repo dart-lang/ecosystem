@@ -119,7 +119,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@62f096cacda5168a3bd7b95793373be14fa4fbaf
+      - uses: subosito/flutter-action@3d804929922b667a63a229bc59037807f969e885
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
@@ -202,7 +202,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@62f096cacda5168a3bd7b95793373be14fa4fbaf
+      - uses: subosito/flutter-action@3d804929922b667a63a229bc59037807f969e885
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
