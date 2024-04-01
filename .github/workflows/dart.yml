@@ -33,7 +33,7 @@ jobs:
           sdk: stable
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - name: mono_repo self validate
         run: dart pub global activate mono_repo 6.6.0
       - name: mono_repo self validate
@@ -58,7 +58,7 @@ jobs:
           sdk: "3.0.0"
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_corpus_pub_upgrade
         name: pkgs/corpus; dart pub upgrade
         run: dart pub upgrade
@@ -117,7 +117,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_corpus_pub_upgrade
         name: pkgs/corpus; dart pub upgrade
         run: dart pub upgrade
@@ -176,7 +176,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_corpus_pub_upgrade
         name: pkgs/corpus; dart pub upgrade
         run: dart pub upgrade
@@ -235,7 +235,7 @@ jobs:
           sdk: "3.0.0"
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_corpus_pub_upgrade
         name: pkgs/corpus; dart pub upgrade
         run: dart pub upgrade
@@ -270,7 +270,7 @@ jobs:
           sdk: "3.0.0"
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_dart_flutter_team_lints_pub_upgrade
         name: pkgs/dart_flutter_team_lints; dart pub upgrade
         run: dart pub upgrade
@@ -305,7 +305,7 @@ jobs:
           sdk: "3.0.0"
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_firehose_pub_upgrade
         name: pkgs/firehose; dart pub upgrade
         run: dart pub upgrade
@@ -340,7 +340,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_corpus_pub_upgrade
         name: pkgs/corpus; dart pub upgrade
         run: dart pub upgrade
@@ -375,7 +375,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_dart_flutter_team_lints_pub_upgrade
         name: pkgs/dart_flutter_team_lints; dart pub upgrade
         run: dart pub upgrade
@@ -410,7 +410,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_firehose_pub_upgrade
         name: pkgs/firehose; dart pub upgrade
         run: dart pub upgrade
@@ -445,7 +445,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_blast_repo_pub_upgrade
         name: pkgs/blast_repo; dart pub upgrade
         run: dart pub upgrade
@@ -490,7 +490,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
       - id: pkgs_blast_repo_pub_upgrade
         name: pkgs/blast_repo; dart pub upgrade
         run: dart pub upgrade
