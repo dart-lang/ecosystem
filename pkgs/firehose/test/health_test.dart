@@ -35,6 +35,11 @@ Future<void> main() async {
       FileStatus.modified,
       directory,
     ),
+    GitFile(
+      'pkgs/package5/pubspec.yaml',
+      FileStatus.modified,
+      directory,
+    ),
   ]);
   await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
   await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
