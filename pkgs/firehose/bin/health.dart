@@ -9,9 +9,7 @@ import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
-  var checkTypes = Check.values.map(
-    (e) => e.name,
-  );
+  var checkTypes = Check.values.map((c) => c.name);
   var argParser = ArgParser()
     ..addOption(
       'check',

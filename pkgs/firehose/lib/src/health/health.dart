@@ -103,9 +103,10 @@ class Health {
     if (!github.prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
-      if (warnOn.contains(check) && firstResult.severity == Severity.error) {
+      if (warnOn.contains(check.name) &&
+          firstResult.severity == Severity.error) {
         finalResult = firstResult.withSeverity(Severity.warning);
-      } else if (failOn.contains(check) &&
+      } else if (failOn.contains(check.name) &&
           firstResult.severity == Severity.warning) {
         finalResult = firstResult.withSeverity(Severity.error);
       } else {
@@ -260,8 +261,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           ? Severity.warning
           : Severity.success,
       '''
-The following packages contain non-exported symbols exposed by the API. Export
-these symbols or remove them from your publicly visible API.
+The following packages contain symbols visible in the public API, but not exported by the library. Export these symbols or remove them from your publicly visible API.
 
 | Package | Leaking API members |
 | :--- | :--- |

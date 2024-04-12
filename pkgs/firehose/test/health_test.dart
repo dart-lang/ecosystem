@@ -82,8 +82,8 @@ Future<void> checkGolden(
   List<String> ignoredLicense = const [],
   List<String> ignoredPackage = const [],
 }) async {
-  final commentPath =
-      p.join(Directory.systemTemp.path, 'comment_${check.name}.md');
+  final commentPath = p.join(
+      Directory.systemTemp.createTempSync().path, 'comment_${check.name}.md');
   await Health(
     directory,
     check,
