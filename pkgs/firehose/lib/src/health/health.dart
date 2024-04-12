@@ -250,7 +250,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
       var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-      print('Leaking API:\n$leaks');
+      print('Leaking symbols in API:\n$leaks');
       if (leaks.isNotEmpty) {
         leaksForPackage[package] = leaks.cast();
       }
@@ -263,7 +263,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       '''
 The following packages contain symbols visible in the public API, but not exported by the library. Export these symbols or remove them from your publicly visible API.
 
-| Package | Leaking API members |
+| Package | Leaked API symbols |
 | :--- | :--- |
 ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').join('\n')}
 ''',
