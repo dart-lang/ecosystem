@@ -123,7 +123,7 @@ jobs:
         
       - name: Install api_tool
         run: dart pub global activate dart_apitool
-        if: ${{ inputs.check == 'breaking' }}
+        if: ${{ inputs.check == 'breaking' || inputs.check == 'leaking' }}
       
       - name: Check PR health
         id: healthstep
