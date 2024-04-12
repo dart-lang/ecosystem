@@ -30,13 +30,18 @@ Future<void> main() async {
       FileStatus.added,
       directory,
     ),
+    GitFile(
+      'pkgs/package5/lib/src/package5_base.dart',
+      FileStatus.modified,
+      directory,
+    ),
   ]);
   await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
   await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
 
-  for (var check in checkTypes) {
+  for (var check in Check.values) {
     test(
-      'Check health workflow "$check" against golden files',
+      'Check health workflow "${check.name}" against golden files',
       () async => await checkGolden(check, fakeGithubApi, directory),
       timeout: const Timeout(Duration(minutes: 2)),
     );
@@ -44,7 +49,7 @@ Future<void> main() async {
 
   test('Ignore license test', () async {
     await checkGolden(
-      'license',
+      Check.license,
       fakeGithubApi,
       directory,
       suffix: '_ignore_license',
@@ -55,7 +60,7 @@ Future<void> main() async {
   test(
     'Ignore packages test',
     () async {
-      for (var check in checkTypes) {
+      for (var check in Check.values) {
         await checkGolden(
           check,
           fakeGithubApi,
@@ -70,14 +75,15 @@ Future<void> main() async {
 }
 
 Future<void> checkGolden(
-  String check,
+  Check check,
   FakeGithubApi fakeGithubApi,
   Directory directory, {
   String suffix = '',
   List<String> ignoredLicense = const [],
   List<String> ignoredPackage = const [],
 }) async {
-  final commentPath = p.join(Directory.systemTemp.path, 'comment_$check.md');
+  final commentPath =
+      p.join(Directory.systemTemp.path, 'comment_${check.name}.md');
   await Health(
     directory,
     check,
@@ -94,7 +100,7 @@ Future<void> checkGolden(
   ).healthCheck();
   var comment = await File(commentPath).readAsString();
   var goldenFile =
-      File(p.join('test_data', 'golden', 'comment_$check$suffix.md'));
+      File(p.join('test_data', 'golden', 'comment_${check.name}$suffix.md'));
   if (Platform.environment['RESET_GOLDEN'] == '1') {
     goldenFile.writeAsStringSync(comment);
   } else {

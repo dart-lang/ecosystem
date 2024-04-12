@@ -9,6 +9,9 @@ import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
+  var checkTypes = Check.values.map(
+    (e) => e.name,
+  );
   var argParser = ArgParser()
     ..addOption(
       'check',
@@ -49,7 +52,8 @@ void main(List<String> arguments) async {
       help: 'Whether to run web tests for coverage',
     );
   final parsedArgs = argParser.parse(arguments);
-  final check = parsedArgs['check'] as String;
+  final checkStr = parsedArgs['check'] as String;
+  final check = Check.values.firstWhere((c) => c.name == checkStr);
   final warnOn = parsedArgs['warn_on'] as List<String>;
   final failOn = parsedArgs['fail_on'] as List<String>;
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
