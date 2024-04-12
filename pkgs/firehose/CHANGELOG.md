@@ -1,3 +1,7 @@
+## 0.9.0
+
+- Add `leaking` check to the health workflow.
+
 ## 0.8.0
 
 - Only check text files for do not submit strings.

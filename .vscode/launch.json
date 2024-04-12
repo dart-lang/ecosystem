@@ -17,7 +17,7 @@
             },
             "args": [
                 "--checks",
-                "version,changelog,license,coverage,do-not-submit"
+                "version,changelog,license,coverage,do-not-submit,leaking"
             ]
         }
     ]
