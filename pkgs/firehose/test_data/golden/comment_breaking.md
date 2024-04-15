@@ -12,6 +12,6 @@ Details
 |package5|Non-Breaking|1.0.0|1.2.0|1.1.0|:heavy_check_mark:|
 
 
-This check can be disabled by tagging the PR with `skip-breaking-check`
+This check can be disabled by tagging the PR with `skip-breaking-check`.
 </details>
 

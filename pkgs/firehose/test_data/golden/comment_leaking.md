@@ -12,6 +12,6 @@ The following packages contain symbols visible in the public API, but not export
 |package5|NonExported<br>NonExported2<br>TransitiveNonExported|
 
 
-This check can be disabled by tagging the PR with `skip-leaking-check`
+This check can be disabled by tagging the PR with `skip-leaking-check`.
 </details>
 

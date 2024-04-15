@@ -14,6 +14,6 @@ Details
 This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-Coverage) is informational (issues shown here will not fail the PR).
 
 
-This check can be disabled by tagging the PR with `skip-coverage-check`
+This check can be disabled by tagging the PR with `skip-coverage-check`.
 </details>
 

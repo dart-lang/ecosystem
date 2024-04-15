@@ -39,6 +39,6 @@ Unrelated files missing license headers
 
 
 
-This check can be disabled by tagging the PR with `skip-license-check`
+This check can be disabled by tagging the PR with `skip-license-check`.
 </details>
 

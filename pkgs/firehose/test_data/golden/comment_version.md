@@ -15,6 +15,6 @@ Details
 Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
     
 
-This check can be disabled by tagging the PR with `skip-version-check`
+This check can be disabled by tagging the PR with `skip-version-check`.
 </details>
 
