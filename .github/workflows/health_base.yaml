@@ -16,17 +16,17 @@ on:
         required: false
         type: string
       check:
-        description: What to check for in the PR health check - any of "version,changelog,license,coverage,breaking,do-not-submit"
+        description: What to check for in the PR health check - any of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
         type: string
         required: true
       fail_on:
-        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
+        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
         default: "version,changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit"
-        default: "license,coverage,breaking"
+        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+        default: "license,coverage,breaking,leaking"
         type: string
         required: false
       local_debug:
@@ -123,7 +123,7 @@ jobs:
         
       - name: Install api_tool
         run: dart pub global activate dart_apitool
-        if: ${{ inputs.check == 'breaking' }}
+        if: ${{ inputs.check == 'breaking' || inputs.check == 'leaking' }}
       
       - name: Check PR health
         id: healthstep

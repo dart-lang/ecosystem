@@ -12,8 +12,8 @@ jobs:
       local_debug: true
       coverage_web: false
       upload_coverage: false
-      checks: version,changelog,license,coverage,breaking,do-not-submit
+      checks: version,changelog,license,coverage,breaking,do-not-submit,leaking
       fail_on: version,changelog,do-not-submit
-      warn_on: license,coverage,breaking
+      warn_on: license,coverage,breaking,leaking
       ignore_license: 'pkgs/firehose/test_data'
-      ignore_coverage: 'pkgs/firehose/bin'
+      ignore_coverage: 'pkgs/firehose/bin,pkgs/firehose/test_data'

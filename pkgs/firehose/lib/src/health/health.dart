@@ -14,33 +14,26 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
-import '../github.dart';
-import '../repo.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
-const String _publishBotTag2 = '### Package publish validation';
+enum Check {
+  version('### Package publish validation', 'version'),
+  license('### License Headers', 'license'),
+  changelog('### Changelog Entry', 'changelog'),
+  coverage('### Coverage', 'coverage'),
+  breaking('### Breaking changes', 'breaking'),
+  leaking('### API leaks', 'leaking'),
+  donotsubmit('### Do Not Submit', 'do-not-submit');
 
-const String _licenseBotTag = '### License Headers';
+  final String tag;
 
-const String _changelogBotTag = '### Changelog Entry';
+  final String name;
 
-const String _doNotSubmitBotTag = '### Do Not Submit';
-
-const String _coverageBotTag = '### Coverage';
-
-const String _breakingBotTag = '### Breaking changes';
-
-const checkTypes = <String>[
-  'version',
-  'license',
-  'changelog',
-  'coverage',
-  'breaking',
-  'do-not-submit',
-];
+  const Check(this.tag, this.name);
+}
 
 class Health {
   final Directory directory;
@@ -78,7 +71,7 @@ class Health {
             );
   final GithubApi github;
 
-  final String check;
+  final Check check;
   final List<String> warnOn;
   final List<String> failOn;
   final bool coverageweb;
@@ -94,7 +87,8 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    print('Start health check for the check $check with');
+    var checkName = check.name;
+    print('Start health check for the check $checkName with');
     print(' warnOn: $warnOn');
     print(' failOn: $failOn');
     print(' coverageweb: $coverageweb');
@@ -103,44 +97,35 @@ class Health {
     print(' ignoredForCoverage: $ignoredFilesForCoverage');
     print(' baseDirectory: $baseDirectory');
     print(' experiments: $experiments');
-    print('Checking for $check');
-    if (!github.prLabels.contains('skip-$check-check')) {
+    print('Checking for $checkName');
+    if (!github.prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
-      if (warnOn.contains(check) && firstResult.severity == Severity.error) {
+      if (warnOn.contains(check.name) &&
+          firstResult.severity == Severity.error) {
         finalResult = firstResult.withSeverity(Severity.warning);
-      } else if (failOn.contains(check) &&
+      } else if (failOn.contains(check.name) &&
           firstResult.severity == Severity.warning) {
         finalResult = firstResult.withSeverity(Severity.error);
       } else {
         finalResult = firstResult;
       }
       await writeInComment(github, finalResult);
-      print('\n\n${finalResult.severity.name.toUpperCase()}: $check done.\n\n');
+      var severity = finalResult.severity.name.toUpperCase();
+      print('\n\n$severity: $checkName done.\n\n');
     } else {
-      print('Skipping $check, as the skip tag is present.');
+      print('Skipping $checkName, as the skip tag is present.');
     }
   }
 
-  String tagFor(String checkType) => switch (checkType) {
-        'version' => _publishBotTag2,
-        'license' => _licenseBotTag,
-        'changelog' => _changelogBotTag,
-        'coverage' => _coverageBotTag,
-        'breaking' => _breakingBotTag,
-        'do-not-submit' => _doNotSubmitBotTag,
-        String() => throw ArgumentError('Invalid check type $checkType'),
-      };
-
-  Future<HealthCheckResult> Function() checkFor(String checkType) =>
-      switch (checkType) {
-        'version' => validateCheck,
-        'license' => licenseCheck,
-        'changelog' => changelogCheck,
-        'coverage' => coverageCheck,
-        'breaking' => breakingCheck,
-        'do-not-submit' => doNotSubmitCheck,
-        String() => throw ArgumentError('Invalid check type $checkType'),
+  Future<HealthCheckResult> Function() checkFor(Check check) => switch (check) {
+        Check.version => validateCheck,
+        Check.license => licenseCheck,
+        Check.changelog => changelogCheck,
+        Check.coverage => coverageCheck,
+        Check.breaking => breakingCheck,
+        Check.donotsubmit => doNotSubmitCheck,
+        Check.leaking => leakingCheck,
       };
 
   Future<HealthCheckResult> validateCheck() async {
@@ -157,7 +142,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     ''';
 
     return HealthCheckResult(
-      'version',
+      Check.version,
       results.severity,
       markdownTable,
     );
@@ -173,7 +158,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       var baseRelativePath = path.relative(
           path.join(baseDirectory.path, relativePath),
           from: directory.path);
-      var tempDirectory = Directory.systemTemp..createSync();
+      var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
       var runApiTool = Process.runSync(
         'dart',
@@ -209,7 +194,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       );
     }
     return HealthCheckResult(
-      'breaking',
+      Check.breaking,
       changeForPackage.values.any((element) => !element.versionIsFine)
           ? Severity.warning
           : Severity.info,
@@ -233,6 +218,54 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       breakingLevel = BreakingLevel.none;
     }
     return breakingLevel;
+  }
+
+  Future<HealthCheckResult> leakingCheck() async {
+    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
+    final leaksForPackage = <Package, List<String>>{};
+    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
+      print('Look for leaks in $package');
+      var relativePath =
+          path.relative(package.directory.path, from: directory.path);
+      var tempDirectory = Directory.systemTemp.createTempSync();
+      var reportPath = path.join(tempDirectory.path, 'leaks.json');
+      var runApiTool = Process.runSync(
+        'dart',
+        [
+          ...['pub', 'global', 'run'],
+          'dart_apitool:main',
+          'extract',
+          ...['--input', relativePath],
+          ...['--output', reportPath],
+          '--set-exit-on-missing-export',
+        ],
+        workingDirectory: directory.path,
+      );
+      print(runApiTool.stderr);
+      print(runApiTool.stdout);
+
+      var fullReportString = File(reportPath).readAsStringSync();
+      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+      var leaks = decoded['missingEntryPoints'] as List<dynamic>;
+
+      print('Leaking symbols in API:\n$leaks');
+      if (leaks.isNotEmpty) {
+        leaksForPackage[package] = leaks.cast();
+      }
+    }
+    return HealthCheckResult(
+      Check.leaking,
+      leaksForPackage.values.any((leaks) => leaks.isNotEmpty)
+          ? Severity.warning
+          : Severity.success,
+      '''
+The following packages contain symbols visible in the public API, but not exported by the library. Export these symbols or remove them from your publicly visible API.
+
+| Package | Leaked API symbols |
+| :--- | :--- |
+${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').join('\n')}
+''',
+    );
   }
 
   Future<HealthCheckResult> licenseCheck() async {
@@ -276,7 +309,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
 ''';
 
     return HealthCheckResult(
-      'license',
+      Check.license,
       changedFilesPaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
@@ -298,7 +331,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 ''';
 
     return HealthCheckResult(
-      'changelog',
+      Check.changelog,
       filePaths.isNotEmpty ? Severity.error : Severity.success,
       markdownResult,
     );
@@ -335,7 +368,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 
     final hasDNS = filesWithDNS.isNotEmpty || bodyContainsDNS;
     return HealthCheckResult(
-      'do-not-submit',
+      Check.donotsubmit,
       hasDNS ? Severity.error : Severity.success,
       hasDNS ? markdownResult : null,
     );
@@ -359,7 +392,7 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 ''';
 
     return HealthCheckResult(
-      'coverage',
+      Check.coverage,
       Severity.values[coverage.coveragePerFile.values
           .map((change) => change.severity.index)
           .fold(0, max)],
@@ -381,11 +414,11 @@ Details
 
 $markdown
 
-${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.name}-check`' : ''}
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.name}-check`.' : ''}
 </details>
 
 ''';
-      markdownSummary = '${tagFor(result.name)} ${result.severity.emoji}\n\n$s';
+      markdownSummary = '${check.tag} ${result.severity.emoji}\n\n$s';
     } else {
       markdownSummary = '';
     }
@@ -426,14 +459,14 @@ enum BreakingLevel {
 }
 
 class HealthCheckResult {
-  final String name;
+  final Check check;
   final Severity severity;
   final String? markdown;
 
-  HealthCheckResult(this.name, this.severity, this.markdown);
+  HealthCheckResult(this.check, this.severity, this.markdown);
 
   HealthCheckResult withSeverity(Severity severity) => HealthCheckResult(
-        name,
+        check,
         severity,
         markdown,
       );
