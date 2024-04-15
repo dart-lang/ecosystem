@@ -14,6 +14,11 @@ import 'src/pub.dart';
 import 'src/repo.dart';
 import 'src/utils.dart';
 
+export 'src/changelog.dart' show Changelog;
+export 'src/github.dart' show FileStatus, GitFile, GithubApi;
+export 'src/repo.dart' show Package, Repository;
+export 'src/utils.dart' show Severity;
+
 const String _botSuffix = '[bot]';
 
 const String _githubActionsUser = 'github-actions[bot]';

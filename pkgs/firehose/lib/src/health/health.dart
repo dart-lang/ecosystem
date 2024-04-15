@@ -416,7 +416,7 @@ Details
 
 $markdown
 
-${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.name}-check`' : ''}
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.name}-check`.' : ''}
 </details>
 
 ''';
