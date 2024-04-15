@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:firehose/firehose.dart';
-import 'package:firehose/src/github.dart';
 import 'package:glob/glob.dart';
 
 const helpFlag = 'help';
