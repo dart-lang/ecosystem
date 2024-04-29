@@ -1,6 +1,7 @@
 ## 2.2.0
 
 - Added `unnecessary_library_name`.
+- Require Dart `3.4`.
 
 ## 2.1.1
 
