@@ -1,4 +1,6 @@
-## 2.1.2-wip
+## 2.2.0
+
+- Added `unnecessary_library_name`.
 
 ## 2.1.1
 
