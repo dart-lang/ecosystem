@@ -10,6 +10,6 @@ updates:
       - autosubmit
     groups:
        dependencies:
-          applies-to: version-updates
           patterns: ["*"]
-          update-types: ["major", "minor"]
+    ignore:
+      update-types: ["version-update:semver-patch"]
