@@ -2,9 +2,14 @@
 version: 2
 
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "monthly"
+      interval: monthly
     labels:
-      - "autosubmit"
+      - autosubmit
+    groups:
+       dependencies:
+          applies-to: version-updates
+          patterns: ["*"]
+          update-types: ["major", "minor"]
