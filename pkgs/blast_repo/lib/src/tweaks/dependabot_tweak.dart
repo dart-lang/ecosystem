@@ -156,9 +156,16 @@ Iterable<Object> _allowedActionValues() =>
 
 const _packageEcosystemKey = 'package-ecosystem';
 
-Map<String, Object> _githubActionValue(String frequency) => {
-      _packageEcosystemKey: 'github-actions',
-      'directory': '/',
-      'schedule': {'interval': frequency},
-      'labels': ['autosubmit'],
-    };
+Map<String, Object> _githubActionValue(String frequency) {
+  return {
+    _packageEcosystemKey: 'github-actions',
+    'directory': '/',
+    'schedule': {'interval': frequency},
+    'labels': ['autosubmit'],
+    'groups': {
+      'dependencies': {
+        'patterns': ['*']
+      }
+    },
+  };
+}
