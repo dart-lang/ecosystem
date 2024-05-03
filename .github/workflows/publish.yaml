@@ -115,7 +115,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
@@ -125,7 +125,7 @@ jobs:
           channel: ${{ inputs.sdk }}
           
 
-      - uses: dart-lang/setup-dart@fedb1266e91cf51be2fdb382869461a434b920a3
+      - uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -198,7 +198,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
@@ -207,7 +207,7 @@ jobs:
         with:
           channel: ${{ inputs.sdk }}
 
-      - uses: dart-lang/setup-dart@fedb1266e91cf51be2fdb382869461a434b920a3
+      - uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
