@@ -9,8 +9,6 @@ updates:
     labels:
       - autosubmit
     groups:
-       dependencies:
-          patterns: ["*"]
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
+      dependencies:
+        patterns:
+          - "*"
