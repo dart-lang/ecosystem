@@ -32,7 +32,7 @@ updates: "bob"
     final result = doDependabotFix(r'''
 #some comment
 version: 2
-enable-beta-ecosystems: true
+
 updates:
   - package-ecosystem: "pub"
     directory: "/"
@@ -43,7 +43,7 @@ updates:
     expect(result, r'''
 #some comment
 version: 2
-enable-beta-ecosystems: true
+
 updates:
   - package-ecosystem: "pub"
     directory: "/"
@@ -55,6 +55,10 @@ updates:
       interval: monthly
     labels:
       - autosubmit
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 ''');
   });
 
@@ -74,6 +78,10 @@ updates:
       interval: "$frequency"
     labels:
       - autosubmit
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 ''';
         final result = doDependabotFix(input);
 
@@ -104,4 +112,8 @@ updates:
       interval: monthly
     labels:
       - autosubmit
+    groups:
+      dependencies:
+        patterns:
+          - "*"
 ''';
