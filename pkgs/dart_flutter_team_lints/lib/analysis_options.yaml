@@ -25,7 +25,6 @@ linter:
     # consistency
     - combinators_ordering
     - directives_ordering
-    - library_annotations
     - lines_longer_than_80_chars
     - omit_local_variable_types
     - prefer_asserts_in_initializer_lists
