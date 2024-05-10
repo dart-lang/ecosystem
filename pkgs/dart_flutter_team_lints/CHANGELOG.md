@@ -1,4 +1,8 @@
-## 2.1.2-wip
+## 3.0.0
+
+- Depend on the `4.0.0` release of `package:lints` adding
+  the `no_wildcard_variable_uses` lint.
+- Require Dart `3.1.0` or later.
 
 ## 2.1.1
 
