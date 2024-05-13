@@ -34,6 +34,7 @@ linter:
     - sort_pub_dependencies
     - unnecessary_lambdas
     - unnecessary_library_directive
+    - unnecessary_library_name
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_is_even_rather_than_modulo

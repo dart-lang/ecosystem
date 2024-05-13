@@ -14,4 +14,4 @@ dependencies:
   path: ^1.8.0
 
 dev_dependencies:
-  dart_flutter_team_lints: ^2.0.0
+  dart_flutter_team_lints: ^3.0.0

@@ -1,7 +1,12 @@
+## 3.1.0
+
+- Added `unnecessary_library_name`.
+- Require Dart `3.4`.
+
 ## 3.0.0
 
-- Depend on the `4.0.0` release of `package:lints` adding
-  the `no_wildcard_variable_uses` lint.
+- Depend on the `4.0.0` release of `package:lints`, adding the
+  `no_wildcard_variable_uses` lint.
 - Require Dart `3.1.0` or later.
 
 ## 2.1.1
