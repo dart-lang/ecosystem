@@ -78,7 +78,6 @@ void main(List<String> arguments) async {
 }
 
 const String usage = '''
-usage: dart bin/autotune.dart [options] <issue>
+A tool to triage issues from https://github.com/dart-lang/sdk.
 
-A tool to triage issues from https://github.com/dart-lang/sdk. Pass one issue to triage at a time.
-''';
+usage: dart bin/triage.dart [options] <issue>''';

@@ -57,8 +57,8 @@ String summarizeIssuePrompt({
 }) {
   return '''
 You are a software engineer on the Dart team at Google. You are responsible for
-triaging incoming issues from users. For each issue, summarize the issue in one
-to two sentences; 24 words or less.
+triaging incoming issues from users. For each issue, briefly summarize the issue
+(1-2 sentences, 24 words or less).
 
 Issue follows:
 
