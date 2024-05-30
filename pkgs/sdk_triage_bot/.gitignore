@@ -1,0 +1,10 @@
+# https://dart.dev/guides/libraries/private-files
+# Created by `dart pub`
+.dart_tool/
+pubspec.lock
+
+.env
+
+tool/training.csv
+tool/training.jsonl
+tool/training.txt

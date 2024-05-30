@@ -1,0 +1,18 @@
+name: sdk_triage_bot
+description: A triage automation tool for dart-lang/sdk issues.
+
+publish_to: none
+
+environment:
+  sdk: ^3.4.0
+
+dependencies:
+  args: ^2.5.0
+  github: ^9.0.0
+  google_generative_ai: ^0.4.0
+  graphql: ^5.1.0
+  http: ^1.2.0
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.1.0
+  test: ^1.24.0
