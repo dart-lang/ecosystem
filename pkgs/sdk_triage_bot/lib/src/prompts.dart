@@ -34,15 +34,15 @@ area-vm: Use area-vm for VM related issues, including code coverage, FFI, and th
 area-web: Use area-web for Dart web related issues, including the DDC and dart2js compilers and JS interop.
 
 Don't make up a new area.
-If it's not clear which area the issue should go in, say so, and don't apply a label.
+Don't use more than one area- label.
+If it's not clear which area the issue should go in, don't apply an area- label.
 
 If the issue is clearly a feature request, then also apply the label 'type-enhancement'.
 If the issue is clearly a bug report, then also apply the label 'type-bug'.
+If the issue is mostly a question,  then also apply the label 'type-question'.
 Otherwise don't apply a 'type-' label.
 
-If the issue is mostly a question, close the issue, and indicate to the user that
-they should prefer to follow up at one of our community resources, like stack overflow
-(see https://dart.dev/community).
+Return the labels as comma separated text.
 
 Issue follows:
 

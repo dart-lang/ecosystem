@@ -30,9 +30,9 @@ Future<void> triage(
   if (labels.isNotEmpty) {
     print('labels: ${labels.join(', ')}');
   }
-  print('');
   final bodyLines = issue.body.split('\n');
-  for (final line in bodyLines.take(3)) {
+  print('body: ${bodyLines.first}');
+  for (final line in bodyLines.skip(1).take(2)) {
     print('  $line');
   }
   if (bodyLines.length > 3) {
