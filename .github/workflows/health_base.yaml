@@ -85,12 +85,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           path: current_repo/
           submodules: ${{ inputs.checkout_submodules }}
       
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
         with:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
@@ -149,7 +149,7 @@ jobs:
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage && inputs.check == 'coverage' }}
-        uses: coverallsapp/github-action@3dfc5567390f6fa9267c0ee9c251e4c8c3f18949
+        uses: coverallsapp/github-action@643bc377ffa44ace6394b2b5d0d3950076de9f63
         with:
           format: lcov
           base-path: current_repo/
