@@ -37,7 +37,7 @@ String get geminiKey {
   return token;
 }
 
-/// Don't return more that 4k of text for an issue body.
+/// Don't return more than 4k of text for an issue body.
 String trimmedBody(String body) {
   return body.length > 4096 ? body = body.substring(0, 4096) : body;
 }
