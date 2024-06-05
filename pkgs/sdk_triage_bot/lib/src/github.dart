@@ -12,7 +12,7 @@ import 'common.dart';
 abstract class GithubService {
   Future<List<String>> getAllLabels(RepositorySlug repoSlug);
 
-  Future<Issue> getIssue(RepositorySlug sdkSlug, int issueNumber);
+  Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber);
 
   Future createComment(RepositorySlug sdkSlug, int issueNumber, String comment);
 
@@ -32,7 +32,7 @@ class GithubServiceImpl implements GithubService {
   }
 
   @override
-  Future<Issue> getIssue(RepositorySlug sdkSlug, int issueNumber) async {
+  Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber) async {
     return await github.issues.get(sdkSlug, issueNumber);
   }
 

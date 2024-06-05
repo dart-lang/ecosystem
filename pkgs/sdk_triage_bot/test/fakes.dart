@@ -23,7 +23,7 @@ class GithubServiceMock implements GithubService {
   );
 
   @override
-  Future<Issue> getIssue(RepositorySlug sdkSlug, int issueNumber) async {
+  Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber) async {
     return returnedIssue;
   }
 

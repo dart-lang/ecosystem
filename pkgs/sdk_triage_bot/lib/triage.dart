@@ -22,7 +22,7 @@ Future<void> triage(
   print('');
 
   // retrieve the issue
-  final issue = await githubService.getIssue(sdkSlug, issueNumber);
+  final issue = await githubService.fetchIssue(sdkSlug, issueNumber);
   print('## issue ${issue.url}');
   print('');
   print('title: ${issue.title}');
