@@ -78,11 +78,12 @@ Future<void> triage(
   print('');
   print('labels: $classification');
 
-  var comment = '"$summary"\n\n';
+  var comment = '';
   if (classification.isNotEmpty) {
-    comment += 'labels: ${classification.map((l) => '`$l`').join(', ')}';
+    comment += classification.map((l) => '`$l`').join(', ');
     comment += '\n';
   }
+  comment += '> $summary\n';
 
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
