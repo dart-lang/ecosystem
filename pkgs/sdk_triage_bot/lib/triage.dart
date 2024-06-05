@@ -30,13 +30,11 @@ Future<void> triage(
   if (labels.isNotEmpty) {
     print('labels: ${labels.join(', ')}');
   }
-  final bodyLines = issue.body.split('\n');
-  print('body: ${bodyLines.first}');
-  for (final line in bodyLines.skip(1).take(2)) {
+  final bodyLines =
+      issue.body.split('\n').where((l) => l.trim().isNotEmpty).toList();
+  print('');
+  for (final line in bodyLines.take(4)) {
     print('  $line');
-  }
-  if (bodyLines.length > 3) {
-    print('  ...');
   }
   print('');
 
@@ -74,34 +72,23 @@ Future<void> triage(
   }
 
   // perform changes
-  const docsText = '(see our triage process '
-      '[docs](https://github.com/dart-lang/sdk/blob/main/docs/Triaging-Dart-SDK-issues.md)'
-      ')';
-
   print('## github comment');
   print('');
   print(summary);
-  if (classification.isNotEmpty) {
-    print('');
-    print('labels: $classification');
-  }
   print('');
-  print(docsText);
-
-  var newLabels = classification.split(',').map((l) => l.trim()).toList();
+  print('labels: $classification');
 
   var comment = '"$summary"\n\n';
-  if (newLabels.isNotEmpty) {
-    comment += 'labels: ${newLabels.map((l) => '`$l`').join(', ')}';
+  if (classification.isNotEmpty) {
+    comment += 'labels: ${classification.map((l) => '`$l`').join(', ')}';
     comment += '\n';
   }
-  comment += '$docsText\n';
 
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allLabels = await githubService.getAllLabels(sdkSlug);
-  newLabels = filterExistingLabels(allLabels, newLabels);
+  var newLabels = filterExistingLabels(allLabels, classification);
   if (newLabels.any((l) => l.startsWith('area-'))) {
     newLabels.add('triage-automation');
   }

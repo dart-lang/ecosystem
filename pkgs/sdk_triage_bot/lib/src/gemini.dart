@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 
 abstract class GeminiService {
   Future<String> summarize(String prompt);
-  Future<String> classify(String prompt);
+  Future<List<String>> classify(String prompt);
 }
 
 class GeminiServiceImpl implements GeminiService {
@@ -38,8 +38,10 @@ class GeminiServiceImpl implements GeminiService {
   }
 
   @override
-  Future<String> classify(String prompt) {
-    return _query(classifyModel, prompt);
+  Future<List<String>> classify(String prompt) async {
+    final result = await _query(classifyModel, prompt);
+    final labels = result.split(',').map((l) => l.trim()).toList();
+    return labels;
   }
 
   Future<String> _query(GenerativeModel model, String prompt) async {

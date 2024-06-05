@@ -51,7 +51,7 @@ class GeminiServiceStub implements GeminiService {
   }
 
   @override
-  Future<String> classify(String prompt) async {
-    return 'area-vm, type-bug';
+  Future<List<String>> classify(String prompt) async {
+    return ['area-vm', 'type-bug'];
   }
 }
