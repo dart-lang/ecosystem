@@ -32,14 +32,14 @@ void main(List<String> arguments) async {
     print(usage);
     print('');
     print(argParser.usage);
-    io.exit(1);
+    io.exit(64);
   }
 
   if (results.flag('help') || results.rest.isEmpty) {
     print(usage);
     print('');
     print(argParser.usage);
-    io.exit(results.flag('help') ? 0 : 1);
+    io.exit(results.flag('help') ? 0 : 64);
   }
 
   var issue = results.rest.first;

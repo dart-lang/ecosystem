@@ -112,9 +112,7 @@ extension on Issue {
   String get trainingRowCSV {
     final bodyValue = trimmedBody(bodyText!);
     final filteredLabels = labels.map((l) => l.name).where((label) {
-      if (label.startsWith('area-')) return true;
-      if (label.startsWith('type-')) return true;
-      return false;
+      return label.startsWith('area-') || label.startsWith('type-');
     }).toList();
 
     // csv encode
@@ -127,9 +125,7 @@ extension on Issue {
   String get trainingRowJsonl {
     final bodyValue = trimmedBody(bodyText!);
     final filteredLabels = labels.map((l) => l.name).where((label) {
-      if (label.startsWith('area-')) return true;
-      if (label.startsWith('type-')) return true;
-      return false;
+      return label.startsWith('area-') || label.startsWith('type-');
     }).toList();
 
     final input = assignAreaPrompt(title: title, body: bodyValue);
@@ -149,9 +145,7 @@ extension on Issue {
       shortTitle = '${shortTitle.substring(0, 80)}...';
     }
     final filteredLabels = labels.map((l) => l.name).where((label) {
-      if (label.startsWith('area-')) return true;
-      if (label.startsWith('type-')) return true;
-      return false;
+      return label.startsWith('area-') || label.startsWith('type-');
     }).toList();
 
     return '[$number] "$shortTitle": ${filteredLabels.join(', ')}';
