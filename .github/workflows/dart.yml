@@ -393,7 +393,7 @@ jobs:
           sdk: "3.4.0"
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - id: pkgs_sdk_triage_bot_pub_upgrade
         name: pkgs/sdk_triage_bot; dart pub upgrade
         run: dart pub upgrade
@@ -537,7 +537,7 @@ jobs:
           sdk: dev
       - id: checkout
         name: Checkout repository
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
       - id: pkgs_sdk_triage_bot_pub_upgrade
         name: pkgs/sdk_triage_bot; dart pub upgrade
         run: dart pub upgrade
