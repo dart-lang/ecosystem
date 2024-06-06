@@ -89,16 +89,16 @@ jobs:
     needs:
       - job_001
   job_003:
-    name: "analyze_and_format; Dart 3.4.0; PKG: pkgs/dart_flutter_team_lints; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart 3.4.0; PKGS: pkgs/dart_flutter_team_lints, pkgs/sdk_triage_bot; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints-pkgs/sdk_triage_bot;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints-pkgs/sdk_triage_bot
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -118,19 +118,28 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/dart_flutter_team_lints
+      - id: pkgs_sdk_triage_bot_pub_upgrade
+        name: pkgs/sdk_triage_bot; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+      - name: "pkgs/sdk_triage_bot; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_sdk_triage_bot_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
     needs:
       - job_001
   job_004:
-    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage, pkgs/sdk_triage_bot; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage-pkgs/sdk_triage_bot;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage-pkgs/sdk_triage_bot
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -177,19 +186,28 @@ jobs:
         run: dart analyze --fatal-infos .
         if: "always() && steps.pkgs_repo_manage_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/repo_manage
+      - id: pkgs_sdk_triage_bot_pub_upgrade
+        name: pkgs/sdk_triage_bot; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+      - name: "pkgs/sdk_triage_bot; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_sdk_triage_bot_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
     needs:
       - job_001
   job_005:
-    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage; `dart format --output=none --set-exit-if-changed .`"
+    name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage, pkgs/sdk_triage_bot; `dart format --output=none --set-exit-if-changed .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage;commands:format"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage-pkgs/sdk_triage_bot;commands:format"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/corpus-pkgs/dart_flutter_team_lints-pkgs/firehose-pkgs/repo_manage-pkgs/sdk_triage_bot
             os:ubuntu-latest;pub-cache-hosted;sdk:dev
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -236,6 +254,15 @@ jobs:
         run: "dart format --output=none --set-exit-if-changed ."
         if: "always() && steps.pkgs_repo_manage_pub_upgrade.conclusion == 'success'"
         working-directory: pkgs/repo_manage
+      - id: pkgs_sdk_triage_bot_pub_upgrade
+        name: pkgs/sdk_triage_bot; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+      - name: "pkgs/sdk_triage_bot; dart format --output=none --set-exit-if-changed ."
+        run: "dart format --output=none --set-exit-if-changed ."
+        if: "always() && steps.pkgs_sdk_triage_bot_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
     needs:
       - job_001
   job_006:
@@ -347,6 +374,42 @@ jobs:
       - job_004
       - job_005
   job_009:
+    name: "unit_test; Dart 3.4.0; PKG: pkgs/sdk_triage_bot; `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/sdk_triage_bot;commands:test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/sdk_triage_bot
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+        with:
+          sdk: "3.4.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - id: pkgs_sdk_triage_bot_pub_upgrade
+        name: pkgs/sdk_triage_bot; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+      - name: pkgs/sdk_triage_bot; dart test
+        run: dart test
+        if: "always() && steps.pkgs_sdk_triage_bot_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_010:
     name: "unit_test; Dart dev; PKG: pkgs/corpus; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -382,7 +445,7 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_010:
+  job_011:
     name: "unit_test; Dart dev; PKG: pkgs/dart_flutter_team_lints; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -418,7 +481,7 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_011:
+  job_012:
     name: "unit_test; Dart dev; PKG: pkgs/firehose; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -454,7 +517,43 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_012:
+  job_013:
+    name: "unit_test; Dart dev; PKG: pkgs/sdk_triage_bot; `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/sdk_triage_bot;commands:test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev;packages:pkgs/sdk_triage_bot
+            os:ubuntu-latest;pub-cache-hosted;sdk:dev
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@f0ead981b4d9a35b37f30d36160575d60931ec30
+        with:
+          sdk: dev
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29
+      - id: pkgs_sdk_triage_bot_pub_upgrade
+        name: pkgs/sdk_triage_bot; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+      - name: pkgs/sdk_triage_bot; dart test
+        run: dart test
+        if: "always() && steps.pkgs_sdk_triage_bot_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/sdk_triage_bot
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+  job_014:
     name: "analyze_format; Dart dev; PKG: pkgs/blast_repo; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
@@ -500,7 +599,9 @@ jobs:
       - job_009
       - job_010
       - job_011
-  job_013:
+      - job_012
+      - job_013
+  job_015:
     name: "test; Dart dev; PKG: pkgs/blast_repo; `dart test --test-randomize-ordering-seed=random`"
     runs-on: ubuntu-latest
     steps:
@@ -543,3 +644,5 @@ jobs:
       - job_010
       - job_011
       - job_012
+      - job_013
+      - job_014
