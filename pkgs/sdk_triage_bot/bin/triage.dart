@@ -59,9 +59,9 @@ void main(List<String> arguments) async {
     auth: Authentication.withToken(githubToken),
     client: client,
   );
-  final githubService = GithubServiceImpl(github: github);
+  final githubService = GithubService(github: github);
 
-  final geminiService = GeminiServiceImpl(
+  final geminiService = GeminiService(
     apiKey: geminiKey,
     httpClient: client,
   );

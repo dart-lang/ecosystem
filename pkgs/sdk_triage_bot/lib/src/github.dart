@@ -9,43 +9,28 @@ import 'package:graphql/client.dart';
 
 import 'common.dart';
 
-abstract class GithubService {
-  Future<List<String>> getAllLabels(RepositorySlug repoSlug);
+class GithubService {
+  final GitHub _gitHub;
 
-  Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber);
+  GithubService({required GitHub github}) : _gitHub = github;
 
-  Future createComment(RepositorySlug sdkSlug, int issueNumber, String comment);
-
-  Future addLabelsToIssue(
-      RepositorySlug sdkSlug, int issueNumber, List<String> newLabels);
-}
-
-class GithubServiceImpl implements GithubService {
-  final GitHub github;
-
-  GithubServiceImpl({required this.github});
-
-  @override
   Future<List<String>> getAllLabels(RepositorySlug repoSlug) async {
-    final result = await github.issues.listLabels(repoSlug).toList();
+    final result = await _gitHub.issues.listLabels(repoSlug).toList();
     return result.map((item) => item.name).toList();
   }
 
-  @override
   Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber) async {
-    return await github.issues.get(sdkSlug, issueNumber);
+    return await _gitHub.issues.get(sdkSlug, issueNumber);
   }
 
-  @override
   Future createComment(
       RepositorySlug sdkSlug, int issueNumber, String comment) async {
-    await github.issues.createComment(sdkSlug, issueNumber, comment);
+    await _gitHub.issues.createComment(sdkSlug, issueNumber, comment);
   }
 
-  @override
   Future addLabelsToIssue(
       RepositorySlug sdkSlug, int issueNumber, List<String> newLabels) async {
-    await github.issues.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
+    await _gitHub.issues.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
   }
 }
 

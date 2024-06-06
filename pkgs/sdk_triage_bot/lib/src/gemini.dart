@@ -5,25 +5,20 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:http/http.dart' as http;
 
-abstract class GeminiService {
-  Future<String> summarize(String prompt);
-  Future<List<String>> classify(String prompt);
-}
+class GeminiService {
+  final GenerativeModel _summarizeModel;
+  final GenerativeModel _classifyModel;
 
-class GeminiServiceImpl implements GeminiService {
-  final GenerativeModel summarizeModel;
-  final GenerativeModel classifyModel;
-
-  GeminiServiceImpl({
+  GeminiService({
     required String apiKey,
     required http.Client httpClient,
-  })  : summarizeModel = GenerativeModel(
+  })  : _summarizeModel = GenerativeModel(
           model: 'models/gemini-1.5-flash-latest',
           apiKey: apiKey,
           generationConfig: GenerationConfig(temperature: 0.2),
           httpClient: httpClient,
         ),
-        classifyModel = GenerativeModel(
+        _classifyModel = GenerativeModel(
           // TODO(devconcarew): substitute our tuned model
           // model: 'tunedModels/autotune-sdk-triage-tuned-prompt-1l96e2n',
           model: 'models/gemini-1.5-flash-latest',
@@ -32,14 +27,12 @@ class GeminiServiceImpl implements GeminiService {
           httpClient: httpClient,
         );
 
-  @override
   Future<String> summarize(String prompt) {
-    return _query(summarizeModel, prompt);
+    return _query(_summarizeModel, prompt);
   }
 
-  @override
   Future<List<String>> classify(String prompt) async {
-    final result = await _query(classifyModel, prompt);
+    final result = await _query(_classifyModel, prompt);
     final labels = result.split(',').map((l) => l.trim()).toList();
     return labels;
   }
