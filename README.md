@@ -13,6 +13,7 @@ This repository is home to general Dart Ecosystem tools and packages.
 | [dart_flutter_team_lints](pkgs/dart_flutter_team_lints/) | An analysis rule set used by the Dart and Flutter teams. | [![pub package](https://img.shields.io/pub/v/dart_flutter_team_lints.svg)](https://pub.dev/packages/dart_flutter_team_lints) |
 | [firehose](pkgs/firehose/) | A tool to automate publishing of Pub packages from GitHub actions. | [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose) |
 | [repo_manage](pkgs/repo_manage/) | Miscellaneous issue, repo, and PR query tools. |  |
+| [sdk_triage_bot](pkgs/sdk_triage_bot/) | A triage automation tool for dart-lang/sdk issues. |  |
 
 ## Publishing automation
 
