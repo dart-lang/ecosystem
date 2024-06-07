@@ -21,7 +21,7 @@ The general workflow of the tool is:
 - download the issue information (existing labels, title, first comment)
 - ask Gemini to summarize the issue (see [prompts](lib/src/prompts.dart))
 - ask Gemini to classify the issue (see [prompts](lib/src/prompts.dart))
-- create a comment on the issue ( `@dart-github-bot`) with the summary;
+- create a comment on the issue (`@dart-github-bot`) with the summary;
   apply any labels produced as part of the classification
 
 ## Tuning
