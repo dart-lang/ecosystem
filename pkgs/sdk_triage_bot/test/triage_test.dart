@@ -17,6 +17,7 @@ void main() {
       mockIssueNumber,
       githubService: githubService,
       geminiService: geminiService,
+      logger: TestLogger(),
     );
 
     expect(githubService.updatedComment, isNotEmpty);
@@ -41,6 +42,7 @@ void main() {
       mockIssueNumber,
       githubService: githubService,
       geminiService: geminiService,
+      logger: TestLogger(),
     );
 
     expect(githubService.updatedComment, isNull);
@@ -61,9 +63,10 @@ void main() {
 
     await triage(
       mockIssueNumber,
+      force: true,
       githubService: githubService,
       geminiService: geminiService,
-      force: true,
+      logger: TestLogger(),
     );
 
     expect(githubService.updatedComment, isNotEmpty);

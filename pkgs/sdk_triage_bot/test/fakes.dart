@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:github/github.dart';
+import 'package:sdk_triage_bot/src/common.dart';
 import 'package:sdk_triage_bot/src/gemini.dart';
 import 'package:sdk_triage_bot/src/github.dart';
+import 'package:test/test.dart';
 
 const int mockIssueNumber = 123;
 
@@ -53,5 +55,12 @@ class GeminiServiceStub implements GeminiService {
   @override
   Future<List<String>> classify(String prompt) async {
     return ['area-vm', 'type-bug'];
+  }
+}
+
+class TestLogger implements Logger {
+  @override
+  void log(String message) {
+    printOnFailure(message);
   }
 }
