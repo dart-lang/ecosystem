@@ -27,8 +27,10 @@ final allTweaks = Set<RepoTweak>.unmodifiable([
 Future<void> runFix({
   required String slug,
   required bool deleteTemp,
-  required String? prReviewer,
-  Iterable<RepoTweak>? tweaks,
+  required String? reviewer,
+  List<RepoTweak>? tweaks,
+  List<String> labels = const [],
+  bool dryRun = false,
 }) async {
   await withSystemTemp(
     deleteTemp: deleteTemp,
@@ -83,6 +85,11 @@ ${fixes.join(', ')}
         ],
       );
 
+      await gitDir.exec(
+        'Changes:',
+        ['--no-pager', 'show'],
+      );
+
       await runProc(
         'Creating pull request',
         'gh',
@@ -97,9 +104,11 @@ ${fixes.join(', ')}
               '${fixes.map((fix) => '- `$fix`').join('\n')}',
           '--repo',
           slug,
-          if (prReviewer != null) ...['--reviewer', prReviewer]
+          if (reviewer != null) ...['--reviewer', reviewer],
+          for (final label in labels) ...['--label', label],
         ],
         workingDirectory: tempDir.path,
+        skipExecution: dryRun,
       );
     },
   );
@@ -108,10 +117,11 @@ ${fixes.join(', ')}
 Future<Map<RepoTweak, FixResult>> fixAll(
   String repoSlug,
   Directory checkout, {
-  Iterable<RepoTweak>? tweaks,
+  List<RepoTweak>? tweaks,
 }) async {
-  tweaks ??=
-      allTweaks.where((tweak) => tweak.shouldRunByDefault(checkout, repoSlug));
+  tweaks ??= allTweaks
+      .where((tweak) => tweak.shouldRunByDefault(checkout, repoSlug))
+      .toList();
 
   return {
     for (var tweak in tweaks)

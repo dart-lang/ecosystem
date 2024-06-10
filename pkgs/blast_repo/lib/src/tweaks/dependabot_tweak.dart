@@ -163,7 +163,7 @@ Map<String, Object> _githubActionValue(String frequency) {
     'schedule': {'interval': frequency},
     'labels': ['autosubmit'],
     'groups': {
-      'dependencies': {
+      'github-actions': {
         'patterns': ['*']
       }
     },

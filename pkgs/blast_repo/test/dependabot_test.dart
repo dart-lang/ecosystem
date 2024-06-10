@@ -56,7 +56,7 @@ updates:
     labels:
       - autosubmit
     groups:
-      dependencies:
+      github-actions:
         patterns:
           - "*"
 ''');
@@ -79,7 +79,7 @@ updates:
     labels:
       - autosubmit
     groups:
-      dependencies:
+      github-actions:
         patterns:
           - "*"
 ''';
@@ -113,7 +113,7 @@ updates:
     labels:
       - autosubmit
     groups:
-      dependencies:
+      github-actions:
         patterns:
           - "*"
 ''';

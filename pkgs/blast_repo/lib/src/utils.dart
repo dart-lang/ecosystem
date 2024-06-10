@@ -46,6 +46,7 @@ Future<void> runProc(
   String proc,
   List<String> args, {
   required String workingDirectory,
+  bool skipExecution = false,
 }) async {
   printHeader(description);
 
@@ -55,6 +56,12 @@ Future<void> runProc(
       ...args,
     ].join(' '),
   );
+
+  if (skipExecution) {
+    print('** skipping execution for $proc **');
+    return;
+  }
+
   final ghProc = await Process.start(
     proc,
     args,

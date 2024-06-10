@@ -13,8 +13,9 @@ import 'package:stack_trace/stack_trace.dart';
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addFlag(
-      'keep-temp',
-      help: "Don't delete the temporary repo clone.",
+      'dry-run',
+      aliases: ['keep-temp'],
+      help: "Don't create a PR or delete the temporary repo clone.",
       negatable: false,
     )
     ..addMultiOption('tweaks',
@@ -27,6 +28,10 @@ Future<void> main(List<String> args) async {
       aliases: ['pr-reviewer'],
       valueHelp: 'github-id',
       help: 'Specify the GitHub handle for the desired reviewer.',
+    )
+    ..addMultiOption(
+      'labels',
+      help: 'Specify labels to apply to the PR.',
     )
     ..addFlag(
       'help',
@@ -54,29 +59,33 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  if (argResults['help'] as bool || argResults.rest.isEmpty) {
+  if (argResults.flag('help') || argResults.rest.isEmpty) {
     printUsage();
     return;
   }
 
   final slug = argResults.rest.single;
 
-  final keepTemp = argResults['keep-temp'] as bool;
+  final dryRun = argResults.flag('dry-run');
 
-  final prReviewer = argResults['reviewer'] as String?;
-  final explicitTweakIds = argResults['tweaks'] as List<String>;
+  final reviewer = argResults.option('reviewer');
+  final explicitTweakIds = argResults.multiOption('tweaks');
   final explicitTweaks = explicitTweakIds.isEmpty
       ? null
       : explicitTweakIds
           .map((id) => allTweaks.firstWhere((t) => t.id == id))
           .toList();
 
+  final labels = argResults.multiOption('labels');
+
   try {
     await runFix(
       slug: slug,
-      deleteTemp: !keepTemp,
+      deleteTemp: !dryRun,
       tweaks: explicitTweaks,
-      prReviewer: prReviewer,
+      reviewer: reviewer,
+      labels: labels,
+      dryRun: dryRun,
     );
   } catch (error, stack) {
     final chain = Chain.forTrace(stack);
