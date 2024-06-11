@@ -27,10 +27,16 @@ class GeminiService {
           httpClient: httpClient,
         );
 
+  /// Call the summarize model with the given prompt.
+  ///
+  /// On failures, this will throw a `GenerativeAIException`.
   Future<String> summarize(String prompt) {
     return _query(_summarizeModel, prompt);
   }
 
+  /// Call the classify model with the given prompt.
+  ///
+  /// On failures, this will throw a `GenerativeAIException`.
   Future<List<String>> classify(String prompt) async {
     final result = await _query(_classifyModel, prompt);
     final labels = result.split(',').map((l) => l.trim()).toList();

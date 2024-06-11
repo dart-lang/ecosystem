@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:github/github.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 import 'src/common.dart';
 import 'src/gemini.dart';
@@ -17,66 +20,85 @@ Future<void> triage(
   bool force = false,
   required GithubService githubService,
   required GeminiService geminiService,
+  required Logger logger,
 }) async {
-  print('Triaging $sdkSlug...');
-  print('');
+  logger.log('Triaging $sdkSlug...');
+  logger.log('');
 
   // retrieve the issue
   final issue = await githubService.fetchIssue(sdkSlug, issueNumber);
-  print('## issue ${issue.url}');
-  print('');
-  print('title: ${issue.title}');
+  logger.log('## issue "${issue.htmlUrl}"');
+  logger.log('');
   final labels = issue.labels.map((l) => l.name).toList();
   if (labels.isNotEmpty) {
-    print('labels: ${labels.join(', ')}');
+    logger.log('labels: ${labels.join(', ')}');
+    logger.log('');
   }
+  logger.log('"${issue.title}"');
+  logger.log('');
   final bodyLines =
       issue.body.split('\n').where((l) => l.trim().isNotEmpty).toList();
-  print('');
   for (final line in bodyLines.take(4)) {
-    print('  $line');
+    logger.log(line);
   }
-  print('');
+  if (bodyLines.length > 4) {
+    logger.log('...');
+  }
+  logger.log('');
 
   // decide if we should triage
   final alreadyTriaged = labels.any((l) => l.startsWith('area-'));
   if (alreadyTriaged && !force) {
-    print('Exiting (issue is already triaged).');
+    logger.log('Exiting (issue is already triaged).');
     return;
   }
 
   // ask for the summary
   var bodyTrimmed = trimmedBody(issue.body);
-  // TODO(devoncarew): handle safety failures
-  final summary = await geminiService.summarize(
-    summarizeIssuePrompt(title: issue.title, body: bodyTrimmed),
-  );
-  print('## gemini summary');
-  print('');
-  print(summary);
-  print('');
+  String summary;
+  try {
+    // Failures here can include things like gemini safety issues, ...
+    summary = await geminiService.summarize(
+      summarizeIssuePrompt(title: issue.title, body: bodyTrimmed),
+    );
+  } on GenerativeAIException catch (e) {
+    stderr.writeln('gemini: $e');
+    exit(1);
+  }
+
+  logger.log('## gemini summary');
+  logger.log('');
+  logger.log(summary);
+  logger.log('');
 
   // ask for the 'area-' classification
-  // TODO(devoncarew): handle safety failures
-  final classification = await geminiService.classify(
-    assignAreaPrompt(title: issue.title, body: bodyTrimmed),
-  );
-  print('## gemini classification');
-  print('');
-  print(classification);
-  print('');
+  List<String> classification;
+  try {
+    // Failures here can include things like gemini safety issues, ...
+    classification = await geminiService.classify(
+      assignAreaPrompt(title: issue.title, body: bodyTrimmed),
+    );
+  } on GenerativeAIException catch (e) {
+    stderr.writeln('gemini: $e');
+    exit(1);
+  }
+
+  logger.log('## gemini classification');
+  logger.log('');
+  logger.log(classification.toString());
+  logger.log('');
 
   if (dryRun) {
-    print('Exiting (dry run mode - not applying changes).');
+    logger.log('Exiting (dry run mode - not applying changes).');
     return;
   }
 
   // perform changes
-  print('## github comment');
-  print('');
-  print(summary);
-  print('');
-  print('labels: $classification');
+  logger.log('## github comment');
+  logger.log('');
+  logger.log(summary);
+  logger.log('');
+  logger.log('labels: $classification');
 
   var comment = '';
   if (classification.isNotEmpty) {
@@ -101,10 +123,10 @@ Future<void> triage(
     await githubService.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
   }
 
-  print('');
-  print('---');
-  print('');
-  print('Triaged ${issue.url}.');
+  logger.log('');
+  logger.log('---');
+  logger.log('');
+  logger.log('Triaged ${issue.htmlUrl}.');
 }
 
 List<String> filterExistingLabels(

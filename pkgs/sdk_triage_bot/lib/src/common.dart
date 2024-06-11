@@ -41,3 +41,9 @@ String get geminiKey {
 String trimmedBody(String body) {
   return body.length > 4096 ? body = body.substring(0, 4096) : body;
 }
+
+class Logger {
+  void log(String message) {
+    print(message);
+  }
+}

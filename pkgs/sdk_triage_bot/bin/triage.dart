@@ -72,6 +72,7 @@ void main(List<String> arguments) async {
     force: force,
     githubService: githubService,
     geminiService: geminiService,
+    logger: Logger(),
   );
 
   client.close();
