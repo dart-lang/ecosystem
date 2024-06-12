@@ -27,7 +27,7 @@ Future<void> triage(
 
   // retrieve the issue
   final issue = await githubService.fetchIssue(sdkSlug, issueNumber);
-  logger.log('## issue "${issue.htmlUrl}"');
+  logger.log('## issue ${issue.htmlUrl}');
   logger.log('');
   final labels = issue.labels.map((l) => l.name).toList();
   if (labels.isNotEmpty) {
