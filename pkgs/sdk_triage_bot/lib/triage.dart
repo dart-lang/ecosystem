@@ -100,13 +100,7 @@ Future<void> triage(
   logger.log('');
   logger.log(summary);
 
-  var comment = '';
-  if (classification.isNotEmpty) {
-    comment += '**Labels:** ';
-    comment += classification.map((l) => '`$l`').join(', ');
-    comment += '\n';
-  }
-  comment += '**Summary:** $summary\n';
+  final comment = '**Summary:** $summary\n';
 
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
