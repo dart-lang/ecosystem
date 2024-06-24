@@ -5,6 +5,7 @@
 String assignAreaPrompt({
   required String title,
   required String body,
+  String? lastComment,
 }) {
   return '''
 You are a software engineer on the Dart team at Google. You are responsible for
@@ -36,6 +37,7 @@ area-web: Use area-web for Dart web related issues, including the DDC and dart2j
 Don't make up a new area.
 Don't use more than one area- label.
 If it's not clear which area the issue should go in, don't apply an area- label.
+Take your time when considering which area to triage the issue into.
 
 If the issue is clearly a feature request, then also apply the label 'type-enhancement'.
 If the issue is clearly a bug report, then also apply the label 'type-bug'.
@@ -48,7 +50,10 @@ Issue follows:
 
 $title
 
-$body''';
+$body
+
+${lastComment ?? ''}'''
+      .trim();
 }
 
 String summarizeIssuePrompt({
