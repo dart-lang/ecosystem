@@ -56,7 +56,7 @@ Future<void> triage(
     lastComment = '''
 ---
 
-Last comment by @${comment.user?.login}:
+Here is the last comment on the issue (by user @${comment.user?.login}):
 
 ${trimmedBody(comment.body ?? '')}
 ''';
