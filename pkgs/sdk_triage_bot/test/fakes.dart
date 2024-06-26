@@ -29,6 +29,12 @@ class GithubServiceMock implements GithubService {
     return returnedIssue;
   }
 
+  @override
+  Future<List<IssueComment>> fetchIssueComments(
+      RepositorySlug slug, Issue issue) {
+    return Future.value([]);
+  }
+
   String? updatedComment;
 
   @override

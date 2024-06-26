@@ -46,6 +46,22 @@ Future<void> triage(
   }
   logger.log('');
 
+  // If the issue has any comments, retrieve and include the last comment in the
+  // prompt.
+  String? lastComment;
+  if (issue.hasComments) {
+    final comments = await githubService.fetchIssueComments(sdkSlug, issue);
+    final comment = comments.last;
+
+    lastComment = '''
+---
+
+Here is the last comment on the issue (by user @${comment.user?.login}):
+
+${trimmedBody(comment.body ?? '')}
+''';
+  }
+
   // decide if we should triage
   final alreadyTriaged = labels.any((l) => l.startsWith('area-'));
   if (alreadyTriaged && !force) {
@@ -76,7 +92,8 @@ Future<void> triage(
   try {
     // Failures here can include things like gemini safety issues, ...
     classification = await geminiService.classify(
-      assignAreaPrompt(title: issue.title, body: bodyTrimmed),
+      assignAreaPrompt(
+          title: issue.title, body: bodyTrimmed, lastComment: lastComment),
     );
   } on GenerativeAIException catch (e) {
     stderr.writeln('gemini: $e');
@@ -121,7 +138,7 @@ Future<void> triage(
   logger.log('');
   logger.log('---');
   logger.log('');
-  logger.log('Triaged ${issue.htmlUrl}.');
+  logger.log('Triaged ${issue.htmlUrl}');
 }
 
 List<String> filterExistingLabels(

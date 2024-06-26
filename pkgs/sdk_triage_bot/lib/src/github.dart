@@ -19,8 +19,15 @@ class GithubService {
     return result.map((item) => item.name).toList();
   }
 
-  Future<Issue> fetchIssue(RepositorySlug sdkSlug, int issueNumber) async {
-    return await _gitHub.issues.get(sdkSlug, issueNumber);
+  Future<Issue> fetchIssue(RepositorySlug slug, int issueNumber) async {
+    return await _gitHub.issues.get(slug, issueNumber);
+  }
+
+  Future<List<IssueComment>> fetchIssueComments(
+      RepositorySlug slug, Issue issue) async {
+    return await _gitHub.issues
+        .listCommentsByIssue(slug, issue.number)
+        .toList();
   }
 
   Future createComment(
@@ -144,4 +151,11 @@ GraphQLClient _initGraphQLClient() {
     cache: GraphQLCache(),
     link: auth.concat(HttpLink('https://api.github.com/graphql')),
   );
+}
+
+extension IssueExtension on Issue {
+  /// Returns whether this issue has any comments.
+  ///
+  /// Note that the original text for the issue is returned in the `body` field.
+  bool get hasComments => commentsCount > 0;
 }
