@@ -57,14 +57,16 @@ class Repository {
       var publishTo = pubspec['publish_to'] as String?;
       if (publishTo != 'none') {
         packages.add(Package(directory, this));
+        // There is an assumption here that published packages do not contain
+        // nested published packages.
+        return;
       }
-    } else {
-      if (directory.existsSync()) {
-        for (var child in directory.listSync().whereType<Directory>()) {
-          var name = path.basename(child.path);
-          if (!name.startsWith('.')) {
-            _recurseAndGather(child, packages);
-          }
+    }
+    if (directory.existsSync()) {
+      for (var child in directory.listSync().whereType<Directory>()) {
+        var name = path.basename(child.path);
+        if (!name.startsWith('.')) {
+          _recurseAndGather(child, packages);
         }
       }
     }
