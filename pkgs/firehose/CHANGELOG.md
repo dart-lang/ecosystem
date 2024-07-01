@@ -1,3 +1,8 @@
+## 0.9.1
+
+- Support packages nested under other packages, as long as the outer package
+  is not publishable.
+
 ## 0.9.0
 
 - Add `leaking` check to the health workflow.
