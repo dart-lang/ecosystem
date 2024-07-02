@@ -6,6 +6,7 @@
 library;
 
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/repo.dart';
@@ -13,13 +14,19 @@ import 'package:github/github.dart' show RepositorySlug;
 import 'package:test/test.dart';
 
 void main() {
-  group('repo', () {
-    late Repository packages;
+  late Repository packages;
+  late Uri packageRoot;
 
+  setUpAll(() async {
+    packageRoot = (await Isolate.resolvePackageUri(
+            Uri.parse('package:firehose/test.dart')))!
+        .resolve('../');
+  });
+
+  group('repo', () {
     setUp(() {
-      // Tests are run in the package directory; look up two levels to get the
-      // repo directory.
-      packages = Repository(Directory.current.parent.parent);
+      // Look up two levels from the package directory to get the repo directory.
+      packages = Repository(Directory.fromUri(packageRoot.resolve('../../')));
     });
 
     test('isSinglePackageRepo', () {
@@ -57,6 +64,40 @@ void main() {
       expect(queryParams['title'],
           allOf(contains(package.name), contains(package.version.toString())));
       expect(queryParams['body'], package.changelog.describeLatestChanges);
+    });
+  });
+
+  group('pub workspace repo', () {
+    setUp(() {
+      packages = Repository(
+          Directory.fromUri(packageRoot.resolve('test_data/workspace_repo')));
+    });
+
+    test('locatePackages', () {
+      var result = packages.locatePackages();
+      expect(
+          result,
+          equals([
+            isA<Package>().having((p) => p.name, 'name', 'pkg_1'),
+            isA<Package>().having((p) => p.name, 'name', 'pkg_2'),
+          ]));
+    });
+  });
+
+  group('repo with an unpublished root package', () {
+    setUp(() {
+      packages = Repository(Directory.fromUri(
+          packageRoot.resolve('test_data/root_unpublished_pkg')));
+    });
+
+    test('locatePackages', () {
+      var result = packages.locatePackages();
+      expect(
+          result,
+          equals([
+            isA<Package>().having((p) => p.name, 'name', 'pkg_1'),
+            isA<Package>().having((p) => p.name, 'name', 'pkg_2'),
+          ]));
     });
   });
 }

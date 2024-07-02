@@ -1,0 +1,4 @@
+name: workspace
+workspace:
+  - pkg_1
+  - pkg_2
