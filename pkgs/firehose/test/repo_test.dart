@@ -25,7 +25,7 @@ void main() {
 
   group('repo', () {
     setUp(() {
-      // Look up two levels from the package directory to get the repo directory.
+      // Look up two levels from the package directory to get the repo dir.
       packages = Repository(Directory.fromUri(packageRoot.resolve('../../')));
     });
 
