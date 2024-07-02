@@ -1,3 +1,7 @@
+## 0.9.1
+
+- Support packages nested under a 'workspace' root package.
+
 ## 0.9.0
 
 - Add `leaking` check to the health workflow.
