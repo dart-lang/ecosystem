@@ -1,3 +1,7 @@
+## 3.1.1-wip
+
+- Contribute a (brief) change policy to the readme.
+
 ## 3.1.0
 
 - Added `unnecessary_library_name`.
