@@ -1,6 +1,6 @@
 ## 3.1.1-wip
 
-- Contribute a (brief) change policy to the eeadme.
+- Contribute a (brief) change policy to the readme.
 
 ## 3.1.0
 
