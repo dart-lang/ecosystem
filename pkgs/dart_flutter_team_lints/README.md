@@ -28,3 +28,19 @@ then, add an `analysis_options.yaml` file to your project:
 ```yaml
 include: package:dart_flutter_team_lints/analysis_options.yaml
 ```
+
+## Suggesting changes to the lint set
+
+In order to suggest a change to the `package:dart_flutter_team_lints` lint set,
+please [file an issue](https://github.com/dart-lang/ecosystem/issues/new/choose)
+against the package. A representative group of Dart and Flutter team members,
+along with interested parties, will then discuss the lint addition or removal.
+
+Changes to the lint set may be batched up in order to minimize churn for
+downstream codebases.
+
+Lint additions may go out in new package major versions. `package:lints` only
+ships lint additions in major versions as new lints are effectively breaking
+changes for repo CI systems. The packages downstream from this lint set are
+more scoped and better known however, so we have more room for flexibility for 
+changes to `package:dart_flutter_team_lints`.
