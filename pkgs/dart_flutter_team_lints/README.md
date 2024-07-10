@@ -32,7 +32,7 @@ include: package:dart_flutter_team_lints/analysis_options.yaml
 ## Suggesting changes to the lint set
 
 In order to suggest a change to the `package:dart_flutter_team_lints` lint set,
-please [file an issue](https://github.com/dart-lang/ecosystem/issues/new/choose)
+please [file an issue](https://github.com/dart-lang/ecosystem/issues/new?template=dart_flutter_team_lints.md)
 against the package. A representative group of Dart and Flutter team members,
 along with interested parties, will then discuss the lint addition or removal.
 
