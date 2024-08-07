@@ -192,4 +192,4 @@ jobs:
         run: dart pub global activate firehose
 
       - name: Publish packages
-        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
+        run: dart pub global run firehose --publish
