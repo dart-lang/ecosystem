@@ -198,7 +198,6 @@ jobs:
 | warn_on  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
 | upload_coverage  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
 | coverage_web  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
-| use-flutter  | boolean  | Whether to setup Flutter in this workflow | `false` |
 | ignore_license  | List of globs  | | `"**.g.dart"` |
 | ignore_coverage  | List of globs  | Which files to ignore for the license check | `"**.mock.dart,**.g.dart"` |
 | ignore_packages  | List of globs  | Which packages to ignore | `"pkgs/helper_package"` |
