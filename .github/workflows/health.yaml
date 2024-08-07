@@ -26,9 +26,6 @@ name: Health
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
 #       upload_coverage: false
-#       use-flutter: true
-#       use-flutter: true
-#       use-flutter: true
 #       ignore_license: "**.g.dart"
 #       ignore_coverage: "**.mock.dart,**.g.dart"
 #       ignore_packages: "pkgs/helper_package"
@@ -83,11 +80,6 @@ on:
         default: false
         type: boolean
         required: false
-      use-flutter:
-        description: Whether to setup Flutter in this workflow.
-        default: false
-        required: false
-        type: boolean
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
@@ -124,7 +116,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -137,7 +128,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -150,7 +140,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_license: ${{ inputs.ignore_license }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
@@ -166,7 +155,6 @@ jobs:
       upload_coverage: ${{ inputs.upload_coverage }}
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_coverage: ${{ inputs.ignore_coverage }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
@@ -181,7 +169,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -194,7 +181,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -207,7 +193,6 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
