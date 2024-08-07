@@ -1,3 +1,8 @@
+## 0.10.0
+
+- Remove the `--use-flutter` CLI argument and `use-flutter` GitHub action
+  configuration. Always use the Flutter SDK to publish.
+
 ## 0.9.1
 
 - Support packages nested under a 'workspace' root package.

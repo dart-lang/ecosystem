@@ -11,7 +11,6 @@ import 'package:glob/glob.dart';
 const helpFlag = 'help';
 const validateFlag = 'validate';
 const publishFlag = 'publish';
-const useFlutterFlag = 'use-flutter';
 
 void main(List<String> arguments) async {
   var argParser = _createArgs();
@@ -25,7 +24,6 @@ void main(List<String> arguments) async {
 
     final validate = argResults[validateFlag] as bool;
     final publish = argResults[publishFlag] as bool;
-    final useFlutter = argResults[useFlutterFlag] as bool;
     final ignoredPackages = (argResults['ignore-packages'] as List<String>)
         .where((pattern) => pattern.isNotEmpty)
         .map((pattern) => Glob(pattern, recursive: true))
@@ -45,7 +43,7 @@ void main(List<String> arguments) async {
       exit(1);
     }
 
-    final firehose = Firehose(Directory.current, useFlutter, ignoredPackages);
+    final firehose = Firehose(Directory.current, ignoredPackages);
 
     if (validate) {
       await firehose.validate();
@@ -87,11 +85,6 @@ ArgParser _createArgs() {
       publishFlag,
       negatable: false,
       help: 'Publish any changed packages.',
-    )
-    ..addFlag(
-      useFlutterFlag,
-      negatable: true,
-      help: 'Whether this is a Flutter project.',
     )
     ..addMultiOption(
       'ignore-packages',

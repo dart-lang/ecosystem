@@ -129,9 +129,7 @@ class Health {
       };
 
   Future<HealthCheckResult> validateCheck() async {
-    //TODO: Add Flutter support for PR health checks
-    var results =
-        await Firehose(directory, false, ignoredPackages).verify(github);
+    var results = await Firehose(directory, ignoredPackages).verify(github);
 
     var markdownTable = '''
 | Package | Version | Status |

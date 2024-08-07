@@ -44,11 +44,6 @@ on:
         default: false
         type: boolean
         required: false
-      use-flutter:
-        description: Whether to setup Flutter in this workflow.
-        default: false
-        required: false
-        type: boolean
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
@@ -100,14 +95,8 @@ jobs:
       - run: mkdir -p current_repo/output/
           
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
-  
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        if: ${{ !inputs.use-flutter }}
-        with:
-          sdk: ${{ inputs.sdk }}
 
       - name: Install coverage
         run: dart pub global activate coverage

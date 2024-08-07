@@ -29,10 +29,9 @@ const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
   final Directory directory;
-  final bool useFlutter;
   final List<Glob> ignoredPackages;
 
-  Firehose(this.directory, this.useFlutter, this.ignoredPackages);
+  Firehose(this.directory, this.ignoredPackages);
 
   /// Validate the packages in the repository.
   ///
@@ -273,14 +272,8 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     required bool dryRun,
     required bool force,
   }) async {
-    String command;
-    if (useFlutter) {
-      command = 'flutter';
-    } else {
-      command = 'dart';
-    }
     return await runCommand(
-      command,
+      'flutter',
       args: [
         'pub',
         'publish',
