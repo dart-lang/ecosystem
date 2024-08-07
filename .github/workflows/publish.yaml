@@ -64,6 +64,12 @@ on:
         default: "stable"
         required: false
         type: string
+      use-flutter:
+        description: >-
+          Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
       write-comments:
         description: >-
           Whether to write a comment in this workflow.
