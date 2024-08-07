@@ -44,6 +44,11 @@ on:
         default: false
         type: boolean
         required: false
+      use-flutter:
+        description: Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
