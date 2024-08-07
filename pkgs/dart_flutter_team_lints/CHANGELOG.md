@@ -3,6 +3,7 @@
 - Contributed a (brief) change policy to the readme.
 - Added `invalid_runtime_check_with_js_interop_types`.
 - Added `unintended_html_in_doc_comment`.
+- Require Dart `3.5`.
 
 ## 3.1.0
 
