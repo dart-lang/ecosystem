@@ -1,6 +1,8 @@
-## 3.1.1-wip
+## 3.2.0
 
-- Contribute a (brief) change policy to the readme.
+- Contributed a (brief) change policy to the readme.
+- Added `invalid_runtime_check_with_js_interop_types`.
+- Added `unintended_html_in_doc_comment`.
 
 ## 3.1.0
 
