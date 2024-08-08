@@ -1,4 +1,4 @@
-# Created with package:mono_repo v6.6.1
+# Created with package:mono_repo v6.6.2
 name: Dart CI
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
         name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: mono_repo self validate
-        run: dart pub global activate mono_repo 6.6.1
+        run: dart pub global activate mono_repo 6.6.2
       - name: mono_repo self validate
         run: dart pub global run mono_repo generate --validate
   job_002:
@@ -89,16 +89,16 @@ jobs:
     needs:
       - job_001
   job_003:
-    name: "analyze_and_format; Dart 3.4.0; PKGS: pkgs/dart_flutter_team_lints, pkgs/sdk_triage_bot; `dart analyze --fatal-infos .`"
+    name: "analyze_and_format; Dart 3.4.0; PKG: pkgs/sdk_triage_bot; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
       - name: Cache Pub hosted dependencies
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints-pkgs/sdk_triage_bot;commands:analyze"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/sdk_triage_bot;commands:analyze"
           restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints-pkgs/sdk_triage_bot
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/sdk_triage_bot
             os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
             os:ubuntu-latest;pub-cache-hosted
             os:ubuntu-latest
@@ -109,15 +109,6 @@ jobs:
       - id: checkout
         name: Checkout repository
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - id: pkgs_dart_flutter_team_lints_pub_upgrade
-        name: pkgs/dart_flutter_team_lints; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-      - name: "pkgs/dart_flutter_team_lints; dart analyze --fatal-infos ."
-        run: dart analyze --fatal-infos .
-        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
       - id: pkgs_sdk_triage_bot_pub_upgrade
         name: pkgs/sdk_triage_bot; dart pub upgrade
         run: dart pub upgrade
@@ -130,6 +121,38 @@ jobs:
     needs:
       - job_001
   job_004:
+    name: "analyze_and_format; Dart 3.5.0; PKG: pkgs/dart_flutter_team_lints; `dart analyze --fatal-infos .`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0;packages:pkgs/dart_flutter_team_lints;commands:analyze"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0;packages:pkgs/dart_flutter_team_lints
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
+        with:
+          sdk: "3.5.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - id: pkgs_dart_flutter_team_lints_pub_upgrade
+        name: pkgs/dart_flutter_team_lints; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+      - name: "pkgs/dart_flutter_team_lints; dart analyze --fatal-infos ."
+        run: dart analyze --fatal-infos .
+        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+    needs:
+      - job_001
+  job_005:
     name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage, pkgs/sdk_triage_bot; `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
@@ -197,7 +220,7 @@ jobs:
         working-directory: pkgs/sdk_triage_bot
     needs:
       - job_001
-  job_005:
+  job_006:
     name: "analyze_and_format; Dart dev; PKGS: pkgs/corpus, pkgs/dart_flutter_team_lints, pkgs/firehose, pkgs/repo_manage, pkgs/sdk_triage_bot; `dart format --output=none --set-exit-if-changed .`"
     runs-on: ubuntu-latest
     steps:
@@ -265,7 +288,7 @@ jobs:
         working-directory: pkgs/sdk_triage_bot
     needs:
       - job_001
-  job_006:
+  job_007:
     name: "unit_test; Dart 3.1.0; PKG: pkgs/corpus; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -301,7 +324,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_007:
+      - job_006
+  job_008:
     name: "unit_test; Dart 3.1.0; PKG: pkgs/firehose; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -337,42 +361,7 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_008:
-    name: "unit_test; Dart 3.4.0; PKG: pkgs/dart_flutter_team_lints; `dart test`"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cache Pub hosted dependencies
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
-        with:
-          path: "~/.pub-cache/hosted"
-          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
-          restore-keys: |
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0;packages:pkgs/dart_flutter_team_lints
-            os:ubuntu-latest;pub-cache-hosted;sdk:3.4.0
-            os:ubuntu-latest;pub-cache-hosted
-            os:ubuntu-latest
-      - name: Setup Dart SDK
-        uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        with:
-          sdk: "3.4.0"
-      - id: checkout
-        name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
-      - id: pkgs_dart_flutter_team_lints_pub_upgrade
-        name: pkgs/dart_flutter_team_lints; dart pub upgrade
-        run: dart pub upgrade
-        if: "always() && steps.checkout.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-      - name: pkgs/dart_flutter_team_lints; dart test
-        run: dart test
-        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
-        working-directory: pkgs/dart_flutter_team_lints
-    needs:
-      - job_001
-      - job_002
-      - job_003
-      - job_004
-      - job_005
+      - job_006
   job_009:
     name: "unit_test; Dart 3.4.0; PKG: pkgs/sdk_triage_bot; `dart test`"
     runs-on: ubuntu-latest
@@ -409,7 +398,45 @@ jobs:
       - job_003
       - job_004
       - job_005
+      - job_006
   job_010:
+    name: "unit_test; Dart 3.5.0; PKG: pkgs/dart_flutter_team_lints; `dart test`"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        with:
+          path: "~/.pub-cache/hosted"
+          key: "os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0;packages:pkgs/dart_flutter_team_lints;commands:test_1"
+          restore-keys: |
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0;packages:pkgs/dart_flutter_team_lints
+            os:ubuntu-latest;pub-cache-hosted;sdk:3.5.0
+            os:ubuntu-latest;pub-cache-hosted
+            os:ubuntu-latest
+      - name: Setup Dart SDK
+        uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
+        with:
+          sdk: "3.5.0"
+      - id: checkout
+        name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - id: pkgs_dart_flutter_team_lints_pub_upgrade
+        name: pkgs/dart_flutter_team_lints; dart pub upgrade
+        run: dart pub upgrade
+        if: "always() && steps.checkout.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+      - name: pkgs/dart_flutter_team_lints; dart test
+        run: dart test
+        if: "always() && steps.pkgs_dart_flutter_team_lints_pub_upgrade.conclusion == 'success'"
+        working-directory: pkgs/dart_flutter_team_lints
+    needs:
+      - job_001
+      - job_002
+      - job_003
+      - job_004
+      - job_005
+      - job_006
+  job_011:
     name: "unit_test; Dart dev; PKG: pkgs/corpus; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -445,7 +472,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_011:
+      - job_006
+  job_012:
     name: "unit_test; Dart dev; PKG: pkgs/dart_flutter_team_lints; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -481,7 +509,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_012:
+      - job_006
+  job_013:
     name: "unit_test; Dart dev; PKG: pkgs/firehose; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -517,7 +546,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_013:
+      - job_006
+  job_014:
     name: "unit_test; Dart dev; PKG: pkgs/sdk_triage_bot; `dart test`"
     runs-on: ubuntu-latest
     steps:
@@ -553,7 +583,8 @@ jobs:
       - job_003
       - job_004
       - job_005
-  job_014:
+      - job_006
+  job_015:
     name: "analyze_format; Dart dev; PKG: pkgs/blast_repo; `dart format --output=none --set-exit-if-changed .`, `dart analyze --fatal-infos .`"
     runs-on: ubuntu-latest
     steps:
@@ -601,7 +632,8 @@ jobs:
       - job_011
       - job_012
       - job_013
-  job_015:
+      - job_014
+  job_016:
     name: "test; Dart dev; PKG: pkgs/blast_repo; `dart test --test-randomize-ordering-seed=random`"
     runs-on: ubuntu-latest
     steps:
@@ -646,3 +678,4 @@ jobs:
       - job_012
       - job_013
       - job_014
+      - job_015
