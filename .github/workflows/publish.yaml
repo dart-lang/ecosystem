@@ -27,16 +27,6 @@ name: Publish
 #     with:
 #       sdk: beta
 
-# When using this package to publish Flutter packages, the `use-flutter`
-# parameter should be set. The `sdk` parameter is then used to specify
-# the Flutter SDK.
-#
-# jobs:
-#   publish:
-#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
-#     with:
-#       use-flutter: true
-
 # When using a post_summaries.yaml workflow to post the comments, set
 # the write-comments parameter to false.
 #
@@ -120,15 +110,8 @@ jobs:
           submodules: ${{ inputs.checkout_submodules }}
 
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
-          
-
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        if: ${{ !inputs.use-flutter }}
-        with:
-          sdk: ${{ inputs.sdk }}
 
       - name: Install firehose
         run: dart pub global activate firehose
@@ -146,7 +129,6 @@ jobs:
         run: |
              dart pub global run firehose \
                --validate \
-               ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
                --ignore-packages ${{ inputs.ignore-packages }}
 
       - name: Get comment id
@@ -203,17 +185,11 @@ jobs:
           submodules: ${{ inputs.checkout_submodules }}
 
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
-
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        if: ${{ !inputs.use-flutter }}
-        with:
-          sdk: ${{ inputs.sdk }}
 
       - name: Install firehose
         run: dart pub global activate firehose
 
       - name: Publish packages
-        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
+        run: dart pub global run firehose --publish
