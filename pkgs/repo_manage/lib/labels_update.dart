@@ -71,7 +71,7 @@ final Set<String> allowList = {
 /// The cannonical set of dart-lang labels.
 const String templateRepoSlug = 'dart-lang/.github';
 
-/// If a package:<name> label exists, ensure it has this color.
+/// If a `package:<name>` label exists, ensure it has this color.
 final String packageColor = '4774bc';
 
 class LabelsUpdateCommand extends ReportCommand {
