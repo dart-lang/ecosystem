@@ -27,8 +27,6 @@ name: Health
 #       coverage_web: false
 #       upload_coverage: false
 #       use-flutter: true
-#       use-flutter: true
-#       use-flutter: true
 #       ignore_license: "**.g.dart"
 #       ignore_coverage: "**.mock.dart,**.g.dart"
 #       ignore_packages: "pkgs/helper_package"
