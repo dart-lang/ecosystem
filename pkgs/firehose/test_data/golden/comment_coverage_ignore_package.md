@@ -1,8 +1,6 @@
-### Coverage :warning:
-
 <details open>
 <summary>
-Details
+<strong>Coverage</strong> :warning:
 </summary>
 
 | File | Coverage |

@@ -1,3 +1,8 @@
+## 0.9.2-wip
+
+- Improve formatting of the github workflow summary comments so they use less
+  vertical space.
+
 ## 0.9.1
 
 - Support packages nested under a 'workspace' root package.

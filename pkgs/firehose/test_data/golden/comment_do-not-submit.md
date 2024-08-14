@@ -1,8 +1,6 @@
-### Do Not Submit :exclamation:
-
 <details open>
 <summary>
-Details
+<strong>Do Not Submit</strong> :exclamation:
 </summary>
 
 Body contains `DO_NOT_SUBMIT`: false

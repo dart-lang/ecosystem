@@ -1,8 +1,6 @@
-### License Headers :exclamation:
-
 <details open>
 <summary>
-Details
+<strong>License Headers</strong> :exclamation:
 </summary>
 
 ```
