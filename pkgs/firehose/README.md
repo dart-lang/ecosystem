@@ -173,8 +173,8 @@ containing several packages).
 
 ### Integrating this tool into a repo
 
-- copy the yaml below into a `.github/workflows/health.yaml` file in your repo
-- update the target branch below if necessary (currently, `main`)
+1. Copy the yaml below into a `.github/workflows/health.yaml` file in your repo
+2. Update the target branch below if necessary (currently, `main`)
 
 ```yaml
 name: Health
@@ -186,8 +186,44 @@ jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
-#     checks: "version,changelog,license,coverage"
+#     sdk: beta
+#     checks: "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+#     fail_on: "version,changelog,do-not-submit"
+#     warn_on: "license,coverage,breaking,leaking"
+#     coverage_web: false
+#     upload_coverage: false
+#     use-flutter: true
+#     ignore_license: "**.g.dart"
+#     ignore_coverage: "**.mock.dart,**.g.dart"
+#     ignore_packages: "pkgs/helper_package"
+#     checkout_submodules: false
+#     experiments: "native-assets"
+    permissions:
+      pull-requests: write
 ```
+
+3. Copy the yaml below into a `.github/workflows/post_summaries.yaml` file in your repo. This is a [necessary](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) workaround to get PR Health comments on PRs from forks.
+
+```yaml
+name: Comment on the pull request
+
+on:
+  # Trigger this workflow after the Health workflow completes. This workflow will have permissions to
+  # do things like create comments on the PR, even if the original workflow couldn't.
+  workflow_run:
+    workflows: 
+      - Health
+      # - Publish
+    types:
+      - completed
+
+jobs:
+  upload:
+    uses: dart-lang/ecosystem/.github/workflows/post_summaries.yaml@main
+    permissions:
+      pull-requests: write
+```
+
 
 ### Options
 
