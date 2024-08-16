@@ -1,4 +1,4 @@
-## 0.9.2-wip
+## 0.9.2
 
 - Improve formatting of the github workflow summary comments so they use less
   vertical space.
