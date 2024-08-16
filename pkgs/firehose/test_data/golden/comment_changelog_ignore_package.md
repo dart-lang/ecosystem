@@ -1,8 +1,6 @@
-### Changelog Entry :exclamation:
-
 <details open>
 <summary>
-Details
+<strong>Changelog Entry</strong> :exclamation:
 </summary>
 
 | Package | Changed Files |

@@ -1,8 +1,6 @@
-### Breaking changes :warning:
-
 <details open>
 <summary>
-Details
+<strong>Breaking changes</strong> :warning:
 </summary>
 
 | Package | Change | Current Version | New Version | Needed Version | Looking good? |

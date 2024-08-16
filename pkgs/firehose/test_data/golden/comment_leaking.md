@@ -1,8 +1,6 @@
-### API leaks :warning:
-
 <details open>
 <summary>
-Details
+<strong>API leaks</strong> :warning:
 </summary>
 
 The following packages contain symbols visible in the public API, but not exported by the library. Export these symbols or remove them from your publicly visible API.

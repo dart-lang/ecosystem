@@ -20,13 +20,13 @@ import 'coverage.dart';
 import 'license.dart';
 
 enum Check {
-  version('### Package publish validation', 'version'),
-  license('### License Headers', 'license'),
-  changelog('### Changelog Entry', 'changelog'),
-  coverage('### Coverage', 'coverage'),
-  breaking('### Breaking changes', 'breaking'),
-  leaking('### API leaks', 'leaking'),
-  donotsubmit('### Do Not Submit', 'do-not-submit');
+  version('Package publish validation', 'version'),
+  license('License Headers', 'license'),
+  changelog('Changelog Entry', 'changelog'),
+  coverage('Coverage', 'coverage'),
+  breaking('Breaking changes', 'breaking'),
+  leaking('API leaks', 'leaking'),
+  donotsubmit('Do Not Submit', 'do-not-submit');
 
   final String tag;
 
@@ -406,10 +406,11 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
     if (result.markdown != null) {
       var markdown = result.markdown;
       var isWorseThanInfo = result.severity.index >= Severity.warning.index;
-      var s = '''
+
+      markdownSummary = '''
 <details${isWorseThanInfo ? ' open' : ''}>
 <summary>
-Details
+<strong>${check.tag}</strong> ${result.severity.emoji}
 </summary>
 
 $markdown
@@ -418,7 +419,6 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
 </details>
 
 ''';
-      markdownSummary = '${check.tag} ${result.severity.emoji}\n\n$s';
     } else {
       markdownSummary = '';
     }

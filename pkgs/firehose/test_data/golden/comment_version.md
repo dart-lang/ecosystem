@@ -1,8 +1,6 @@
-### Package publish validation :exclamation:
-
 <details open>
 <summary>
-Details
+<strong>Package publish validation</strong> :exclamation:
 </summary>
 
 | Package | Version | Status |
