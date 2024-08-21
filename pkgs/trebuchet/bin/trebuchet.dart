@@ -8,7 +8,7 @@ import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
-  var argParser = ArgParser()
+  final argParser = ArgParser()
     ..addOption(
       'input-name',
       help: 'Name of the package which should be transferred to a mono-repo',
@@ -55,7 +55,7 @@ Future<void> main(List<String> arguments) async {
   bool push;
   bool dryRun;
   try {
-    var parsed = argParser.parse(arguments);
+    final parsed = argParser.parse(arguments);
     if (parsed.flag('help')) {
       print(argParser.usage);
       exit(0);
@@ -75,7 +75,7 @@ Future<void> main(List<String> arguments) async {
     exit(1);
   }
 
-  var trebuchet = Trebuchet(
+  final trebuchet = Trebuchet(
     input: input,
     inputPath: inputPath,
     targetPath: targetPath,
@@ -120,6 +120,7 @@ class Trebuchet {
     await regexFile.create();
     await regexFile.writeAsString('regex:#(\\d)==>dart-lang/$input#\\1');
     await filterRepo(['--replace-message', regexFile.path]);
+    await tempDirectory.delete();
 
     print('Create branch at target');
     await runProcess('git', ['checkout', '-b', 'merge-$input-package']);
@@ -175,7 +176,7 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
     print('----------');
     print('Running `$executable $arguments` in $workingDirectory');
     if (!dryRun) {
-      var processResult = await Process.run(
+      final processResult = await Process.run(
         executable,
         arguments,
         workingDirectory: workingDirectory,
