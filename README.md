@@ -14,6 +14,7 @@ This repository is home to general Dart Ecosystem tools and packages.
 | [firehose](pkgs/firehose/) | A tool to automate publishing of Pub packages from GitHub actions. | [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose) |
 | [repo_manage](pkgs/repo_manage/) | Miscellaneous issue, repo, and PR query tools. |  |
 | [sdk_triage_bot](pkgs/sdk_triage_bot/) | A triage automation tool for dart-lang/sdk issues. |  |
+| [trebuchet](pkgs/trebuchet/) | A tool for hurling packages into monorepos. |  |
 
 ## Publishing automation
 
