@@ -200,6 +200,7 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
     await runProcess(
       'python3',
       [p.relative(gitFilterRepo, from: inputPath), ...args],
+      inTarget: false,
     );
   }
 }
