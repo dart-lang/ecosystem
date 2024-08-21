@@ -159,7 +159,7 @@ Steps left to do:
 - Move and fix workflow files
 ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in the monorepo directory'}
 - Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.
-- Push tags to github
+- Push tags to github using `git tag --list '$input*' | xargs git push origin`
 - Follow up with a PR adding links to the top-level readme table.
 - Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.
 - Update the auto-publishing settings on pub.dev/packages/$input.
