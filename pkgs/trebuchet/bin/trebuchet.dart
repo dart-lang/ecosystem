@@ -187,6 +187,9 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
         print('stderr:');
         print(processResult.stderr);
       }
+      if (processResult.exitCode != 0) {
+        throw ProcessException(executable, arguments);
+      }
     } else {
       print('Not running, as --dry-run is set.');
     }
