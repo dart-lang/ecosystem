@@ -204,5 +204,5 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
 Future<void> inTempDir(Future<void> Function(Directory temp) f) async {
   final tempDirectory = await Directory.systemTemp.createTemp();
   await f(tempDirectory);
-  await tempDirectory.delete();
+  await tempDirectory.delete(recursive: true);
 }
