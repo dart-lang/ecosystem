@@ -115,12 +115,12 @@ class Trebuchet {
     await filterRepo(['--tag-rename', ':$input-']);
 
     print('Replace issue references in commit messages');
-    final tempDirectory = await Directory.systemTemp.createTemp();
-    final regexFile = File(p.join(tempDirectory.path, 'expressions.txt'));
-    await regexFile.create();
-    await regexFile.writeAsString('regex:#(\\d)==>dart-lang/$input#\\1');
-    await filterRepo(['--replace-message', regexFile.path]);
-    await tempDirectory.delete();
+    await inTempDir((tempDirectory) async {
+      final regexFile = File(p.join(tempDirectory.path, 'expressions.txt'));
+      await regexFile.create();
+      await regexFile.writeAsString('regex:#(\\d)==>dart-lang/$input#\\1');
+      await filterRepo(['--replace-message', regexFile.path]);
+    });
 
     print('Create branch at target');
     await runProcess('git', ['checkout', '-b', 'merge-$input-package']);
@@ -199,4 +199,10 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
       [p.relative(gitFilterRepo, from: inputPath), ...args],
     );
   }
+}
+
+Future<void> inTempDir(Future<void> Function(Directory temp) f) async {
+  final tempDirectory = await Directory.systemTemp.createTemp();
+  await f(tempDirectory);
+  await tempDirectory.delete();
 }
