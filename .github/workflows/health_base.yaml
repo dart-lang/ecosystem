@@ -77,7 +77,7 @@ on:
 
 jobs:
   health:
-    name: run
+    name: run ${{ inputs.check }} health check
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
