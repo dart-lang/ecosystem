@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
@@ -185,13 +186,18 @@ class TransferIssuesCommand extends ReportCommand {
       }
       print('Transfer ${issueIds.length} issues from $sourceRepo to $targetRepo'
           ' with id $repositoryId');
-      var transferredIssues = await _transferMutation(
-        issueIds,
-        repositoryId,
-        applyChanges,
-      );
 
-      allIssueIds.addAll(transferredIssues);
+      for (var issueIdChunk in issueIds.slices(10)) {
+        print('Transferring a chunk of ${issueIdChunk.length} issues');
+        var transferredIssues = await _transferMutation(
+          issueIdChunk,
+          repositoryId,
+          applyChanges,
+        );
+        allIssueIds.addAll(transferredIssues);
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+
       if (!applyChanges) {
         // Return mock list of indices to allow user to see how downstream
         // methods would continue.

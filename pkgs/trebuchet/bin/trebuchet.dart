@@ -18,6 +18,10 @@ Future<void> main(List<String> arguments) async {
       help: 'Path to the package which should be transferred to a mono-repo',
     )
     ..addOption(
+      'target',
+      help: 'Name of the mono-repo',
+    )
+    ..addOption(
       'target-path',
       help: 'Path to the mono-repo',
     )
@@ -42,11 +46,12 @@ Future<void> main(List<String> arguments) async {
       negatable: false,
     );
 
-  String? input;
-  String? inputPath;
-  String? targetPath;
-  String? branchName;
-  String? gitFilterRepo;
+  String input;
+  String inputPath;
+  String target;
+  String targetPath;
+  String branchName;
+  String gitFilterRepo;
   bool dryRun;
   try {
     final parsed = argParser.parse(arguments);
@@ -57,6 +62,7 @@ Future<void> main(List<String> arguments) async {
 
     input = parsed.option('input-name')!;
     inputPath = parsed.option('input-path')!;
+    target = parsed.option('target')!;
     targetPath = parsed.option('target-path')!;
     branchName = parsed.option('branch-name')!;
     gitFilterRepo = parsed.option('git-filter-repo')!;
@@ -71,6 +77,7 @@ Future<void> main(List<String> arguments) async {
   final trebuchet = Trebuchet(
     input: input,
     inputPath: inputPath,
+    target: target,
     targetPath: targetPath,
     branchName: branchName,
     gitFilterRepo: gitFilterRepo,
@@ -83,6 +90,7 @@ Future<void> main(List<String> arguments) async {
 class Trebuchet {
   final String input;
   final String inputPath;
+  final String target;
   final String targetPath;
   final String branchName;
   final String gitFilterRepo;
@@ -91,6 +99,7 @@ class Trebuchet {
   Trebuchet({
     required this.input,
     required this.inputPath,
+    required this.target,
     required this.targetPath,
     required this.branchName,
     required this.gitFilterRepo,
@@ -153,6 +162,23 @@ class Trebuchet {
       );
     }
 
+    final shouldTransferIssues = getInput('Transfer issues? (y/N)');
+
+    if (shouldTransferIssues) {
+      print('Transfer issues');
+      await Process.(
+        'dart',
+        [
+          ...['run', '../repo_manage/bin/report.dart', 'transfer-issues'],
+          ...['--source-repo', 'dart-lang/$input'],
+          ...['--target-repo', 'dart-lang/$target'],
+          ...['--add-label', 'package:$input'],
+          if (!dryRun) '--apply-changes'
+        ],
+        workingDirectory: Directory.current.path,
+      );
+    }
+
     print('DONE!');
     print('''
 Steps left to do:
@@ -162,6 +188,7 @@ ${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package`
 - Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.
 - Push tags to github using `git tag --list '$input*' | xargs git push origin`
 - Follow up with a PR adding links to the top-level readme table.
+${shouldTransferIssues ? '' : 'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`'}
 - Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.
 - Update the auto-publishing settings on pub.dev/packages/$input.
 - Archive https://github.com/dart-lang/$input/.
@@ -178,11 +205,13 @@ ${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package`
     String executable,
     List<String> arguments, {
     bool inTarget = true,
+    bool overrideDryRun = false,
   }) async {
-    final workingDirectory = inTarget ? targetPath : inputPath;
+    final workingDirectory =
+        inTarget ? targetPath : inputPath;
     print('----------');
     print('Running `$executable $arguments` in $workingDirectory');
-    if (!dryRun) {
+    if (!dryRun || overrideDryRun) {
       final processResult = await Process.run(
         executable,
         arguments,
