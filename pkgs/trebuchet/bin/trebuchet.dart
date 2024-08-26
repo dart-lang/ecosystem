@@ -108,6 +108,15 @@ class Trebuchet {
   });
 
   Future<void> hurl() async {
+    print('Check existence of python3 on path');
+    await runProcess(
+      'python3',
+      ['--version'],
+      inTarget: false,
+    );
+
+    print('Start moving package');
+
     print('Rename to `pkgs/`');
     await filterRepo(['--path-rename', ':pkgs/$input/']);
 
