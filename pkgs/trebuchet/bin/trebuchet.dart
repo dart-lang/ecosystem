@@ -31,28 +31,22 @@ Future<void> main(List<String> arguments) async {
       help: 'Path to the git-filter-repo tool',
     )
     ..addFlag(
-      'push',
-      help: 'Whether to push the branch to remote',
-      defaultsTo: true,
+      'dry-run',
+      help: 'Do not actually execute any of the steps',
+      defaultsTo: false,
     )
     ..addFlag(
       'help',
       abbr: 'h',
       help: 'Prints usage info',
       negatable: false,
-    )
-    ..addFlag(
-      'dry-run',
-      help: 'Do not actually execute any of the steps',
-      defaultsTo: false,
     );
 
-  String input;
-  String inputPath;
-  String targetPath;
-  String branchName;
-  String gitFilterRepo;
-  bool push;
+  String? input;
+  String? inputPath;
+  String? targetPath;
+  String? branchName;
+  String? gitFilterRepo;
   bool dryRun;
   try {
     final parsed = argParser.parse(arguments);
@@ -66,7 +60,6 @@ Future<void> main(List<String> arguments) async {
     targetPath = parsed.option('target-path')!;
     branchName = parsed.option('branch-name')!;
     gitFilterRepo = parsed.option('git-filter-repo')!;
-    push = parsed.flag('push');
     dryRun = parsed.flag('dry-run');
   } catch (e) {
     print(e);
@@ -81,7 +74,6 @@ Future<void> main(List<String> arguments) async {
     targetPath: targetPath,
     branchName: branchName,
     gitFilterRepo: gitFilterRepo,
-    push: push,
     dryRun: dryRun,
   );
 
@@ -94,7 +86,6 @@ class Trebuchet {
   final String targetPath;
   final String branchName;
   final String gitFilterRepo;
-  final bool push;
   final bool dryRun;
 
   Trebuchet({
@@ -103,7 +94,6 @@ class Trebuchet {
     required this.targetPath,
     required this.branchName,
     required this.gitFilterRepo,
-    required this.push,
     required this.dryRun,
   });
 
@@ -153,7 +143,9 @@ class Trebuchet {
       ],
     );
 
-    if (push) {
+    final shouldPush = getInput('Push to remote? (y/N)');
+
+    if (shouldPush) {
       print('Push to remote');
       await runProcess(
         'git',
@@ -166,7 +158,7 @@ class Trebuchet {
 Steps left to do:
 
 - Move and fix workflow files
-${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in the monorepo directory'}
+${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package` in the monorepo directory'}
 - Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.
 - Push tags to github using `git tag --list '$input*' | xargs git push origin`
 - Follow up with a PR adding links to the top-level readme table.
@@ -174,6 +166,12 @@ ${push ? '' : '- Run `git push --set-upstream origin merge-$input-package` in th
 - Update the auto-publishing settings on pub.dev/packages/$input.
 - Archive https://github.com/dart-lang/$input/.
 ''');
+  }
+
+  bool getInput(String question) {
+    print(question);
+    final line = stdin.readLineSync()?.toLowerCase();
+    return line == 'y' || line == 'yes';
   }
 
   Future<void> runProcess(
