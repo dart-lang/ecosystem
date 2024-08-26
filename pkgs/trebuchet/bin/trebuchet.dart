@@ -61,11 +61,11 @@ Future<void> main(List<String> arguments) async {
       exit(0);
     }
 
-    input = parsed['input-name'] as String;
-    inputPath = parsed['input-path'] as String;
-    targetPath = parsed['target-path'] as String;
-    branchName = parsed['branch-name'] as String;
-    gitFilterRepo = parsed['git-filter-repo'] as String;
+    input = parsed.option('input-name')!;
+    inputPath = parsed.option('input-path')!;
+    targetPath = parsed.option('target-path')!;
+    branchName = parsed.option('branch-name')!;
+    gitFilterRepo = parsed.option('git-filter-repo')!;
     push = parsed.flag('push');
     dryRun = parsed.flag('dry-run');
   } catch (e) {
