@@ -166,17 +166,26 @@ class Trebuchet {
 
     if (shouldTransferIssues) {
       print('Transfer issues');
-      await Process.(
+      final arguments = [
+        ...['run', '../repo_manage/bin/report.dart', 'transfer-issues'],
+        ...['--source-repo', 'dart-lang/$input'],
+        ...['--target-repo', 'dart-lang/$target'],
+        ...['--add-label', 'package:$input'],
+        if (!dryRun) '--apply-changes'
+      ];
+      final process = await Process.start(
         'dart',
-        [
-          ...['run', '../repo_manage/bin/report.dart', 'transfer-issues'],
-          ...['--source-repo', 'dart-lang/$input'],
-          ...['--target-repo', 'dart-lang/$target'],
-          ...['--add-label', 'package:$input'],
-          if (!dryRun) '--apply-changes'
-        ],
+        arguments,
         workingDirectory: Directory.current.path,
       );
+      // ignore: unawaited_futures
+      stdout.addStream(process.stdout);
+      // ignore: unawaited_futures
+      stderr.addStream(process.stderr);
+      final exit = await process.exitCode;
+      if (exit != 0) {
+        throw ProcessException('dart', arguments);
+      }
     }
 
     print('DONE!');
@@ -207,8 +216,7 @@ ${shouldTransferIssues ? '' : 'Transfer issues by running `dart run pkgs/repo_ma
     bool inTarget = true,
     bool overrideDryRun = false,
   }) async {
-    final workingDirectory =
-        inTarget ? targetPath : inputPath;
+    final workingDirectory = inTarget ? targetPath : inputPath;
     print('----------');
     print('Running `$executable $arguments` in $workingDirectory');
     if (!dryRun || overrideDryRun) {
