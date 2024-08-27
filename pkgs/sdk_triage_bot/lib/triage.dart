@@ -17,7 +17,7 @@ final sdkSlug = RepositorySlug('dart-lang', 'sdk');
 Future<void> triage(
   int issueNumber, {
   bool dryRun = false,
-  bool force = false,
+  bool forceTriage = false,
   required GithubService githubService,
   required GeminiService geminiService,
   required Logger logger,
@@ -63,21 +63,22 @@ ${trimmedBody(comment.body ?? '')}
   }
 
   // decide if we should triage
-  final alreadyTriaged = labels.any((l) => l.startsWith('area-'));
-  if (alreadyTriaged && !force) {
-    logger.log('Exiting (issue is already triaged).');
-    return;
+  if (!forceTriage) {
+    if (issue.alreadyTriaged) {
+      logger.log('Exiting (issue is already triaged).');
+      return;
+    }
   }
 
   // ask for the summary
   var bodyTrimmed = trimmedBody(issue.body);
   String summary;
   try {
-    // Failures here can include things like gemini safety issues, ...
     summary = await geminiService.summarize(
       summarizeIssuePrompt(title: issue.title, body: bodyTrimmed),
     );
   } on GenerativeAIException catch (e) {
+    // Failures here can include things like gemini safety issues, ...
     stderr.writeln('gemini: $e');
     exit(1);
   }
@@ -88,21 +89,21 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('');
 
   // ask for the 'area-' classification
-  List<String> classification;
+  List<String> newLabels;
   try {
-    // Failures here can include things like gemini safety issues, ...
-    classification = await geminiService.classify(
+    newLabels = await geminiService.classify(
       assignAreaPrompt(
           title: issue.title, body: bodyTrimmed, lastComment: lastComment),
     );
   } on GenerativeAIException catch (e) {
+    // Failures here can include things like gemini safety issues, ...
     stderr.writeln('gemini: $e');
     exit(1);
   }
 
   logger.log('## gemini classification');
   logger.log('');
-  logger.log(classification.toString());
+  logger.log(newLabels.toString());
   logger.log('');
 
   if (dryRun) {
@@ -113,7 +114,7 @@ ${trimmedBody(comment.body ?? '')}
   // perform changes
   logger.log('## github comment');
   logger.log('');
-  logger.log('labels: $classification');
+  logger.log('labels: $newLabels');
   logger.log('');
   logger.log(summary);
 
@@ -122,17 +123,16 @@ ${trimmedBody(comment.body ?? '')}
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
-  final allLabels = await githubService.getAllLabels(sdkSlug);
-  var newLabels = filterExistingLabels(allLabels, classification);
-  if (newLabels.any((l) => l.startsWith('area-'))) {
-    newLabels.add('triage-automation');
+  final allRepoLabels = (await githubService.getAllLabels(sdkSlug)).toSet();
+  final labelAdditions = newLabels.toSet().union(allRepoLabels).toList()
+    ..sort();
+  if (labelAdditions.isNotEmpty) {
+    labelAdditions.add('triage-automation');
   }
-  // remove any duplicates
-  newLabels = newLabels.toSet().toList();
 
   // apply github labels
   if (newLabels.isNotEmpty) {
-    await githubService.addLabelsToIssue(sdkSlug, issueNumber, newLabels);
+    await githubService.addLabelsToIssue(sdkSlug, issueNumber, labelAdditions);
   }
 
   logger.log('');

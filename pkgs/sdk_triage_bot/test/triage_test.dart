@@ -63,7 +63,7 @@ void main() {
 
     await triage(
       mockIssueNumber,
-      force: true,
+      forceTriage: true,
       githubService: githubService,
       geminiService: geminiService,
       logger: TestLogger(),

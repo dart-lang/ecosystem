@@ -44,7 +44,7 @@ void main(List<String> arguments) async {
 
   var issue = results.rest.first;
   final dryRun = results.flag('dry-run');
-  final force = results.flag('force');
+  final forceTriage = results.flag('force');
 
   // Accept either an issue number or a url (i.e.,
   // https://github.com/dart-lang/sdk/issues/55816).
@@ -69,7 +69,7 @@ void main(List<String> arguments) async {
   await triage(
     int.parse(issue),
     dryRun: dryRun,
-    force: force,
+    forceTriage: forceTriage,
     githubService: githubService,
     geminiService: geminiService,
     logger: Logger(),
