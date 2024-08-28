@@ -162,32 +162,6 @@ class Trebuchet {
       );
     }
 
-    final shouldTransferIssues = getInput('Transfer issues? (y/N)');
-
-    if (shouldTransferIssues) {
-      print('Transfer issues');
-      final arguments = [
-        ...['run', '../repo_manage/bin/report.dart', 'transfer-issues'],
-        ...['--source-repo', 'dart-lang/$input'],
-        ...['--target-repo', 'dart-lang/$target'],
-        ...['--add-label', 'package:$input'],
-        if (!dryRun) '--apply-changes'
-      ];
-      final process = await Process.start(
-        'dart',
-        arguments,
-        workingDirectory: Directory.current.path,
-      );
-      // ignore: unawaited_futures
-      stdout.addStream(process.stdout);
-      // ignore: unawaited_futures
-      stderr.addStream(process.stderr);
-      final exit = await process.exitCode;
-      if (exit != 0) {
-        throw ProcessException('dart', arguments);
-      }
-    }
-
     print('DONE!');
     print('''
 Steps left to do:
@@ -197,7 +171,7 @@ ${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package`
 - Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.
 - Push tags to github using `git tag --list '$input*' | xargs git push origin`
 - Follow up with a PR adding links to the top-level readme table.
-${shouldTransferIssues ? '' : 'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`'}
+- Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`
 - Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.
 - Update the auto-publishing settings on pub.dev/packages/$input.
 - Archive https://github.com/dart-lang/$input/.
