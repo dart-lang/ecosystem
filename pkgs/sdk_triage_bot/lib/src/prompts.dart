@@ -28,10 +28,11 @@ area-infrastructure: Use area-infrastructure for SDK infrastructure issues, like
 area-intellij: Tracking issues for the Dart IntelliJ plugin.
 area-language: Dart language related items (some items might be better tracked at github.com/dart-lang/language).
 area-meta: Cross-cutting, high-level issues (for tracking many other implementation issues, ...).
+area-native-interop: Used for native interop related issues, including FFI.
 area-pkg: Used for miscellaneous pkg/ packages not associated with specific area- teams.
 area-sdk: Use area-sdk for general purpose SDK issues (packaging, distribution, …).
 area-test: Cross-cutting test issues (use area- labels for specific failures; not used for package:test).
-area-vm: Use area-vm for VM related issues, including code coverage, FFI, and the AOT and JIT backends.
+area-vm: Use area-vm for VM related issues, including code coverage, and the AOT and JIT backends.
 area-web: Use area-web for Dart web related issues, including the DDC and dart2js compilers and JS interop.
 
 Don't make up a new area.
