@@ -70,12 +70,33 @@ ${trimmedBody(comment.body ?? '')}
     }
   }
 
-  // ask for the summary
   var bodyTrimmed = trimmedBody(issue.body);
+
+  // ask for the 'area-' classification
+  List<String> newLabels;
+  try {
+    newLabels = await geminiService.classify(
+      assignAreaPrompt(
+        title: issue.title,
+        body: bodyTrimmed,
+        lastComment: lastComment,
+      ),
+    );
+  } on GenerativeAIException catch (e) {
+    // Failures here can include things like gemini safety issues, ...
+    stderr.writeln('gemini: $e');
+    exit(1);
+  }
+
+  // ask for the summary
   String summary;
   try {
     summary = await geminiService.summarize(
-      summarizeIssuePrompt(title: issue.title, body: bodyTrimmed),
+      summarizeIssuePrompt(
+        title: issue.title,
+        body: bodyTrimmed,
+        needsInfo: newLabels.contains('needs-info'),
+      ),
     );
   } on GenerativeAIException catch (e) {
     // Failures here can include things like gemini safety issues, ...
@@ -87,19 +108,6 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('');
   logger.log(summary);
   logger.log('');
-
-  // ask for the 'area-' classification
-  List<String> newLabels;
-  try {
-    newLabels = await geminiService.classify(
-      assignAreaPrompt(
-          title: issue.title, body: bodyTrimmed, lastComment: lastComment),
-    );
-  } on GenerativeAIException catch (e) {
-    // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('gemini: $e');
-    exit(1);
-  }
 
   logger.log('## gemini classification');
   logger.log('');
@@ -124,7 +132,7 @@ ${trimmedBody(comment.body ?? '')}
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allRepoLabels = (await githubService.getAllLabels(sdkSlug)).toSet();
-  final labelAdditions = newLabels.toSet().union(allRepoLabels).toList()
+  final labelAdditions = newLabels.toSet().intersection(allRepoLabels).toList()
     ..sort();
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('triage-automation');

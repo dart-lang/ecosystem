@@ -45,13 +45,55 @@ If the issue is clearly a bug report, then also apply the label 'type-bug'.
 If the issue is mostly a question,  then also apply the label 'type-question'.
 Otherwise don't apply a 'type-' label.
 
+If the issue was largely unchanged from our default issue template, then apply the
+'needs-info' label and don't assign an area label. These issues will generally
+have a title of "Create an issue" and the body will start with
+"Thank you for taking the time to file an issue!".
+
+If the issue title is "Analyzer Feedback from IntelliJ", these are generally not
+well qualified. For these issues, apply the 'needs-info' label but don't assign
+an area label.
+
+If the issue title starts with "[breaking change] " then it doesn't need to be
+triaged into a specific area; apply the `breaking-change-request` label but
+don't assign an area label.
+
 Return the labels as comma separated text.
 
-Issue follows:
+Here are a series of few-shot examples:
 
-$title
+<EXAMPLE>
+INPUT: title: Create an issue
 
-$body
+body: Thank you for taking the time to file an issue!
+
+This tracker is for issues related to:
+
+Dart analyzer and linter
+Dart core libraries (dart:async, dart:io, etc.)
+Dart native and web compilers
+Dart VM
+
+OUTPUT: needs-info
+</EXAMPLE>
+
+<EXAMPLE>
+INPUT: title: Analyzer Feedback from IntelliJ
+
+body: ## Version information
+
+- `IDEA AI-202.7660.26.42.7351085`
+- `3.4.4`
+- `AI-202.7660.26.42.7351085, JRE 11.0.8+10-b944.6842174x64 JetBrains s.r.o, OS Windows 10(amd64) v10.0 , screens 1600x900`
+
+OUTPUT: needs-info
+</EXAMPLE>
+
+The issue to triage follows:
+
+title: $title
+
+body: $body
 
 ${lastComment ?? ''}'''
       .trim();
@@ -60,15 +102,28 @@ ${lastComment ?? ''}'''
 String summarizeIssuePrompt({
   required String title,
   required String body,
+  required bool needsInfo,
 }) {
+  const needsMoreInfo = '''
+Our classification model determined that we'll need more information to triage
+this issue. Please gently prompt the user to provide more information.
+''';
+
+  final needsInfoVerbiage = needsInfo ? needsMoreInfo : '';
+  final responseLimit = needsInfo
+      ? '2-3 sentences, 50 words or less'
+      : '1-2 sentences, 24 words or less';
+
   return '''
 You are a software engineer on the Dart team at Google. You are responsible for
 triaging incoming issues from users. For each issue, briefly summarize the issue
-(1-2 sentences, 24 words or less).
+($responseLimit).
 
-Issue follows:
+$needsInfoVerbiage
 
-$title
+The issue to triage follows:
 
-$body''';
+title: $title
+
+body: $body''';
 }

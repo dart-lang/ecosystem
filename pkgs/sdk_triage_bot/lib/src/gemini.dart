@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 class GeminiService {
   // gemini-1.5-pro-latest, gemini-1.5-flash-latest, gemini-1.0-pro-latest
+  // gemini-1.5-flash-exp-0827
   static const String classificationModel = 'models/gemini-1.5-flash-latest';
   static const String summarizationModel = 'models/gemini-1.5-flash-latest';
 
