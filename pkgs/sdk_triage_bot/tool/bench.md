@@ -20,7 +20,6 @@ materially improve the classification performance.
 | #56354 | `area-web`, `type-bug`                          |
 | #56353 | `area-dart2wasm`                                |
 | #56350 | `area-analyzer`, `type-enhancement`             |
-| #56348 | `area-intellij`                                 |
 | #56347 | `area-dart-cli`, `type-bug`                     |
 | #56346 | `area-pkg`, `pkg-json`, `type-enhancement`      |
 | #56345 | `area-analyzer`, `type-enhancement`             |
@@ -44,7 +43,7 @@ materially improve the classification performance.
 | #56316 | `area-web`                                      |
 | #56315 | `area-web`                                      |
 | #56314 | `area-web`, `type-bug`                          |
-| #56308 | `area-vm`                                       |
+| #56308 | `area-vm` `breaking-change-request`             |
 | #56306 | `area-vm`, `type-bug`                           |
 | #56305 | `area-front-end`, `type-bug`, `type-question`   |
 | #56304 | `area-core-library`, `type-enhancement`         |
@@ -55,13 +54,12 @@ materially improve the classification performance.
 | #56283 | `area-dart2wasm`                                |
 | #56256 | `area-front-end`, `type-bug`                    |
 | #56254 | `area-pkg`, `pkg-vm-service`, `type-bug`        |
-| #56246 | `area-intellij`                                 |
-| #56240 | `area-intellij`                                 |
+| #56240 | `needs-info`                                    |
 | #56229 | `area-infrastructure`                           |
 | #56227 | `area-native-interop`                           |
 | #56220 | `area-infrastructure`, `type-code-health`       |
 | #56217 | `area-meta`                                     |
-| #56216 | `area-intellij`                                 |
+| #56216 | `needs-info`                                    |
 | #56214 | `area-native-interop`                           |
 | #56208 | `area-google3`, `type-enhancement`              |
 | #56207 | `area-google3`                                  |
@@ -108,3 +106,4 @@ We need more information from the user before we can triage these issues.
 
 ## Results
 2024-08-27: 55.6% using gemini-1.5-flash-latest
+2024-08-30: 64.8% using gemini-1.5-flash-latest

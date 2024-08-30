@@ -44,7 +44,7 @@ class GeminiService {
   /// On failures, this will throw a `GenerativeAIException`.
   Future<List<String>> classify(String prompt) async {
     final result = await _query(_classifyModel, prompt);
-    final labels = result.split(',').map((l) => l.trim()).toList();
+    final labels = result.split(',').map((l) => l.trim()).toList()..sort();
     return labels;
   }
 

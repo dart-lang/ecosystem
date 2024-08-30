@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(devoncarew): Add additional prompt instructions for `area-pkg` issues.
+
 String assignAreaPrompt({
   required String title,
   required String body,
@@ -45,6 +47,10 @@ If the issue is clearly a bug report, then also apply the label 'type-bug'.
 If the issue is mostly a question,  then also apply the label 'type-question'.
 Otherwise don't apply a 'type-' label.
 
+If the issue title starts with "[breaking change]" then apply the
+`breaking-change-request` label but don't assign an area label. IMPORTANT: only
+do this if the issue title starts with "[breaking change]".
+
 If the issue was largely unchanged from our default issue template, then apply the
 'needs-info' label and don't assign an area label. These issues will generally
 have a title of "Create an issue" and the body will start with
@@ -53,10 +59,6 @@ have a title of "Create an issue" and the body will start with
 If the issue title is "Analyzer Feedback from IntelliJ", these are generally not
 well qualified. For these issues, apply the 'needs-info' label but don't assign
 an area label.
-
-If the issue title starts with "[breaking change] " then it doesn't need to be
-triaged into a specific area; apply the `breaking-change-request` label but
-don't assign an area label.
 
 Return the labels as comma separated text.
 
@@ -89,6 +91,61 @@ body: ## Version information
 OUTPUT: needs-info
 </EXAMPLE>
 
+<EXAMPLE>
+INPUT: title: Support likely() and unlikely() hints for AOT code optimization
+
+body: ```dart
+// Tell the compiler which branches are going to be taken most of the time.
+
+if (unlikely(n == 0)) {
+  // This branch is known to be taken rarely.
+} else {
+  // This branch is expected to be in the hot path.
+}
+
+final result = likely(s == null) ? commonPath() : notTakenOften();
+```
+
+Please add support for the `likely()` and `unlikely()` optimization hints within branching conditions. The AOT compiler can use these hints to generate faster code in a hot path that contains multiple branches.
+
+OUTPUT: area-vm, type-enhancement, type-performance
+</EXAMPLE>
+
+<EXAMPLE>
+INPUT: title: Analyzer doesn't notice incorrect return type of generic method
+
+body: dart analyze gives no errors on the follow code:
+
+```dart
+void main() {
+  method(getB());
+}
+
+void method(String b) => print(b);
+
+B getB<B extends A>() {
+  return A() as B;
+}
+
+class A {}
+```
+I would have suspected it to say something along the line of **The argument type 'A' can't be assigned to the parameter type 'String'.**
+
+OUTPUT: area-analyzer, type-enhancement
+</EXAMPLE>
+
+<EXAMPLE>
+INPUT: title: DDC async function stepping improvements
+
+body: Tracking issue to monitor progress on improving debugger stepping through async function bodies.
+
+The new DDC async semantics expand async function bodies into complex state machines. The normal JS stepping semantics don't map cleanly to steps through Dart code given this lowering. There are a couple potential approaches to fix this:
+1) Add more logic to the Dart debugger to perform custom stepping behavior when stepping through async code.
+2) Modify the async lowering in such a way that stepping more closely resembles stepping through Dart. For example, rather than returning multiple times, the state machine function might be able to yield. Stepping over a yield might allow the debugger to stay within the function body.
+
+OUTPUT: area-web
+</EXAMPLE>
+
 The issue to triage follows:
 
 title: $title
@@ -106,20 +163,18 @@ String summarizeIssuePrompt({
 }) {
   const needsMoreInfo = '''
 Our classification model determined that we'll need more information to triage
-this issue. Please gently prompt the user to provide more information.
+this issue. Thank them for their contribution and gently prompt them to provide
+more information.
 ''';
 
-  final needsInfoVerbiage = needsInfo ? needsMoreInfo : '';
-  final responseLimit = needsInfo
-      ? '2-3 sentences, 50 words or less'
-      : '1-2 sentences, 24 words or less';
+  final responseLimit = needsInfo ? '' : ' (1-2 sentences, 24 words or less)';
 
   return '''
-You are a software engineer on the Dart team at Google. You are responsible for
-triaging incoming issues from users. For each issue, briefly summarize the issue
-($responseLimit).
+You are a software engineer on the Dart team at Google.
+You are responsible for triaging incoming issues from users.
+For each issue, briefly summarize the issue $responseLimit.
 
-$needsInfoVerbiage
+${needsInfo ? needsMoreInfo : ''}
 
 The issue to triage follows:
 

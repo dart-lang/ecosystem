@@ -131,9 +131,9 @@ ${trimmedBody(comment.body ?? '')}
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
-  final allRepoLabels = (await githubService.getAllLabels(sdkSlug)).toSet();
-  final labelAdditions = newLabels.toSet().intersection(allRepoLabels).toList()
-    ..sort();
+  final allRepoLabels = await githubService.getAllLabels(sdkSlug);
+  final labelAdditions =
+      filterLegalLabels(newLabels, allRepoLabels: allRepoLabels);
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('triage-automation');
   }
@@ -149,7 +149,9 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('Triaged ${issue.htmlUrl}');
 }
 
-List<String> filterExistingLabels(
-    List<String> allLabels, List<String> newLabels) {
-  return newLabels.toSet().intersection(allLabels.toSet()).toList();
+List<String> filterLegalLabels(
+  List<String> labels, {
+  required List<String> allRepoLabels,
+}) {
+  return labels.toSet().intersection(allRepoLabels.toSet()).toList()..sort();
 }

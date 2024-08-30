@@ -51,7 +51,7 @@ void main(List<String> args) async {
         await githubService.fetchIssue(sdkSlug, expectation.issueNumber);
     final bodyTrimmed = trimmedBody(issue.body);
 
-    print('#${issue.number}');
+    print('#${issue.number}: ${expectation.expectedLabels.join(', ')}');
 
     try {
       final labels = await geminiService.classify(
@@ -60,12 +60,7 @@ void main(List<String> args) async {
       if (expectation.satisfiedBy(labels)) {
         predicted++;
       } else {
-        var title = issue.title.length > 100
-            ? '${issue.title.substring(0, 100)}...'
-            : issue.title;
-        print('  "$title"');
-        print('     labeled: ${expectation.expectedLabels.join(', ')}');
-        print('  prediction: ${labels.join(', ')}');
+        stderr.writeln('   bot: ${labels.join(', ')}');
       }
     } on GenerativeAIException catch (e) {
       // Failures here can include things like gemini safety issues, ...
@@ -114,8 +109,22 @@ class ClassificationResults {
   }
 
   bool satisfiedBy(List<String> labels) {
-    final filtered = labels.where((l) => !l.startsWith('type-')).toSet();
-    final expected = expectedLabels.where((l) => !l.startsWith('type-'));
-    return expected.every(filtered.contains);
+    // handle needs-info
+    if (expectedLabels.contains('needs-info')) {
+      return labels.contains('needs-info');
+    }
+
+    // handle breaking-change-request
+    if (expectedLabels.contains('breaking-change-request')) {
+      return labels.contains('breaking-change-request');
+    }
+
+    for (final label in expectedLabels.where((l) => l.startsWith('area-'))) {
+      if (!labels.contains(label)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
