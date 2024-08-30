@@ -1,10 +1,9 @@
 #!/bin/bash
-# Created with package:mono_repo v6.6.2
+# Created with package:mono_repo v6.5.1
 
 # Support built in commands on windows out of the box.
-
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
-# then "flutter pub" is called instead of "dart pub".
+# then "flutter" is called instead of "pub".
 # This assumes that the Flutter SDK has been installed in a previous step.
 function pub() {
   if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
@@ -13,13 +12,18 @@ function pub() {
     command dart pub "$@"
   fi
 }
-
-function format() {
-  command dart format "$@"
-}
-
 # When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
-# then "flutter analyze" is called instead of "dart analyze".
+# then "flutter" is called instead of "pub".
+# This assumes that the Flutter SDK has been installed in a previous step.
+function format() {
+  if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
+    command flutter format "$@"
+  else
+    command dart format "$@"
+  fi
+}
+# When it is a flutter repo (check the pubspec.yaml for "sdk: flutter")
+# then "flutter" is called instead of "pub".
 # This assumes that the Flutter SDK has been installed in a previous step.
 function analyze() {
   if grep -Fq "sdk: flutter" "${PWD}/pubspec.yaml"; then
