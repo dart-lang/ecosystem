@@ -124,7 +124,7 @@ ${trimmedBody(comment.body ?? '')}
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
   final allRepoLabels = (await githubService.getAllLabels(sdkSlug)).toSet();
-  final labelAdditions = newLabels.toSet().union(allRepoLabels).toList()
+  final labelAdditions = newLabels.toSet().intersection(allRepoLabels).toList()
     ..sort();
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('triage-automation');
