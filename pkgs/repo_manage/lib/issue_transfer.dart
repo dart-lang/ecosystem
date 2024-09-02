@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:github/github.dart';
 import 'package:graphql/client.dart';
@@ -94,16 +96,21 @@ class TransferIssuesCommand extends ReportCommand {
     );
 
     print('Transferred ${issues.length} issues');
+
     if (labelName != null) {
-      print('Adding label $labelName to all transferred issues');
-      for (var issueNumber in issues) {
-        print('Add to issue $issueNumber');
-        if (applyChanges) {
-          await reportRunner.github.issues.addLabelsToIssue(
-            targetRepo,
-            issueNumber,
-            [labelName],
-          );
+      var label =
+          getInput('Label the transferred issues with $labelName? (y/N)');
+      if (label) {
+        print('Adding label $labelName to all transferred issues');
+        for (var issueNumber in issues) {
+          print('Add to issue $issueNumber');
+          if (applyChanges) {
+            await reportRunner.github.issues.addLabelsToIssue(
+              targetRepo,
+              issueNumber,
+              [labelName],
+            );
+          }
         }
       }
     }
@@ -194,7 +201,12 @@ class TransferIssuesCommand extends ReportCommand {
           repositoryId,
           applyChanges,
         );
-        allIssueIds.addAll(transferredIssues);
+        if (transferredIssues.$2 != null) {
+          stderr.writeln('Failed to transfer issues.');
+          stderr.writeln(transferredIssues.$2);
+          return allIssueIds;
+        }
+        allIssueIds.addAll(transferredIssues.$1);
         await Future<void>.delayed(const Duration(seconds: 1));
       }
 
@@ -209,7 +221,7 @@ class TransferIssuesCommand extends ReportCommand {
     }
   }
 
-  Future<List<int>> _transferMutation(
+  Future<(List<int>, Exception?)> _transferMutation(
     List<String> issueIds,
     String repositoryId,
     bool applyChanges,
@@ -239,10 +251,15 @@ class TransferIssuesCommand extends ReportCommand {
               .toList();
         },
       ));
-      if (result.hasException) throw result.exception!;
-      return result.parsedData ?? [];
+      return (result.parsedData ?? [], result.exception);
     } else {
-      return [];
+      return (<int>[], null);
     }
+  }
+
+  bool getInput(String question) {
+    print(question);
+    final line = stdin.readLineSync()?.toLowerCase();
+    return line == 'y' || line == 'yes';
   }
 }
