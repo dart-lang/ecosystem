@@ -43,10 +43,15 @@ class GithubService {
 
 Future<FetchIssuesResult> fetchIssues(
   String areaLabel, {
+  required bool includeClosed,
   String? cursor,
 }) async {
   final result = await _query(QueryOptions(
-    document: gql(_buildQueryString(areaLabel, cursor: cursor)),
+    document: gql(_buildQueryString(
+      areaLabel,
+      cursor: cursor,
+      includeClosed: includeClosed,
+    )),
     fetchPolicy: FetchPolicy.noCache,
     parserFn: (data) {
       final search = data['search'] as Map<String, dynamic>;
@@ -104,41 +109,46 @@ Future<QueryResult<T>> _query<T>(QueryOptions<T> options) {
   return _client.query<T>(options);
 }
 
-String _buildQueryString(String areaLabel, {String? cursor}) {
-  final cursorRef = cursor == null ? null : '"$cursor"';
+String _buildQueryString(
+  String areaLabel, {
+  required bool includeClosed,
+  String? cursor,
+}) {
+  final cursorTerm = cursor == null ? '' : 'after: "$cursor"';
+  final isOpen = includeClosed ? '' : 'is:open';
 
   return '''{
-  search(
-    query: "repo:dart-lang/sdk is:issue is:open label:$areaLabel"
-    type: ISSUE
-    first: 100,
-    after: $cursorRef
-  ) {
-    edges {
-      node {
-        ... on Issue {
-          title
-          number
-          state
-          bodyText
-          labels(first: 10) {
-            edges {
-              node {
-                name
+    search(
+      query: "repo:dart-lang/sdk is:issue $isOpen label:$areaLabel"
+      type: ISSUE
+      first: 100
+      $cursorTerm
+    ) {
+      edges {
+        node {
+          ... on Issue {
+            title
+            number
+            state
+            bodyText
+            labels(first: 10) {
+              edges {
+                node {
+                  name
+                }
               }
             }
           }
         }
       }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
     }
-    pageInfo {
-      endCursor
-      startCursor
-      hasNextPage
-      hasPreviousPage
-    }
-  }
-}''';
+  }''';
 }
 
 final GraphQLClient _client = _initGraphQLClient();
@@ -158,4 +168,17 @@ extension IssueExtension on Issue {
   ///
   /// Note that the original text for the issue is returned in the `body` field.
   bool get hasComments => commentsCount > 0;
+
+  /// Returns whether this issue has already been triaged.
+  ///
+  /// Generally, this means the the issue has had an `area-` label applied to
+  /// it, has had `needs-info` applied to it, or was closed.
+  bool get alreadyTriaged {
+    if (isClosed) return true;
+
+    return labels.any((label) {
+      final name = label.name;
+      return name == 'needs-info' || name.startsWith('area-');
+    });
+  }
 }

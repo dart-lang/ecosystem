@@ -17,25 +17,27 @@ import 'package:sdk_triage_bot/src/prompts.dart';
 //   - make sure we have at least 10 items from each area
 
 const Map<String, int> areaSampleCount = {
-  'area-vm': 100,
   'area-analyzer': 100,
-  'area-web': 100,
   'area-core-library': 100,
   'area-front-end': 100,
+  'area-vm': 100,
+  'area-web': 100,
   //
-  'area-language': 50,
-  'area-infrastructure': 50,
-  'area-test': 50,
   'area-dart-cli': 50,
+  'area-infrastructure': 50,
+  'area-language': 50,
+  'area-test': 50,
   //
-  'area-meta': 25,
   'area-dart2wasm': 25,
+  'area-meta': 25,
+  'area-pkg': 25,
   //
-  'area-sdk': 10,
-  'area-intellij': 10,
-  'area-tools': 10,
   'area-build': 10,
   'area-google3': 10,
+  'area-intellij': 10,
+  'area-native-interop': 10,
+  'area-sdk': 10,
+  'area-tools': 10,
 };
 
 void main(List<String> args) async {
@@ -84,8 +86,12 @@ void main(List<String> args) async {
   exit(0);
 }
 
-Future<List<Issue>> downloadIssues(String areaLabel, int count) async {
-  var result = await fetchIssues(areaLabel);
+Future<List<Issue>> downloadIssues(
+  String areaLabel,
+  int count, {
+  bool includeClosed = false,
+}) async {
+  var result = await fetchIssues(areaLabel, includeClosed: includeClosed);
 
   final issues = <Issue>[];
 
@@ -101,7 +107,11 @@ Future<List<Issue>> downloadIssues(String areaLabel, int count) async {
     if (!result.hasNext) {
       break;
     } else {
-      result = await fetchIssues(areaLabel, cursor: result.cursor);
+      result = await fetchIssues(
+        areaLabel,
+        includeClosed: includeClosed,
+        cursor: result.cursor,
+      );
     }
   }
 
@@ -149,6 +159,19 @@ extension on Issue {
     }).toList();
 
     return '[$number] "$shortTitle": ${filteredLabels.join(', ')}';
+  }
+
+  // ignore: unused_element
+  String get markdownDesc {
+    final filteredLabels = labels.map((l) => l.name).where((label) {
+      return label.startsWith('area-') ||
+          label.startsWith('type-') ||
+          label == 'needs-info';
+    }).toList()
+      ..sort();
+
+    final descriptions = filteredLabels.map((l) => '`$l`').toList();
+    return '| #$number | ${descriptions.join(', ')} |';
   }
 }
 
