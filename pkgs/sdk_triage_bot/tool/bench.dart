@@ -109,12 +109,12 @@ class ClassificationResults {
   }
 
   bool satisfiedBy(List<String> labels) {
-    // handle needs-info
+    // Handle a `needs-info` label.
     if (expectedLabels.contains('needs-info')) {
       return labels.contains('needs-info');
     }
 
-    // handle breaking-change-request
+    // Handle a `breaking-change-request` label.
     if (expectedLabels.contains('breaking-change-request')) {
       return labels.contains('breaking-change-request');
     }

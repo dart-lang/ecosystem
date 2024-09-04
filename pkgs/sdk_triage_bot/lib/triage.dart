@@ -153,5 +153,9 @@ List<String> filterLegalLabels(
   List<String> labels, {
   required List<String> allRepoLabels,
 }) {
-  return labels.toSet().intersection(allRepoLabels.toSet()).toList()..sort();
+  final validLabels = allRepoLabels.toSet();
+  return [
+    for (var label in labels)
+      if (validLabels.contains(label)) label,
+  ]..sort();
 }
