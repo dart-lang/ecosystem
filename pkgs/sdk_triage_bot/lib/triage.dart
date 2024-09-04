@@ -70,12 +70,33 @@ ${trimmedBody(comment.body ?? '')}
     }
   }
 
-  // ask for the summary
   var bodyTrimmed = trimmedBody(issue.body);
+
+  // ask for the 'area-' classification
+  List<String> newLabels;
+  try {
+    newLabels = await geminiService.classify(
+      assignAreaPrompt(
+        title: issue.title,
+        body: bodyTrimmed,
+        lastComment: lastComment,
+      ),
+    );
+  } on GenerativeAIException catch (e) {
+    // Failures here can include things like gemini safety issues, ...
+    stderr.writeln('gemini: $e');
+    exit(1);
+  }
+
+  // ask for the summary
   String summary;
   try {
     summary = await geminiService.summarize(
-      summarizeIssuePrompt(title: issue.title, body: bodyTrimmed),
+      summarizeIssuePrompt(
+        title: issue.title,
+        body: bodyTrimmed,
+        needsInfo: newLabels.contains('needs-info'),
+      ),
     );
   } on GenerativeAIException catch (e) {
     // Failures here can include things like gemini safety issues, ...
@@ -87,19 +108,6 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('');
   logger.log(summary);
   logger.log('');
-
-  // ask for the 'area-' classification
-  List<String> newLabels;
-  try {
-    newLabels = await geminiService.classify(
-      assignAreaPrompt(
-          title: issue.title, body: bodyTrimmed, lastComment: lastComment),
-    );
-  } on GenerativeAIException catch (e) {
-    // Failures here can include things like gemini safety issues, ...
-    stderr.writeln('gemini: $e');
-    exit(1);
-  }
 
   logger.log('## gemini classification');
   logger.log('');
@@ -123,9 +131,9 @@ ${trimmedBody(comment.body ?? '')}
   // create github comment
   await githubService.createComment(sdkSlug, issueNumber, comment);
 
-  final allRepoLabels = (await githubService.getAllLabels(sdkSlug)).toSet();
-  final labelAdditions = newLabels.toSet().intersection(allRepoLabels).toList()
-    ..sort();
+  final allRepoLabels = await githubService.getAllLabels(sdkSlug);
+  final labelAdditions =
+      filterLegalLabels(newLabels, allRepoLabels: allRepoLabels);
   if (labelAdditions.isNotEmpty) {
     labelAdditions.add('triage-automation');
   }
@@ -141,7 +149,13 @@ ${trimmedBody(comment.body ?? '')}
   logger.log('Triaged ${issue.htmlUrl}');
 }
 
-List<String> filterExistingLabels(
-    List<String> allLabels, List<String> newLabels) {
-  return newLabels.toSet().intersection(allLabels.toSet()).toList();
+List<String> filterLegalLabels(
+  List<String> labels, {
+  required List<String> allRepoLabels,
+}) {
+  final validLabels = allRepoLabels.toSet();
+  return [
+    for (var label in labels)
+      if (validLabels.contains(label)) label,
+  ]..sort();
 }
