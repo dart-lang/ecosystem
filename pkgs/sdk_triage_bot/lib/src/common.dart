@@ -37,11 +37,14 @@ String get geminiKey {
   return token;
 }
 
-/// Don't return more than 10k of text for an issue body.
-String trimmedBody(String body) {
-  const textLimit = 10 * 1024;
+/// Maximal length of body used for querying.
+const bodyLengthLimit = 10 * 1024;
 
-  return body.length > textLimit ? body = body.substring(0, textLimit) : body;
+/// The [body], truncated if larger than [bodyLengthLimit].
+String trimmedBody(String body) {
+  return body.length > bodyLengthLimit
+      ? body = body.substring(0, bodyLengthLimit)
+      : body;
 }
 
 class Logger {

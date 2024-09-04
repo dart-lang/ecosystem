@@ -47,14 +47,14 @@ If the issue is clearly a bug report, then also apply the label 'type-bug'.
 If the issue is mostly a question,  then also apply the label 'type-question'.
 Otherwise don't apply a 'type-' label.
 
-If the issue title starts with "[breaking change]" then apply the
-`breaking-change-request` label but don't assign an area label. IMPORTANT: only
-do this if the issue title starts with "[breaking change]".
+If the issue title starts with "[breaking change]" it was likely created using
+existing issue template; do not assign an area label. IMPORTANT: only do this if
+the issue title starts with "[breaking change]".
 
-If the issue was largely unchanged from our default issue template, then apply the
-'needs-info' label and don't assign an area label. These issues will generally
-have a title of "Create an issue" and the body will start with
-"Thank you for taking the time to file an issue!".
+If the issue was largely unchanged from our default issue template, then apply
+the 'needs-info' label and don't assign an area label. These issues will
+generally have a title of "Create an issue" and the body will start with "Thank
+you for taking the time to file an issue!".
 
 If the issue title is "Analyzer Feedback from IntelliJ", these are generally not
 well qualified. For these issues, apply the 'needs-info' label but don't assign
