@@ -17,6 +17,7 @@ import '../../firehose.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
+import 'if_then_change.dart';
 import 'license.dart';
 
 enum Check {
@@ -26,7 +27,8 @@ enum Check {
   coverage('Coverage', 'coverage'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
-  donotsubmit('Do Not Submit', 'do-not-submit');
+  donotsubmit('Do Not Submit', 'do-not-submit'),
+  ifthenchange('If then change', 'if-then-change');
 
   final String tag;
 
@@ -126,6 +128,7 @@ class Health {
         Check.breaking => breakingCheck,
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
+        Check.ifthenchange => ifThenChangeCheck,
       };
 
   Future<HealthCheckResult> validateCheck() async {
@@ -266,6 +269,35 @@ The following packages contain symbols visible in the public API, but not export
 | :--- | :--- |
 ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').join('\n')}
 ''',
+    );
+  }
+
+  Future<HealthCheckResult> ifThenChangeCheck() async {
+    var files = await github.listFilesForPR(directory, ignoredPackages);
+    var allFilePaths = await getFilesWithIfThenChanges(
+      directory,
+      ignoredPackages,
+    );
+
+    var groupedPaths = allFilePaths.groupListsBy(
+        (filePath) => files.none((f) => f.filename == filePath.$2));
+
+    var unchangedFilesPaths = groupedPaths[true] ?? [];
+    var markdownResult = '''
+```
+$license
+```
+
+| Files |
+| :--- |
+${unchangedFilesPaths.isNotEmpty ? unchangedFilesPaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}
+
+''';
+
+    return HealthCheckResult(
+      Check.license,
+      unchangedFilesPaths.isNotEmpty ? Severity.error : Severity.success,
+      markdownResult,
     );
   }
 
