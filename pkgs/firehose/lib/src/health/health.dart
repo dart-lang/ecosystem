@@ -166,6 +166,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
+          '--no-check-sdk-version',
           ...['--old', baseRelativePath],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
