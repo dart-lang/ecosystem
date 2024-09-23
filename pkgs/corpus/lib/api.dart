@@ -180,7 +180,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
       return;
     }
 
-    var enclosingElement = element.enclosingElement!;
+    var enclosingElement = element.enclosingElement3!;
 
     if (enclosingElement.kind == ElementKind.CLASS) {
       final name = enclosingElement.name!;
