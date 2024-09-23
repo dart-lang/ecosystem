@@ -180,7 +180,9 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
       return;
     }
 
-    var enclosingElement = element.enclosingElement3!;
+    //TODO: fix as soon as enclosingElement3 is on Dart stable
+    // ignore: deprecated_member_use
+    var enclosingElement = element.enclosingElement!;
 
     if (enclosingElement.kind == ElementKind.CLASS) {
       final name = enclosingElement.name!;
