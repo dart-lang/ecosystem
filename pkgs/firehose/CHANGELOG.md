@@ -1,3 +1,7 @@
+## 0.9.3
+
+- Do not check Dart SDK in PR Health breaking check.
+
 ## 0.9.2
 
 - Improve formatting of the github workflow summary comments so they use less
