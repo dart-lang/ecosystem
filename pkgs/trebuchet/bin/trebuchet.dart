@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: lines_longer_than_80_chars
+
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -148,7 +150,7 @@ class Trebuchet {
         '--allow-unrelated-histories',
         '${input}_package/$branchName',
         '-m',
-        'Merge package:$input into shared tool repository'
+        'Merge package:$input into shared $target repository'
       ],
     );
 
@@ -162,19 +164,24 @@ class Trebuchet {
       );
     }
 
+    final remainingSteps = [
+      'Move and fix workflow files',
+      if (!shouldPush)
+        'Run `git push --set-upstream origin merge-$input-package` in the monorepo directory',
+      'Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.',
+      "Push tags to github using `git tag --list '$input*' | xargs git push origin`",
+      'Follow up with a PR adding links to the top-level readme table.',
+      'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
+      "Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.",
+      'Update the auto-publishing settings on pub.dev/packages/$input.',
+      'Archive https://github.com/dart-lang/$input/.',
+    ];
+
     print('DONE!');
     print('''
 Steps left to do:
 
-- Move and fix workflow files
-${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package` in the monorepo directory'}
-- Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.
-- Push tags to github using `git tag --list '$input*' | xargs git push origin`
-- Follow up with a PR adding links to the top-level readme table.
-- Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`
-- Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.
-- Update the auto-publishing settings on pub.dev/packages/$input.
-- Archive https://github.com/dart-lang/$input/.
+${remainingSteps.map((step) => '  - $step').join('\n')}
 ''');
   }
 
@@ -191,27 +198,30 @@ ${shouldPush ? '' : '- Run `git push --set-upstream origin merge-$input-package`
     bool overrideDryRun = false,
   }) async {
     final workingDirectory = inTarget ? targetPath : inputPath;
-    print('----------');
-    print('Running `$executable $arguments` in $workingDirectory');
+    print('');
+    print('${bold('$executable ${arguments.join(' ')}')} '
+        '${subtle('[$workingDirectory]')}');
     if (!dryRun || overrideDryRun) {
       final processResult = await Process.run(
         executable,
         arguments,
         workingDirectory: workingDirectory,
       );
-      print('stdout:');
-      print(processResult.stdout);
-      if ((processResult.stderr as String).isNotEmpty) {
-        print('stderr:');
-        print(processResult.stderr);
+      final out = processResult.stdout as String;
+      if (out.isNotEmpty) {
+        print(indent(out).trimRight());
+      }
+      final err = processResult.stderr as String;
+      if (err.isNotEmpty) {
+        print(indent(err).trimRight());
       }
       if (processResult.exitCode != 0) {
         throw ProcessException(executable, arguments);
       }
     } else {
-      print('Not running, as --dry-run is set.');
+      print('  not running; --dry-run is set.');
     }
-    print('==========');
+    print('');
   }
 
   Future<void> filterRepo(List<String> args) async {
@@ -228,3 +238,10 @@ Future<void> inTempDir(Future<void> Function(Directory temp) f) async {
   await f(tempDirectory);
   await tempDirectory.delete(recursive: true);
 }
+
+String bold(String str) => '\u001b[1m$str\u001b[22m';
+
+String subtle(String str) => '\u001b[2m$str\u001b[22m';
+
+String indent(String str) =>
+    str.split('\n').map((line) => '  $line').join('\n');
