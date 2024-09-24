@@ -219,7 +219,7 @@ ${remainingSteps.map((step) => '  - $step').join('\n')}
         throw ProcessException(executable, arguments);
       }
     } else {
-      print('  not running; --dry-run is set.');
+      print('  (not running; --dry-run is set)');
     }
     print('');
   }
