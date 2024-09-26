@@ -9,10 +9,11 @@ dart run bin/trebuchet.dart \
   --input-name coverage \
   --branch-name main \
   --input-path ~/projects/coverage/ \
-  --target labs \
+  --target tools \
   --target-path ~/projects/tools/ \
   --git-filter-repo ~/tools/git-filter-repo \
   --dry-run
 ```
 
-This basically executes the instructions at https://github.com/dart-lang/ecosystem/wiki/Merging-existing-repos-into-a-monorepo
+This script automates portions of the instructions at
+https://github.com/dart-lang/ecosystem/wiki/Merging-existing-repos-into-a-monorepo.
