@@ -1,3 +1,10 @@
+## 3.2.1
+
+- Depend on the `5.0.0` release of `package:lints`.
+- Removed duplicated lints: `unnecessary_library_name`,
+  `invalid_runtime_check_with_js_interop_types`, and
+  `unintended_html_in_doc_comment`
+
 ## 3.2.0
 
 - Contributed a (brief) change policy to the readme.
