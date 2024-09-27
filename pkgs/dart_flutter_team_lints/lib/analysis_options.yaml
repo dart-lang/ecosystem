@@ -34,7 +34,6 @@ linter:
     - sort_pub_dependencies
     - unnecessary_lambdas
     - unnecessary_library_directive
-    - unnecessary_library_name
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_is_even_rather_than_modulo
@@ -45,11 +44,9 @@ linter:
     - avoid_dynamic_calls
     - comment_references
     - conditional_uri_does_not_exist
-    - invalid_runtime_check_with_js_interop_types
     - only_throw_errors
     - test_types_in_equals
     - throw_in_finally
     - type_annotate_public_apis
     - unawaited_futures
-    - unintended_html_in_doc_comment
     - unreachable_from_main
