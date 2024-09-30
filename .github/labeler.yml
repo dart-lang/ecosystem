@@ -27,3 +27,7 @@
 'package:sdk_triage_bot':
   - changed-files:
       - any-glob-to-any-file: 'pkgs/sdk_triage_bot/**/*'
+
+'package:trebuchet':
+  - changed-files:
+      - any-glob-to-any-file: 'pkgs/trebuchet/**/*'

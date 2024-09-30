@@ -165,23 +165,23 @@ class Trebuchet {
     }
 
     final remainingSteps = [
-      'Move and fix workflow files',
+      'move and fix workflow files',
       if (!shouldPush)
-        'Run `git push --set-upstream origin merge-$input-package` in the monorepo directory',
-      'Disable squash-only in GitHub settings, and merge with a fast forward merge to the main branch, enable squash-only in GitHub settings.',
-      "Push tags to github using `git tag --list '$input*' | xargs git push origin`",
-      'Follow up with a PR adding links to the top-level readme table.',
-      'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
-      "Add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo.",
-      'Update the auto-publishing settings on pub.dev/packages/$input.',
-      'Archive https://github.com/dart-lang/$input/.',
+        'run `git push --set-upstream origin merge-$input-package` in the monorepo directory',
+      "enable 'Allow merge commits' in GitHub settings; merge the PR with 'Create a merge commit'; disable 'Allow merge commits'",
+      "push tags to GitHub using `git tag --list '$input*' | xargs git push origin`",
+      'follow up with a PR adding links to the top-level readme table',
+      'transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
+      'update the auto-publishing settings on pub.dev/packages/$input',
+      "add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo",
+      'archive https://github.com/dart-lang/$input/',
     ];
 
     print('DONE!');
     print('''
 Steps left to do:
 
-${remainingSteps.map((step) => '  - $step').join('\n')}
+${remainingSteps.map((step) => '- [ ] $step').join('\n')}
 ''');
   }
 
