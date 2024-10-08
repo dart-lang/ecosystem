@@ -21,8 +21,8 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-#       fail_on: "version,changelog,do-not-submit"
+#       checks: "changelog,license,coverage,breaking,do-not-submit,leaking"
+#       fail_on: "changelog,do-not-submit"
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
 #       upload_coverage: false
@@ -52,17 +52,17 @@ on:
       # Restrict the checks to any subset of version, changelog, and license if
       # needed.
       checks:
-        description: What to check for in the PR health check - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        default: "changelog,license,coverage,breaking,do-not-submit,leaking"
         type: string
         required: false
       fail_on:
-        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "version,changelog,do-not-submit"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
         default: "license,coverage,breaking,leaking"
         type: string
         required: false
@@ -113,19 +113,6 @@ on:
         required: false
 
 jobs:
-  version:
-    if: ${{ contains(inputs.checks, 'version') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: version
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
     uses: ./.github/workflows/health_base.yaml
@@ -210,7 +197,7 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
   comment:
-    needs: [version, changelog, license, coverage, breaking, do-not-submit, leaking]
+    needs: [changelog, license, coverage, breaking, do-not-submit, leaking]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:

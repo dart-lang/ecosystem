@@ -1,3 +1,8 @@
+## 0.10.0
+
+- Remove the `version` pubspec checks (these largely duplicate the feedback
+  provided by publishing automation).
+
 ## 0.9.3
 
 - Do not check Dart SDK in PR Health breaking check.

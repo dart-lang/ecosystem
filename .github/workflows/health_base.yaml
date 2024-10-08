@@ -16,16 +16,16 @@ on:
         required: false
         type: string
       check:
-        description: What to check for in the PR health check - any of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking"
         type: string
         required: true
       fail_on:
-        description: Which checks should lead to failure - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "version,changelog,do-not-submit"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "version,changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
         default: "license,coverage,breaking,leaking"
         type: string
         required: false

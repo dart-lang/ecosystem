@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -20,7 +18,6 @@ import 'coverage.dart';
 import 'license.dart';
 
 enum Check {
-  version('Package publish validation', 'version'),
   license('License Headers', 'license'),
   changelog('Changelog Entry', 'changelog'),
   coverage('Coverage', 'coverage'),
@@ -119,7 +116,6 @@ class Health {
   }
 
   Future<HealthCheckResult> Function() checkFor(Check check) => switch (check) {
-        Check.version => validateCheck,
         Check.license => licenseCheck,
         Check.changelog => changelogCheck,
         Check.coverage => coverageCheck,
@@ -127,26 +123,6 @@ class Health {
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
       };
-
-  Future<HealthCheckResult> validateCheck() async {
-    //TODO: Add Flutter support for PR health checks
-    var results =
-        await Firehose(directory, false, ignoredPackages).verify(github);
-
-    var markdownTable = '''
-| Package | Version | Status |
-| :--- | ---: | :--- |
-${results.describeAsMarkdown(withTag: false)}
-
-Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
-    ''';
-
-    return HealthCheckResult(
-      Check.version,
-      results.severity,
-      markdownTable,
-    );
-  }
 
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await github.listFilesForPR(directory, ignoredPackages);

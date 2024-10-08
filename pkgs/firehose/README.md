@@ -160,7 +160,6 @@ This is a Github workflow to check PR health.
 
 When run from a PR, this tool will check a configurable subset of the following
 
-* The package versioning is correct and consistent, see `firehose` description above.
 * A changelog entry has been added.
 * All `.dart` files have a license header.
 * How the test coverage is affected by the PR.
@@ -187,8 +186,8 @@ jobs:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
 #     sdk: beta
-#     checks: "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-#     fail_on: "version,changelog,do-not-submit"
+#     checks: "changelog,license,coverage,breaking,do-not-submit,leaking"
+#     fail_on: "changelog,do-not-submit"
 #     warn_on: "license,coverage,breaking,leaking"
 #     coverage_web: false
 #     upload_coverage: false
@@ -229,8 +228,8 @@ jobs:
 
 | Name | Type | Description | Example |
 | ------------- | ------------- | ------------- | ------------- |
-| checks  | List of strings  | What to check for in the PR health check | `"version,changelog,license,coverage,breaking,do-not-submit,leaking"` |
-| fail_on  | List of strings  | Which checks should lead to failure | `"version,changelog,do-not-submit"` |
+| checks  | List of strings  | What to check for in the PR health check | `"changelog,license,coverage,breaking,do-not-submit,leaking"` |
+| fail_on  | List of strings  | Which checks should lead to failure | `"changelog,do-not-submit"` |
 | warn_on  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
 | upload_coverage  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
 | coverage_web  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
