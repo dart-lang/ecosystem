@@ -181,6 +181,7 @@ Add the following text to https://github.com/dart-lang/$input/:'
 > This repo has moved to https://github.com/dart-lang/$target/tree/main/pkgs/$input
 ```
 ''',
+      'Publish using the autopublish workflow',
       "Push tags to GitHub using `git tag --list '$input*' | xargs git push origin`",
       'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
       'Archive https://github.com/dart-lang/$input/',
