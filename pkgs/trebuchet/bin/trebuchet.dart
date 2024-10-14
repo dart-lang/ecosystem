@@ -171,7 +171,7 @@ class Trebuchet {
       'Update pubspec.yaml to point to the new repository',
       'Rev the version of the package, so that pub.dev points to the correct site',
       'Add the package to the top-level readme of the monorepo',
-      "Merge the PR with 'Create a merge commit', enable `Allow merge commits` if not yet enabled on this repository",
+      "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
       'Update the auto-publishing settings on https://pub.dev/packages/$input/admin',
       '''
 Add the following text to https://github.com/dart-lang/$input/:'
