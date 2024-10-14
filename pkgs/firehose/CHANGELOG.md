@@ -1,6 +1,6 @@
 ## 0.9.4-wip
 
-- Set minimum SDK version to `3.3.0` because of the `dart_apitool` dependency.
+- Set minimum SDK version to `3.5.0` because of the `dart_apitool` dependency.
 
 ## 0.9.3
 
