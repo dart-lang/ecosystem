@@ -1,10 +1,10 @@
 name: firehose
 description: A tool to automate publishing of Pub packages from GitHub actions.
-version: 0.9.3
+version: 0.10.0
 repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/firehose
 
 environment:
-  sdk: ^3.1.0
+  sdk: ^3.5.0
 
 executables:
   firehose: firehose

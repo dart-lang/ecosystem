@@ -13,36 +13,42 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 Future<void> main() async {
-  final directory = Directory(p.join('test_data', 'test_repo'));
-  var fakeGithubApi = FakeGithubApi(prLabels: [], files: [
-    GitFile(
-      'pkgs/package1/bin/package1.dart',
-      FileStatus.modified,
-      directory,
-    ),
-    GitFile(
-      'pkgs/package2/lib/anotherLib.dart',
-      FileStatus.added,
-      directory,
-    ),
-    GitFile(
-      'pkgs/package2/someImage.png',
-      FileStatus.added,
-      directory,
-    ),
-    GitFile(
-      'pkgs/package5/lib/src/package5_base.dart',
-      FileStatus.modified,
-      directory,
-    ),
-    GitFile(
-      'pkgs/package5/pubspec.yaml',
-      FileStatus.modified,
-      directory,
-    ),
-  ]);
-  await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
-  await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
+  late final Directory directory;
+  late final FakeGithubApi fakeGithubApi;
+
+  setUpAll(() async {
+    directory = Directory(p.join('test_data', 'test_repo'));
+    fakeGithubApi = FakeGithubApi(prLabels: [], files: [
+      GitFile(
+        'pkgs/package1/bin/package1.dart',
+        FileStatus.modified,
+        directory,
+      ),
+      GitFile(
+        'pkgs/package2/lib/anotherLib.dart',
+        FileStatus.added,
+        directory,
+      ),
+      GitFile(
+        'pkgs/package2/someImage.png',
+        FileStatus.added,
+        directory,
+      ),
+      GitFile(
+        'pkgs/package5/lib/src/package5_base.dart',
+        FileStatus.modified,
+        directory,
+      ),
+      GitFile(
+        'pkgs/package5/pubspec.yaml',
+        FileStatus.modified,
+        directory,
+      ),
+    ]);
+
+    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
+  });
 
   for (var check in Check.values) {
     test(
@@ -102,6 +108,7 @@ Future<void> checkGolden(
     fakeGithubApi,
     base: Directory(p.join('test_data', 'base_test_repo')),
     comment: commentPath,
+    log: printOnFailure,
   ).healthCheck();
   var comment = await File(commentPath).readAsString();
   var goldenFile =

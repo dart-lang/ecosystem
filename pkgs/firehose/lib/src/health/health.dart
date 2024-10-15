@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -20,7 +18,6 @@ import 'coverage.dart';
 import 'license.dart';
 
 enum Check {
-  version('Package publish validation', 'version'),
   license('License Headers', 'license'),
   changelog('Changelog Entry', 'changelog'),
   coverage('Coverage', 'coverage'),
@@ -53,6 +50,7 @@ class Health {
     this.github, {
     Directory? base,
     String? comment,
+    this.log = printLogger,
   })  : ignoredPackages = ignoredPackages
             .map((pattern) => Glob(pattern, recursive: true))
             .toList(),
@@ -80,6 +78,7 @@ class Health {
   final List<Glob> ignoredFilesForCoverage;
   final Directory baseDirectory;
   final List<String> experiments;
+  final Logger log;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -88,16 +87,16 @@ class Health {
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
     var checkName = check.name;
-    print('Start health check for the check $checkName with');
-    print(' warnOn: $warnOn');
-    print(' failOn: $failOn');
-    print(' coverageweb: $coverageweb');
-    print(' ignoredPackages: $ignoredPackages');
-    print(' ignoredForLicense: $ignoredFilesForLicense');
-    print(' ignoredForCoverage: $ignoredFilesForCoverage');
-    print(' baseDirectory: $baseDirectory');
-    print(' experiments: $experiments');
-    print('Checking for $checkName');
+    log('Start health check for the check $checkName with');
+    log(' warnOn: $warnOn');
+    log(' failOn: $failOn');
+    log(' coverageweb: $coverageweb');
+    log(' ignoredPackages: $ignoredPackages');
+    log(' ignoredForLicense: $ignoredFilesForLicense');
+    log(' ignoredForCoverage: $ignoredFilesForCoverage');
+    log(' baseDirectory: $baseDirectory');
+    log(' experiments: $experiments');
+    log('Checking for $checkName');
     if (!github.prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
@@ -112,14 +111,13 @@ class Health {
       }
       await writeInComment(github, finalResult);
       var severity = finalResult.severity.name.toUpperCase();
-      print('\n\n$severity: $checkName done.\n\n');
+      log('\n\n$severity: $checkName done.\n\n');
     } else {
-      print('Skipping $checkName, as the skip tag is present.');
+      log('Skipping $checkName, as the skip tag is present.');
     }
   }
 
   Future<HealthCheckResult> Function() checkFor(Check check) => switch (check) {
-        Check.version => validateCheck,
         Check.license => licenseCheck,
         Check.changelog => changelogCheck,
         Check.coverage => coverageCheck,
@@ -128,31 +126,11 @@ class Health {
         Check.leaking => leakingCheck,
       };
 
-  Future<HealthCheckResult> validateCheck() async {
-    //TODO: Add Flutter support for PR health checks
-    var results =
-        await Firehose(directory, false, ignoredPackages).verify(github);
-
-    var markdownTable = '''
-| Package | Version | Status |
-| :--- | ---: | :--- |
-${results.describeAsMarkdown(withTag: false)}
-
-Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
-    ''';
-
-    return HealthCheckResult(
-      Check.version,
-      results.severity,
-      markdownTable,
-    );
-  }
-
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
     for (var package in packagesContaining(filesInPR, ignoredPackages)) {
-      print('Look for changes in $package with base $baseDirectory');
+      log('Look for changes in $package with base $baseDirectory');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var baseRelativePath = path.relative(
@@ -174,15 +152,15 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
         ],
         workingDirectory: directory.path,
       );
-      print(runApiTool.stderr);
-      print(runApiTool.stdout);
+      log(runApiTool.stderr as String);
+      log(runApiTool.stdout as String);
 
       var fullReportString = File(reportPath).readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
       var report = decoded['report'] as Map<String, dynamic>;
 
       var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
-      print('Breaking change report:\n$formattedChanges');
+      log('Breaking change report:\n$formattedChanges');
 
       final versionMap = decoded['version'] as Map<String, dynamic>;
       changeForPackage[package] = BreakingChange(
@@ -225,7 +203,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
     final leaksForPackage = <Package, List<String>>{};
     for (var package in packagesContaining(filesInPR, ignoredPackages)) {
-      print('Look for leaks in $package');
+      log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
@@ -242,14 +220,14 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         ],
         workingDirectory: directory.path,
       );
-      print(runApiTool.stderr);
-      print(runApiTool.stdout);
+      log(runApiTool.stderr as String);
+      log(runApiTool.stdout as String);
 
       var fullReportString = File(reportPath).readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
       var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-      print('Leaking symbols in API:\n$leaks');
+      log('Leaking symbols in API:\n$leaks');
       if (leaks.isNotEmpty) {
         leaksForPackage[package] = leaks.cast();
       }
@@ -345,7 +323,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
 
     final body = await github.pullrequestBody();
     final files = await github.listFilesForPR(directory, ignoredPackages);
-    print('Checking for DO_NOT${'_'}SUBMIT strings: $files');
+    log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
             ![FileStatus.removed, FileStatus.unchanged].contains(file.status))
@@ -355,10 +333,10 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
             .readAsStringSync()
             .contains('DO_NOT${'_'}SUBMIT'))
         .toList();
-    print('Found files with $dns: $filesWithDNS');
+    log('Found files with $dns: $filesWithDNS');
 
     final bodyContainsDNS = body.contains(dns);
-    print('The body contains a $dns string: $bodyContainsDNS');
+    log('The body contains a $dns string: $bodyContainsDNS');
     final markdownResult = '''
 Body contains `$dns`: $bodyContainsDNS
 
@@ -427,7 +405,7 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
     github.appendStepSummary(markdownSummary);
 
     var commentFile = File(commentPath);
-    print('Saving comment markdown to file ${commentFile.path}');
+    log('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(markdownSummary);
 

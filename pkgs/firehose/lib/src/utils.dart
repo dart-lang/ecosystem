@@ -111,6 +111,10 @@ bool expectEnv(String? value, String name) {
   }
 }
 
+typedef Logger = void Function(String message);
+
+const Logger printLogger = print;
+
 enum Severity {
   success(':heavy_check_mark:'),
   info(':heavy_check_mark:'),
