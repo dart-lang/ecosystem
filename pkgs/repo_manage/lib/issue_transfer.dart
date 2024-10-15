@@ -48,7 +48,7 @@ class TransferIssuesCommand extends ReportCommand {
 
   @override
   String get invocation =>
-      '${super.invocation} --source-repo repo-org/old-repo-name --target-repo repo-org/new-repo-name --add-label pkg:old-repo-name';
+      '${super.invocation} --source-repo repo-org/old-repo-name --target-repo repo-org/new-repo-name --add-label package:old-repo-name';
 
   @override
   Future<int> run() async {

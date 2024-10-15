@@ -1,3 +1,7 @@
+## 0.9.4-wip
+
+- Set minimum SDK version to `3.5.0` because of the `dart_apitool` dependency.
+
 ## 0.9.3
 
 - Do not check Dart SDK in PR Health breaking check.

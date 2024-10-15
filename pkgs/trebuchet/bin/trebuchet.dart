@@ -150,7 +150,7 @@ class Trebuchet {
         '--allow-unrelated-histories',
         '${input}_package/$branchName',
         '-m',
-        'Merge package:$input into shared $target repository'
+        'Merge package:$input into the $target monorepo'
       ],
     );
 
@@ -165,16 +165,31 @@ class Trebuchet {
     }
 
     final remainingSteps = [
-      'move and fix workflow files',
       if (!shouldPush)
         'run `git push --set-upstream origin merge-$input-package` in the monorepo directory',
-      "enable 'Allow merge commits' in GitHub settings; merge the PR with 'Create a merge commit'; disable 'Allow merge commits'",
-      "push tags to GitHub using `git tag --list '$input*' | xargs git push origin`",
-      'follow up with a PR adding links to the top-level readme table',
-      'transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
-      'update the auto-publishing settings on pub.dev/packages/$input',
-      "add a commit to https://github.com/dart-lang/$input/ with it's readme pointing to the monorepo",
-      'archive https://github.com/dart-lang/$input/',
+      'Move and fix workflow files and badges in the README.md',
+      'Update pubspec.yaml to point to the new repository',
+      'Rev the version of the package, so that pub.dev points to the correct site',
+      'Add the package to the top-level readme of the monorepo',
+      "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
+      'Update the auto-publishing settings on https://pub.dev/packages/$input/admin',
+      '''
+Add the following text to https://github.com/dart-lang/$input/:'
+
+```
+> [!IMPORTANT]  
+> This repo has moved to https://github.com/dart-lang/$target/tree/main/pkgs/$input
+```
+''',
+      'Publish using the autopublish workflow',
+      "Push tags to GitHub using `git tag --list '$input*' | xargs git push origin`",
+      '''
+Close open PRs in dart-lang/$input with the following message:
+
+`Closing as the [dart-lang/$input](https://github.com/dart-lang/$input) repository is merged into the [dart-lang/$target](https://github.com/dart-lang/$target) monorepo. Please re-open this PR there!`
+      ''',
+      'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
+      'Archive https://github.com/dart-lang/$input/',
     ];
 
     print('DONE!');
