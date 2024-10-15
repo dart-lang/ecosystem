@@ -188,7 +188,7 @@ Close open PRs in dart-lang/$input with the following message:
 
 `Closing as the [dart-lang/$input](https://github.com/dart-lang/$input) repository is merged into the [dart-lang/$target](https://github.com/dart-lang/$target) monorepo. Please re-open this PR there!`
       ''',
-      'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package-$input --apply-changes`',
+      'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
       'Archive https://github.com/dart-lang/$input/',
     ];
 

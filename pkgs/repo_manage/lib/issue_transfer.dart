@@ -42,13 +42,13 @@ class TransferIssuesCommand extends ReportCommand {
     argParser.addOption(
       'add-label',
       help: 'Add a label to all transferred issues.',
-      valueHelp: 'package-foo',
+      valueHelp: 'package:foo',
     );
   }
 
   @override
   String get invocation =>
-      '${super.invocation} --source-repo repo-org/old-repo-name --target-repo repo-org/new-repo-name --add-label package-old-repo-name';
+      '${super.invocation} --source-repo repo-org/old-repo-name --target-repo repo-org/new-repo-name --add-label package:old-repo-name';
 
   @override
   Future<int> run() async {
