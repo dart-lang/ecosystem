@@ -150,7 +150,7 @@ class Trebuchet {
         '--allow-unrelated-histories',
         '${input}_package/$branchName',
         '-m',
-        'Merge package:$input into the $target monorepo'
+        'Merge package:$input into the $target monorepo',
       ],
     );
 
@@ -171,6 +171,16 @@ class Trebuchet {
       'Update pubspec.yaml to point to the new repository',
       'Rev the version of the package, so that pub.dev points to the correct site',
       'Add the package to the top-level readme of the monorepo',
+      '''
+Add an issue template at `.github/ISSUE_TEMPLATE/$input.md`
+```
+---
+name: "package:$input"
+about: "Create a bug or file a feature request against package:$input."
+labels: "package:$input"
+---
+```
+''',
       "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
       'Update the auto-publishing settings on https://pub.dev/packages/$input/admin',
       '''
