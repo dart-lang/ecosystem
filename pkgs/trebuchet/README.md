@@ -7,7 +7,8 @@ This is a tool to move existing packages into monorepos.
 ```bash
 dart run bin/trebuchet.dart \
   --input-name coverage \
-  --branch-name main \
+  --input-branch-name main \
+  --target-branch-name main \
   --input-path ~/projects/coverage/ \
   --target tools \
   --target-path ~/projects/tools/ \

@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 Future<void> main(List<String> arguments) async {
   final argParser = ArgParser()
@@ -28,7 +29,12 @@ Future<void> main(List<String> arguments) async {
       help: 'Path to the mono-repo',
     )
     ..addOption(
-      'branch-name',
+      'input-branch-name',
+      help: 'The name of the main branch on the input repo',
+      defaultsTo: 'main',
+    )
+    ..addOption(
+      'target-branch-name',
       help: 'The name of the main branch on the input repo',
       defaultsTo: 'main',
     )
@@ -52,7 +58,8 @@ Future<void> main(List<String> arguments) async {
   String inputPath;
   String target;
   String targetPath;
-  String branchName;
+  String inputBranchName;
+  String targetBranchName;
   String gitFilterRepo;
   bool dryRun;
   try {
@@ -66,7 +73,8 @@ Future<void> main(List<String> arguments) async {
     inputPath = parsed.option('input-path')!;
     target = parsed.option('target')!;
     targetPath = parsed.option('target-path')!;
-    branchName = parsed.option('branch-name')!;
+    inputBranchName = parsed.option('input-branch-name')!;
+    targetBranchName = parsed.option('target-branch-name')!;
     gitFilterRepo = parsed.option('git-filter-repo')!;
     dryRun = parsed.flag('dry-run');
   } catch (e) {
@@ -81,7 +89,8 @@ Future<void> main(List<String> arguments) async {
     inputPath: inputPath,
     target: target,
     targetPath: targetPath,
-    branchName: branchName,
+    inputBranchName: inputBranchName,
+    targetBranchName: targetBranchName,
     gitFilterRepo: gitFilterRepo,
     dryRun: dryRun,
   );
@@ -94,7 +103,8 @@ class Trebuchet {
   final String inputPath;
   final String target;
   final String targetPath;
-  final String branchName;
+  final String inputBranchName;
+  final String targetBranchName;
   final String gitFilterRepo;
   final bool dryRun;
 
@@ -103,7 +113,8 @@ class Trebuchet {
     required this.inputPath,
     required this.target,
     required this.targetPath,
-    required this.branchName,
+    required this.inputBranchName,
+    required this.targetBranchName,
     required this.gitFilterRepo,
     required this.dryRun,
   });
@@ -148,11 +159,51 @@ class Trebuchet {
       [
         'merge',
         '--allow-unrelated-histories',
-        '${input}_package/$branchName',
+        '${input}_package/$inputBranchName',
         '-m',
         'Merge package:$input into the $target monorepo',
       ],
     );
+
+    print('Replace URI in pubspec');
+    Pubspec? pubspec;
+    if (!dryRun) {
+      final pubspecFile =
+          File(p.join(targetPath, 'pkgs', input, 'pubspec.yaml'));
+      final pubspecContents = await pubspecFile.readAsString();
+      pubspec = Pubspec.parse(pubspecContents);
+      final newPubspecContents = pubspecContents.replaceFirst(
+        'repository: https://github.com/dart-lang/$input',
+        'repository: https://github.com/dart-lang/$target/tree/$targetBranchName/pkgs/$input',
+      );
+      await pubspecFile.writeAsString(newPubspecContents);
+    }
+
+    print('Add issue template');
+    final issueTemplateFile =
+        File(p.join(targetPath, '.github', 'ISSUE_TEMPLATE', '$input.md'));
+    final issueTemplateContents = '''
+---
+name: "package:$input"
+about: "Create a bug or file a feature request against package:$input."
+labels: "package:$input"
+---''';
+    if (!dryRun) {
+      await issueTemplateFile.create(recursive: true);
+      await issueTemplateFile.writeAsString(issueTemplateContents);
+    }
+
+    print('Remove CONTRIBUTING.md');
+    if (!dryRun) {
+      final contributingFile =
+          File(p.join(targetPath, 'pkgs', input, 'CONTRIBUTING.md'));
+      if (await contributingFile.exists()) await contributingFile.delete();
+    }
+
+    print('Committing changes');
+    await runProcess('git', ['add', '.']);
+    await runProcess(
+        'git', ['commit', '-m', 'Add issue template and other fixes']);
 
     final shouldPush = getInput('Push to remote? (y/N)');
 
@@ -167,18 +218,18 @@ class Trebuchet {
     final remainingSteps = [
       if (!shouldPush)
         'run `git push --set-upstream origin merge-$input-package` in the monorepo directory',
-      'Move and fix workflow files and badges in the README.md',
-      'Update pubspec.yaml to point to the new repository',
+      'Move and fix workflow files, labeler.yaml, and badges in the README.md',
       'Rev the version of the package, so that pub.dev points to the correct site',
-      'Add the package to the top-level readme of the monorepo',
       '''
-Add an issue template at `.github/ISSUE_TEMPLATE/$input.md`
+Add a line to the changelog:
 ```
----
-name: "package:$input"
-about: "Create a bug or file a feature request against package:$input."
-labels: "package:$input"
----
+* Move to `dart-lang/$target` monorepo.
+```
+''',
+      '''
+Add the package to the top-level readme of the monorepo:
+```
+| [$input](pkgs/$input/) | ${pubspec?.description ?? ''} | [![pub package](https://img.shields.io/pub/v/$input.svg)](https://pub.dev/packages/$input) |
 ```
 ''',
       "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
@@ -188,7 +239,7 @@ Add the following text to https://github.com/dart-lang/$input/:'
 
 ```
 > [!IMPORTANT]  
-> This repo has moved to https://github.com/dart-lang/$target/tree/main/pkgs/$input
+> This repo has moved to https://github.com/dart-lang/$target/tree/$targetBranchName/pkgs/$input
 ```
 ''',
       'Publish using the autopublish workflow',
@@ -196,7 +247,9 @@ Add the following text to https://github.com/dart-lang/$input/:'
       '''
 Close open PRs in dart-lang/$input with the following message:
 
-`Closing as the [dart-lang/$input](https://github.com/dart-lang/$input) repository is merged into the [dart-lang/$target](https://github.com/dart-lang/$target) monorepo. Please re-open this PR there!`
+```
+Closing as the [dart-lang/$input](https://github.com/dart-lang/$input) repository is merged into the [dart-lang/$target](https://github.com/dart-lang/$target) monorepo. Please re-open this PR there!
+```
       ''',
       'Transfer issues by running `dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes`',
       'Archive https://github.com/dart-lang/$input/',
