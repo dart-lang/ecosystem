@@ -4,6 +4,7 @@
   provided by publishing automation).
 - Run health workflow on all packages if it is changed.
 - Specify Flutter packages in the repo, to only have a single workflow file.
+- Compare to last published version in breaking check.
 
 ## 0.9.3
 
