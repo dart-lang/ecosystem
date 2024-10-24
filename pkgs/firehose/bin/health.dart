@@ -59,7 +59,7 @@ void main(List<String> arguments) async {
   final check = Check.values.firstWhere((c) => c.name == checkStr);
   final warnOn = parsedArgs.multiOption('warn_on');
   final failOn = parsedArgs.multiOption('fail_on');
-  final flutterPackages = parsedArgs.multiOption('flutter_packages');
+  final flutterPackages = _listNonEmpty(parsedArgs, 'flutter_packages');
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
   final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
   final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');

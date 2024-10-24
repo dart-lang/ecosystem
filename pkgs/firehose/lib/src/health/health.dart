@@ -96,6 +96,7 @@ class Health {
     log(' warnOn: $warnOn');
     log(' failOn: $failOn');
     log(' coverageweb: $coverageweb');
+    log(' flutterPackages: $flutterPackages');
     log(' ignoredPackages: $ignoredPackages');
     log(' ignoredForLicense: $ignoredFilesForLicense');
     log(' ignoredForCoverage: $ignoredFilesForCoverage');
@@ -389,9 +390,9 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
   }
 
   Future<List<GitFile>> listFilesInPRorAll() async {
-    var files = await github.listFilesForPR(directory, ignoredPackages);
+    final files = await github.listFilesForPR(directory, ignoredPackages);
     if (healthYamlChanged(files)) {
-      files = await getAllFiles();
+      return await getAllFiles();
     }
     return files;
   }
