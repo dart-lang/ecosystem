@@ -223,7 +223,6 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         'extract',
         ...['--input', relativePath],
         ...['--output', reportPath],
-        '--set-exit-on-missing-export',
       ];
       var runApiTool = Process.runSync(
         'dart',
