@@ -26,7 +26,7 @@ name: Health
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
 #       upload_coverage: false
-#       flutter_packages: true
+#       flutter_packages: "pkgs/my_flutter_package"
 #       ignore_license: "**.g.dart"
 #       ignore_coverage: "**.mock.dart,**.g.dart"
 #       ignore_packages: "pkgs/helper_package"

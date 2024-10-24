@@ -92,8 +92,7 @@ Future<void> main() async {
   test(
     'Ignore packages test',
     () async {
-      for (var check
-          in Check.values.whereNot((element) => element == Check.coverage)) {
+      for (var check in Check.values) {
         await checkGolden(
           check,
           fakeGithubApi([]),
