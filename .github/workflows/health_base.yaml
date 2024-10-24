@@ -100,7 +100,7 @@ jobs:
       - run: mkdir -p current_repo/output/
           
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        if: ${{ inputs.flutter_packages != '' }}
+        # if: ${{ inputs.flutter_packages != '' }}
         with:
           channel: ${{ inputs.sdk }}
   
