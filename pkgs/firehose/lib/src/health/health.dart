@@ -53,6 +53,10 @@ class Health {
     String? comment,
     this.log = printLogger,
   })  : ignoredPackages = ignoredPackages
+            .map((e) {
+              print('IGNORED:PACKAGE $e');
+              return e;
+            })
             .map((pattern) => Glob(pattern, recursive: true))
             .toList(),
         flutterPackages = flutterPackages
