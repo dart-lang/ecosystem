@@ -133,7 +133,7 @@ class Health {
       };
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await listFilesInPRorAll();
+    final filesInPR = await listFilesInPRorAll(ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
     final flutter = packagesContaining(filesInPR, only: flutterPackages);
 
@@ -209,10 +209,10 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> leakingCheck() async {
-    var filesInPR = await listFilesInPRorAll();
+    var filesInPR = await listFilesInPRorAll(ignoredPackages);
+    log('Files: $filesInPR');
     final leaksForPackage = <Package, List<String>>{};
-    for (var package
-        in packagesContaining(filesInPR, ignore: ignoredPackages)) {
+    for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -265,7 +265,7 @@ ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await listFilesInPRorAll();
+    var files = await listFilesInPRorAll(ignoredPackages);
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
       [...ignoredFilesForLicense, ...ignoredPackages],
@@ -311,16 +311,6 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
-  Future<List<GitFile>> getAllFiles() async {
-    return await directory
-        .list(recursive: true)
-        .where((entity) => entity is File)
-        .map((file) => path.relative(file.path, from: directory.path))
-        .where((file) => ignoredPackages.none((glob) => glob.matches(file)))
-        .map((file) => GitFile(file, FileStatus.added, directory))
-        .toList();
-  }
-
   bool healthYamlChanged(List<GitFile> files) {
     return files
         .where((file) =>
@@ -358,7 +348,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
-    var files = await listFilesInPRorAll();
+    var files = await listFilesInPRorAll(ignoredPackages);
     log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -389,13 +379,22 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
   }
 
-  Future<List<GitFile>> listFilesInPRorAll() async {
-    final files = await github.listFilesForPR(directory, ignoredPackages);
+  Future<List<GitFile>> listFilesInPRorAll(List<Glob> ignore) async {
+    final files = await github.listFilesForPR(directory, ignore);
     if (healthYamlChanged(files)) {
-      return await getAllFiles();
+      return await _getAllFiles(ignore);
     }
     return files;
   }
+
+  Future<List<GitFile>> _getAllFiles(List<Glob> ignored) async =>
+      await directory
+          .list(recursive: true)
+          .where((entity) => entity is File)
+          .map((file) => path.relative(file.path, from: directory.path))
+          .where((file) => ignored.none((glob) => glob.matches(file)))
+          .map((file) => GitFile(file, FileStatus.added, directory))
+          .toList();
 
   Future<HealthCheckResult> coverageCheck() async {
     var coverage = Coverage(
@@ -406,7 +405,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       experiments,
     );
 
-    var files = await listFilesInPRorAll();
+    var files = await listFilesInPRorAll(ignoredPackages);
     var coverageResult = await coverage.compareCoverages(files, directory);
 
     var markdownResult = '''
