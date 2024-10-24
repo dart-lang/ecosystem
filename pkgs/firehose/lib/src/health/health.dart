@@ -217,28 +217,36 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
+      var arguments = [
+        ...['pub', 'global', 'run'],
+        'dart_apitool:main',
+        'extract',
+        ...['--input', relativePath],
+        ...['--output', reportPath],
+        '--set-exit-on-missing-export',
+      ];
       var runApiTool = Process.runSync(
         'dart',
-        [
-          ...['pub', 'global', 'run'],
-          'dart_apitool:main',
-          'extract',
-          ...['--input', relativePath],
-          ...['--output', reportPath],
-          '--set-exit-on-missing-export',
-        ],
+        arguments,
         workingDirectory: directory.path,
       );
       log(runApiTool.stderr as String);
       log(runApiTool.stdout as String);
 
-      var fullReportString = File(reportPath).readAsStringSync();
-      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-      var leaks = decoded['missingEntryPoints'] as List<dynamic>;
+      if (runApiTool.exitCode == 0) {
+        var fullReportString = await File(reportPath).readAsString();
+        var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+        var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-      log('Leaking symbols in API:\n$leaks');
-      if (leaks.isNotEmpty) {
-        leaksForPackage[package] = leaks.cast();
+        log('Leaking symbols in API:\n$leaks');
+        if (leaks.isNotEmpty) {
+          leaksForPackage[package] = leaks.cast();
+        }
+      } else {
+        throw ProcessException(
+          'Api tool finished with exit code ${runApiTool.exitCode}',
+          arguments,
+        );
       }
     }
     return HealthCheckResult(
