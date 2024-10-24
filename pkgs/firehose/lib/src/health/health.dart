@@ -314,9 +314,8 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     return await directory
         .list(recursive: true)
         .where((entity) => entity is File)
-        .where(
-            (file) => ignoredPackages.none((glob) => glob.matches(file.path)))
         .map((file) => path.relative(file.path, from: directory.path))
+        .where((file) => ignoredPackages.none((glob) => glob.matches(file)))
         .map((file) => GitFile(file, FileStatus.added, directory))
         .toList();
   }

@@ -122,6 +122,7 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref=forceFlutter
+        # DO-NOT-SUBMIT
         if:  ${{ !inputs.local_debug }}
 
       - name: Install local firehose
