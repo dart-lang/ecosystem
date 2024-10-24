@@ -98,21 +98,23 @@ jobs:
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
-          
-      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        # if: ${{ inputs.flutter_packages != '' }}
-        with:
-          channel: ${{ inputs.sdk }}
   
       - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
         with:
           sdk: ${{ inputs.sdk }}
 
       - run: which dart
+      - run: whereis dart
+          
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+        # if: ${{ inputs.flutter_packages != '' }}
+        with:
+          channel: ${{ inputs.sdk }}
+
+      - run: which dart
       - run: which flutter
       - run: whereis dart
       - run: whereis flutter
-      - run: ${{env.FLUTTER_RUNNER_TOOL_CACHE}}/flutter/bin/dart --version
 
       - name: Install coverage
         run: dart pub global activate coverage
