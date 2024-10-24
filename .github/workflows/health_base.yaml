@@ -15,6 +15,14 @@ on:
         default: "stable"
         required: false
         type: string
+      channel:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
       check:
         description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking"
         type: string
@@ -106,7 +114,7 @@ jobs:
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
         if: ${{ inputs.flutter_packages != '' }}
         with:
-          channel: ${{ inputs.sdk }}
+          channel: ${{ inputs.channel }}
 
       - name: Install coverage
         run: dart pub global activate coverage
