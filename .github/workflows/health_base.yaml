@@ -109,6 +109,9 @@ jobs:
           sdk: ${{ inputs.sdk }}
 
       - run: which dart
+      - run: which flutter
+      - run: whereis dart
+      - run: whereis flutter
       - run: ${{env.FLUTTER_RUNNER_TOOL_CACHE}}/flutter/bin/dart --version
 
       - name: Install coverage
