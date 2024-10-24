@@ -90,10 +90,10 @@ on:
         type: boolean
         required: false
       flutter_packages:
-        description: Whether to setup Flutter in this workflow.
-        default: false
+        description: List of packages depending on Flutter.
+        default: ''
         required: false
-        type: boolean
+        type: string
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""

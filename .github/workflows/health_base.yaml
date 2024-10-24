@@ -54,9 +54,9 @@ on:
         required: false
       flutter_packages:
         description: List of packages depending on Flutter.
-        default: false
+        default: ''
         required: false
-        type: boolean
+        type: string
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
