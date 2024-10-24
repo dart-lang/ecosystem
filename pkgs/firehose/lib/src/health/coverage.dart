@@ -29,15 +29,9 @@ class Coverage {
     this.experiments,
   );
 
-  Future<CoverageResult> compareCoverages(
-      GithubApi github, Directory base) async {
-    var files = await github.listFilesForPR(directory, ignoredFiles);
-    return compareCoveragesFor(files, base);
-  }
-
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
     var repository = Repository(directory);
-    var packages = repository.locatePackages(ignoredPackages);
+    var packages = repository.locatePackages(ignore: ignoredPackages);
     print('Found packages $packages at $directory');
 
     var filesOfInterest = files
@@ -49,7 +43,7 @@ class Coverage {
     print('The files of interest are $filesOfInterest');
 
     var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages(ignoredFiles);
+    var basePackages = baseRepository.locatePackages(ignore: ignoredFiles);
     print('Found packages $basePackages at $base');
 
     var changedPackages = packages
