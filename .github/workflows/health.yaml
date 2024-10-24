@@ -49,6 +49,14 @@ on:
         default: "stable"
         required: false
         type: string
+      channel:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
       # Restrict the checks to any subset of version, changelog, and license if
       # needed.
       checks:
