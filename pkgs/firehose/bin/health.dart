@@ -48,12 +48,18 @@ void main(List<String> arguments) async {
     ..addFlag(
       'coverage_web',
       help: 'Whether to run web tests for coverage',
+    )
+    ..addMultiOption(
+      'flutter_packages',
+      defaultsTo: [],
+      help: 'The Flutter packages in this repo',
     );
   final parsedArgs = argParser.parse(arguments);
   final checkStr = parsedArgs['check'] as String;
   final check = Check.values.firstWhere((c) => c.name == checkStr);
   final warnOn = parsedArgs['warn_on'] as List<String>;
   final failOn = parsedArgs['fail_on'] as List<String>;
+  final flutterPackages = parsedArgs.multiOption('flutter_packages');
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
   final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
   final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');
@@ -74,6 +80,7 @@ void main(List<String> arguments) async {
     ignoreCoverage,
     experiments,
     GithubApi(),
+    flutterPackages,
   ).healthCheck();
 }
 

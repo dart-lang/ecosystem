@@ -47,11 +47,15 @@ class Health {
     List<String> ignoredLicense,
     List<String> ignoredCoverage,
     this.experiments,
-    this.github, {
+    this.github,
+    List<String> flutterPackages, {
     Directory? base,
     String? comment,
     this.log = printLogger,
   })  : ignoredPackages = ignoredPackages
+            .map((pattern) => Glob(pattern, recursive: true))
+            .toList(),
+        flutterPackages = flutterPackages
             .map((pattern) => Glob(pattern, recursive: true))
             .toList(),
         ignoredFilesForCoverage = ignoredCoverage
@@ -76,6 +80,7 @@ class Health {
   final List<Glob> ignoredPackages;
   final List<Glob> ignoredFilesForLicense;
   final List<Glob> ignoredFilesForCoverage;
+  final List<Glob> flutterPackages;
   final Directory baseDirectory;
   final List<String> experiments;
   final Logger log;
@@ -127,9 +132,12 @@ class Health {
       };
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
+    final filesInPR = await listFilesInPRorAll();
     final changeForPackage = <Package, BreakingChange>{};
-    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
+    final flutter = packagesContaining(filesInPR, only: flutterPackages);
+
+    for (var package
+        in packagesContaining(filesInPR, ignore: ignoredPackages)) {
       log('Look for changes in $package with base $baseDirectory');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -144,7 +152,7 @@ class Health {
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
-          '--no-check-sdk-version',
+          if (flutter.contains(package)) '--force-use-flutter',
           ...['--old', baseRelativePath],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
@@ -200,9 +208,10 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> leakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
+    var filesInPR = await listFilesInPRorAll();
     final leaksForPackage = <Package, List<String>>{};
-    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
+    for (var package
+        in packagesContaining(filesInPR, ignore: ignoredPackages)) {
       log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -248,7 +257,7 @@ ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(directory, ignoredPackages);
+    var files = await listFilesInPRorAll();
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
       [...ignoredFilesForLicense, ...ignoredPackages],
@@ -294,6 +303,26 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
+  Future<List<GitFile>> getAllFiles() async {
+    return await directory
+        .list(recursive: true)
+        .where((entity) => entity is File)
+        .where(
+            (file) => ignoredPackages.none((glob) => glob.matches(file.path)))
+        .map((file) => path.relative(file.path, from: directory.path))
+        .map((file) => GitFile(file, FileStatus.added, directory))
+        .toList();
+  }
+
+  bool healthYamlChanged(List<GitFile> files) {
+    return files
+        .where((file) =>
+            [FileStatus.added, FileStatus.modified].contains(file.status))
+        .any((file) =>
+            file.filename.endsWith('health.yaml') ||
+            file.filename.endsWith('health.yml'));
+  }
+
   Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(
       github,
@@ -322,7 +351,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR(directory, ignoredPackages);
+    var files = await listFilesInPRorAll();
     log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -353,26 +382,37 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
   }
 
+  Future<List<GitFile>> listFilesInPRorAll() async {
+    var files = await github.listFilesForPR(directory, ignoredPackages);
+    if (healthYamlChanged(files)) {
+      files = await getAllFiles();
+    }
+    return files;
+  }
+
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(
+    var coverage = Coverage(
       coverageweb,
       ignoredFilesForCoverage,
       ignoredPackages,
       directory,
       experiments,
-    ).compareCoverages(github, directory);
+    );
+
+    var files = await listFilesInPRorAll();
+    var coverageResult = await coverage.compareCoverages(files, directory);
 
     var markdownResult = '''
 | File | Coverage |
 | :--- | :--- |
-${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
+${coverageResult.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 
 This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-Coverage) is informational (issues shown here will not fail the PR).
 ''';
 
     return HealthCheckResult(
       Check.coverage,
-      Severity.values[coverage.coveragePerFile.values
+      Severity.values[coverageResult.coveragePerFile.values
           .map((change) => change.severity.index)
           .fold(0, max)],
       markdownResult,
@@ -415,12 +455,13 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
   }
 
   List<Package> packagesContaining(
-    List<GitFile> filesInPR,
-    List<Glob> ignoredPackages,
-  ) {
+    List<GitFile> filesInPR, {
+    List<Glob>? ignore,
+    List<Glob>? only,
+  }) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     return Repository(directory)
-        .locatePackages(ignoredPackages)
+        .locatePackages(ignore: ignore, only: only)
         .where((package) => files.any((file) =>
             path.isWithin(package.directory.path, file.pathInRepository)))
         .toList();
