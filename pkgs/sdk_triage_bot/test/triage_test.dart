@@ -74,4 +74,26 @@ void main() {
     expect(githubService.updatedLabels, contains(startsWith('area-')));
     expect(githubService.updatedLabels, contains('triage-automation'));
   });
+
+  test('ignore redundant type labels', () async {
+    final githubService = GithubServiceMock();
+    final geminiService = GeminiServiceStub();
+
+    githubService.returnedIssue = Issue(
+      url: 'https://github.com/dart-lang/sdk/issues/55869',
+      title: 'Add full support for service ID zones',
+      number: mockIssueNumber,
+      body: 'Lorem ipsum.',
+      labels: [IssueLabel(name: 'type-enhancement')],
+    );
+
+    await triage(
+      mockIssueNumber,
+      githubService: githubService,
+      geminiService: geminiService,
+      logger: TestLogger(),
+    );
+
+    expect(githubService.updatedLabels, ['area-vm', 'triage-automation']);
+  });
 }
