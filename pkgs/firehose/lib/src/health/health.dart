@@ -138,9 +138,6 @@ class Health {
       log('Look for changes in $package with base $baseDirectory');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
-      var baseRelativePath = path.relative(
-          path.join(baseDirectory.path, relativePath),
-          from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
       var runApiTool = Process.runSync(
@@ -397,7 +394,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
 
     var files = await listFilesInPRorAll(ignoredPackages);
-    var coverageResult = coverage.compareCoveragesFor(files, directory);
+    var coverageResult = coverage.compareCoveragesFor(files, baseDirectory);
 
     var markdownResult = '''
 | File | Coverage |
