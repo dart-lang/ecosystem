@@ -210,7 +210,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   Future<HealthCheckResult> leakingCheck() async {
     var filesInPR = await listFilesInPRorAll(ignoredPackages);
-    log('Files: $filesInPR');
+    print('Files: ${filesInPR.map((e) => e.filename).join(', ')}');
     final leaksForPackage = <Package, List<String>>{};
     for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
