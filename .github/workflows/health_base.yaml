@@ -44,8 +44,8 @@ on:
         default: false
         type: boolean
         required: false
-      use-flutter:
-        description: Whether to setup Flutter in this workflow.
+      flutter_packages:
+        description: List of packages depending on Flutter.
         default: false
         required: false
         type: boolean
@@ -100,14 +100,16 @@ jobs:
       - run: mkdir -p current_repo/output/
           
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
-        if: ${{ inputs.use-flutter }}
+        if: ${{ inputs.flutter_packages != '' }}
         with:
           channel: ${{ inputs.sdk }}
   
       - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
+
+      - run: ${FLUTTER_RUNNER_TOOL_CACHE}/flutter/bin/dart --version
+      - run: which dart
 
       - name: Install coverage
         run: dart pub global activate coverage
@@ -139,6 +141,7 @@ jobs:
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
+            --flutter_packages ${{ inputs.flutter_packages }} \
             --ignore_license ${{ inputs.ignore_license }} \
             --ignore_coverage ${{ inputs.ignore_coverage }} \
             --ignore_packages ${{ inputs.ignore_packages }} \
