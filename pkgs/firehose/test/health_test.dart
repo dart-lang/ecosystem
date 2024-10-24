@@ -62,8 +62,10 @@ Future<void> main() async {
       ),
       timeout: const Timeout(Duration(minutes: 2)),
     );
+
     test(
-      'Check health workflow "${check.name}" against golden files',
+      'Check health workflow "${check.name}" against golden files '
+      'with health.yaml changed itself',
       () async => await checkGolden(
           check,
           fakeGithubApi([

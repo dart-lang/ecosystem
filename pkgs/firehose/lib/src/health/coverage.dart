@@ -29,11 +29,6 @@ class Coverage {
     this.experiments,
   );
 
-  Future<CoverageResult> compareCoverages(
-      List<GitFile> files, Directory base) async {
-    return compareCoveragesFor(files, base);
-  }
-
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
     var repository = Repository(directory);
     var packages = repository.locatePackages(ignore: ignoredPackages);

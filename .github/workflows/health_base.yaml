@@ -54,7 +54,7 @@ on:
         required: false
       flutter_packages:
         description: List of packages depending on Flutter.
-        default: ''
+        default: "\"\""
         required: false
         type: string
       ignore_license:

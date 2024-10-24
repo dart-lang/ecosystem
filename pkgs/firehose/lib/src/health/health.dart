@@ -52,22 +52,10 @@ class Health {
     Directory? base,
     String? comment,
     this.log = printLogger,
-  })  : ignoredPackages = ignoredPackages
-            .map((e) {
-              print('IGNORED:PACKAGE $e');
-              return e;
-            })
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
-        flutterPackages = flutterPackages
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
-        ignoredFilesForCoverage = ignoredCoverage
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
-        ignoredFilesForLicense = ignoredLicense
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
+  })  : ignoredPackages = toGlobs(ignoredPackages),
+        flutterPackages = toGlobs(flutterPackages),
+        ignoredFilesForCoverage = toGlobs(ignoredCoverage),
+        ignoredFilesForLicense = toGlobs(ignoredLicense),
         baseDirectory = base ?? Directory('../base_repo'),
         commentPath = comment ??
             path.join(
@@ -75,6 +63,10 @@ class Health {
               'output',
               'comment.md',
             );
+
+  static List<Glob> toGlobs(List<String> ignoredPackages) =>
+      ignoredPackages.map((pattern) => Glob(pattern, recursive: true)).toList();
+
   final GithubApi github;
 
   final Check check;
@@ -214,10 +206,6 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   Future<HealthCheckResult> leakingCheck() async {
     var filesInPR = await listFilesInPRorAll(ignoredPackages);
-    // DO-NOT-SUBMIT
-    print('Files: ${filesInPR.map((e) => e.filename).join(', ')}');
-    print(
-        'Files: ${filesInPR.map((e) => e.filename).where((element) => element.contains('swiftgen')).join(', ')}');
     final leaksForPackage = <Package, List<String>>{};
     for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
@@ -318,14 +306,12 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
-  bool healthYamlChanged(List<GitFile> files) {
-    return files
-        .where((file) =>
-            [FileStatus.added, FileStatus.modified].contains(file.status))
-        .any((file) =>
-            file.filename.endsWith('health.yaml') ||
-            file.filename.endsWith('health.yml'));
-  }
+  bool healthYamlChanged(List<GitFile> files) => files
+      .where((file) =>
+          [FileStatus.added, FileStatus.modified].contains(file.status))
+      .any((file) =>
+          file.filename.endsWith('health.yaml') ||
+          file.filename.endsWith('health.yml'));
 
   Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(
@@ -388,10 +374,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
 
   Future<List<GitFile>> listFilesInPRorAll(List<Glob> ignore) async {
     final files = await github.listFilesForPR(directory, ignore);
-    if (healthYamlChanged(files)) {
-      return await _getAllFiles(ignore);
-    }
-    return files;
+    return healthYamlChanged(files) ? await _getAllFiles(ignore) : files;
   }
 
   Future<List<GitFile>> _getAllFiles(List<Glob> ignored) async =>
@@ -413,7 +396,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
 
     var files = await listFilesInPRorAll(ignoredPackages);
-    var coverageResult = await coverage.compareCoverages(files, directory);
+    var coverageResult = coverage.compareCoveragesFor(files, directory);
 
     var markdownResult = '''
 | File | Coverage |

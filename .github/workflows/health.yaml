@@ -43,9 +43,7 @@ on:
       # stable release of the Dart SDK.
       sdk:
         description: >-
-          The channel, or a specific version from a channel, to install
-          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
-          will give you the latest version published to that channel.
+          The Dart SDK version, either a semver or one of `dev`, `stable` etc.
         default: "stable"
         required: false
         type: string
