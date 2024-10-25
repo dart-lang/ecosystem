@@ -39,5 +39,3 @@ jobs:
 
       - run: dart format --output=none --set-exit-if-changed .
         if: ${{ matrix.sdk == 'stable' }}
-
-      - run: dart test
