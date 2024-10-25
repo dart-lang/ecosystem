@@ -1,25 +1,33 @@
-# Configuration for .github/workflows/pull_request_label.yml.
+# This configures the .github/workflows/pull_request_label.yml workflow.
 
 'type-infra':
-  - '.github/**'
+  - changed-files:
+    - '.github/**'
 
 'package:blast_repo':
-  - 'pkgs/blast_repo/**'
+  - changed-files:
+    - 'pkgs/blast_repo/**'
 
 'package:corpus':
-  - 'pkgs/corpus/**'
+  - changed-files:
+    - 'pkgs/corpus/**'
 
 'package:dart_flutter_team_lints':
-  - 'pkgs/dart_flutter_team_lints/**'
+  - changed-files:
+    - 'pkgs/dart_flutter_team_lints/**'
 
 'package:firehose':
-  - 'pkgs/firehose/**'
+  - changed-files:
+    - 'pkgs/firehose/**'
 
 'package:repo_manage':
-  - 'pkgs/repo_manage/**'
+  - changed-files:
+    - 'pkgs/repo_manage/**'
 
 'package:sdk_triage_bot':
-  - 'pkgs/sdk_triage_bot/**'
+  - changed-files:
+    - 'pkgs/sdk_triage_bot/**'
 
 'package:trebuchet':
-  - 'pkgs/trebuchet/**'
+  - changed-files:
+    - 'pkgs/trebuchet/**'
