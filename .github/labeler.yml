@@ -2,32 +2,32 @@
 
 'type-infra':
   - changed-files:
-    - '.github/**'
+    - any-glob-to-any-file: '.github/**'
 
 'package:blast_repo':
   - changed-files:
-    - 'pkgs/blast_repo/**'
+    - any-glob-to-any-file: 'pkgs/blast_repo/**'
 
 'package:corpus':
   - changed-files:
-    - 'pkgs/corpus/**'
+    - any-glob-to-any-file: 'pkgs/corpus/**'
 
 'package:dart_flutter_team_lints':
   - changed-files:
-    - 'pkgs/dart_flutter_team_lints/**'
+    - any-glob-to-any-file: 'pkgs/dart_flutter_team_lints/**'
 
 'package:firehose':
   - changed-files:
-    - 'pkgs/firehose/**'
+    - any-glob-to-any-file: 'pkgs/firehose/**'
 
 'package:repo_manage':
   - changed-files:
-    - 'pkgs/repo_manage/**'
+    - any-glob-to-any-file: 'pkgs/repo_manage/**'
 
 'package:sdk_triage_bot':
   - changed-files:
-    - 'pkgs/sdk_triage_bot/**'
+    - any-glob-to-any-file: 'pkgs/sdk_triage_bot/**'
 
 'package:trebuchet':
   - changed-files:
-    - 'pkgs/trebuchet/**'
+    - any-glob-to-any-file: 'pkgs/trebuchet/**'
