@@ -4,49 +4,51 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
-import 'package:github/src/common/model/repos.dart';
-import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../bin/health.dart';
+
 Future<void> main() async {
   late final Directory directory;
-  late final FakeGithubApi Function(List<GitFile> additional) fakeGithubApi;
+  late final ManualFileApi Function(List<GitFile> additional) fakeGithubApi;
 
   setUpAll(() async {
     directory = Directory(p.join('test_data', 'test_repo'));
-    fakeGithubApi =
-        (List<GitFile> additional) => FakeGithubApi(prLabels: [], files: [
-              GitFile(
-                'pkgs/package1/bin/package1.dart',
-                FileStatus.modified,
-                directory,
-              ),
-              GitFile(
-                'pkgs/package2/lib/anotherLib.dart',
-                FileStatus.added,
-                directory,
-              ),
-              GitFile(
-                'pkgs/package2/someImage.png',
-                FileStatus.added,
-                directory,
-              ),
-              GitFile(
-                'pkgs/package5/lib/src/package5_base.dart',
-                FileStatus.modified,
-                directory,
-              ),
-              GitFile(
-                'pkgs/package5/pubspec.yaml',
-                FileStatus.modified,
-                directory,
-              ),
-              ...additional
-            ]);
+    fakeGithubApi = (List<GitFile> additional) => ManualFileApi(
+          prBody: '',
+          prLabels: [],
+          files: [
+            GitFile(
+              'pkgs/package1/bin/package1.dart',
+              FileStatus.modified,
+              directory,
+            ),
+            GitFile(
+              'pkgs/package2/lib/anotherLib.dart',
+              FileStatus.added,
+              directory,
+            ),
+            GitFile(
+              'pkgs/package2/someImage.png',
+              FileStatus.added,
+              directory,
+            ),
+            GitFile(
+              'pkgs/package5/lib/src/package5_base.dart',
+              FileStatus.modified,
+              directory,
+            ),
+            GitFile(
+              'pkgs/package5/pubspec.yaml',
+              FileStatus.modified,
+              directory,
+            ),
+            ...additional
+          ],
+        );
 
     await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
@@ -110,7 +112,7 @@ Future<void> main() async {
 
 Future<void> checkGolden(
   Check check,
-  FakeGithubApi fakeGithubApi,
+  GithubApi githubApi,
   Directory directory, {
   String suffix = '',
   List<String> ignoredLicense = const [],
@@ -129,7 +131,7 @@ Future<void> checkGolden(
     ignoredLicense,
     [],
     [],
-    fakeGithubApi,
+    githubApi,
     flutterPackages,
     base: Directory(p.join('test_data', 'base_test_repo')),
     comment: commentPath,
@@ -143,66 +145,4 @@ Future<void> checkGolden(
   } else {
     expect(comment, goldenFile.readAsStringSync());
   }
-}
-
-class FakeGithubApi implements GithubApi {
-  final List<GitFile> files;
-
-  FakeGithubApi({
-    required this.prLabels,
-    required this.files,
-  });
-
-  @override
-  String? get actor => throw UnimplementedError();
-
-  @override
-  void appendStepSummary(String markdownSummary) {}
-
-  @override
-  String? get baseRef => throw UnimplementedError();
-
-  @override
-  void close() {}
-
-  @override
-  Future<int?> findCommentId({required String user, String? searchTerm}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  String? get githubAuthToken => throw UnimplementedError();
-
-  @override
-  bool get inGithubContext => throw UnimplementedError();
-
-  @override
-  int? get issueNumber => 1;
-
-  @override
-  Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
-    return files
-        .where((element) =>
-            ignoredFiles.none((p0) => p0.matches(element.filename)))
-        .toList();
-  }
-
-  @override
-  void notice({required String message}) {}
-
-  @override
-  final List<String> prLabels;
-
-  @override
-  Future<String> pullrequestBody() async => 'Test body';
-
-  @override
-  String? get refName => throw UnimplementedError();
-
-  @override
-  RepositorySlug? get repoSlug => RepositorySlug('test_owner', 'test_repo');
-
-  @override
-  String? get sha => 'test_sha';
 }

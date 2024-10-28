@@ -100,19 +100,19 @@ class Health {
     log(' experiments: $experiments');
     log('Checking for $checkName');
     if (!github.prLabels.contains('skip-$checkName-check')) {
-      final firstResult = await checkFor(check)();
-      final HealthCheckResult finalResult;
+      final firstResult = await checkFor(check).call();
+      final HealthCheckResult result;
       if (warnOn.contains(check.name) &&
           firstResult.severity == Severity.error) {
-        finalResult = firstResult.withSeverity(Severity.warning);
+        result = firstResult.withSeverity(Severity.warning);
       } else if (failOn.contains(check.name) &&
           firstResult.severity == Severity.warning) {
-        finalResult = firstResult.withSeverity(Severity.error);
+        result = firstResult.withSeverity(Severity.error);
       } else {
-        finalResult = firstResult;
+        result = firstResult;
       }
-      await writeInComment(github, finalResult);
-      var severity = finalResult.severity.name.toUpperCase();
+      await writeInComment(github, result);
+      var severity = result.severity.name.toUpperCase();
       log('\n\n$severity: $checkName done.\n\n');
     } else {
       log('Skipping $checkName, as the skip tag is present.');
