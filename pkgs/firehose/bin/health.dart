@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
+import 'package:github/src/common/model/repos.dart';
+import 'package:glob/glob.dart';
 
 void main(List<String> arguments) async {
   var checkTypes = Check.values.map((c) => c.name);
@@ -48,23 +50,50 @@ void main(List<String> arguments) async {
     ..addFlag(
       'coverage_web',
       help: 'Whether to run web tests for coverage',
-    );
+    )
+    ..addMultiOption(
+      'flutter_packages',
+      defaultsTo: [],
+      help: 'The Flutter packages in this repo',
+    )
+    ..addFlag(
+      'cli_mode',
+      help: 'Whether to use the Github API or manually provide the input.',
+    )
+    ..addOption('pr_body')
+    ..addOption('file_list', defaultsTo: '');
   final parsedArgs = argParser.parse(arguments);
-  final checkStr = parsedArgs['check'] as String;
+  final checkStr = parsedArgs.option('check');
   final check = Check.values.firstWhere((c) => c.name == checkStr);
-  final warnOn = parsedArgs['warn_on'] as List<String>;
-  final failOn = parsedArgs['fail_on'] as List<String>;
+  final warnOn = parsedArgs.multiOption('warn_on');
+  final failOn = parsedArgs.multiOption('fail_on');
+  final flutterPackages = _listNonEmpty(parsedArgs, 'flutter_packages');
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
   final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
   final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
-  final coverageWeb = parsedArgs['coverage_web'] as bool;
+  final coverageWeb = parsedArgs.flag('coverage_web');
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
   }
+  var current = Directory.current;
+  GithubApi githubApi;
+  if (parsedArgs.flag('cli_mode')) {
+    final prBody = parsedArgs.option('pr_body');
+    final gitFiles = _listNonEmpty(parsedArgs, 'file_list')
+        .map((e) => GitFile(e, FileStatus.modified, current))
+        .toList();
+    githubApi = ManualFileApi(
+      prBody: prBody ?? '',
+      files: gitFiles,
+      prLabels: [],
+    );
+  } else {
+    githubApi = GithubApi();
+  }
   await Health(
-    Directory.current,
+    current,
     check,
     warnOn,
     failOn,
@@ -73,9 +102,70 @@ void main(List<String> arguments) async {
     ignoreLicense,
     ignoreCoverage,
     experiments,
-    GithubApi(),
+    githubApi,
+    flutterPackages,
   ).healthCheck();
 }
 
 List<String> _listNonEmpty(ArgResults parsedArgs, String key) =>
-    (parsedArgs[key] as List<String>).where((e) => e.isNotEmpty).toList();
+    parsedArgs.multiOption(key).where((option) => option.isNotEmpty).toList();
+
+class ManualFileApi implements GithubApi {
+  final String prBody;
+  final List<GitFile> files;
+
+  @override
+  final List<String> prLabels;
+
+  ManualFileApi({
+    required this.prBody,
+    required this.files,
+    required this.prLabels,
+  });
+
+  @override
+  String? get actor => throw UnimplementedError();
+
+  @override
+  void appendStepSummary(String markdownSummary) {}
+
+  @override
+  String? get baseRef => throw UnimplementedError();
+
+  @override
+  void close() {}
+
+  @override
+  Future<int?> findCommentId({required String user, String? searchTerm}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  String? get githubAuthToken => null;
+
+  @override
+  bool get inGithubContext => false;
+
+  @override
+  Future<List<GitFile>> listFilesForPR(Directory directory,
+          [List<Glob> ignoredFiles = const []]) async =>
+      files;
+
+  @override
+  void notice({required String message}) {}
+
+  @override
+  Future<String> pullrequestBody() async => prBody;
+
+  @override
+  String? get refName => throw UnimplementedError();
+
+  @override
+  RepositorySlug? get repoSlug => RepositorySlug('owner', 'name');
+
+  @override
+  int? get issueNumber => -1;
+
+  @override
+  String? get sha => '';
+}

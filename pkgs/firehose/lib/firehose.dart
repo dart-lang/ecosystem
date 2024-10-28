@@ -100,7 +100,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
   Future<VerificationResults> verify(GithubApi github) async {
     var repo = Repository(directory);
-    var packages = repo.locatePackages(ignoredPackages);
+    var packages = repo.locatePackages(ignore: ignoredPackages);
 
     var pub = Pub();
 
