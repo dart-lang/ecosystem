@@ -73,7 +73,7 @@ class DropLintTweak extends RepoTweak {
           return FixResult(fixes: []);
         }
 
-        throw UnimplementedError('not sure what to do with ${rules}');
+        throw UnimplementedError('not sure what to do with $rules');
       }
     }
 
