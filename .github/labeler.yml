@@ -1,33 +1,33 @@
-# This configures the .github/workflows/pull_request_label.yml workflow. 
+# This configures the .github/workflows/pull_request_label.yml workflow.
 
 'type-infra':
   - changed-files:
-      - any-glob-to-any-file: '.github/**'
+    - '.github/**'
 
 'package:blast_repo':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/blast_repo/**/*'
+    - 'pkgs/blast_repo/**'
 
 'package:corpus':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/corpus/**/*'
+    - 'pkgs/corpus/**'
 
 'package:dart_flutter_team_lints':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/dart_flutter_team_lints/**/*'
+    - 'pkgs/dart_flutter_team_lints/**'
 
 'package:firehose':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/firehose/**/*'
+    - 'pkgs/firehose/**'
 
 'package:repo_manage':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/repo_manage/**/*'
+    - 'pkgs/repo_manage/**'
 
 'package:sdk_triage_bot':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/sdk_triage_bot/**/*'
+    - 'pkgs/sdk_triage_bot/**'
 
 'package:trebuchet':
   - changed-files:
-      - any-glob-to-any-file: 'pkgs/trebuchet/**/*'
+    - 'pkgs/trebuchet/**'
