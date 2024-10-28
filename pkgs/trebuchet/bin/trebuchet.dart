@@ -243,7 +243,9 @@ Add the following text to https://github.com/dart-lang/$input/:'
 ```
 ''',
       'Publish using the autopublish workflow',
-      "Push tags to GitHub using `git tag --list '$input*' | xargs git push origin`",
+      """Push tags to GitHub using
+```git tag --list '$input*' | xargs git push origin```
+""",
       '''
 Close open PRs in dart-lang/$input with the following message:
 
