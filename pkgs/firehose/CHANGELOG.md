@@ -2,6 +2,7 @@
 
 - Remove the `version` pubspec checks (these largely duplicate the feedback
   provided by publishing automation).
+- Set minimum SDK version to `3.5.0` because of the `dart_apitool` dependency.
 
 ## 0.9.3
 
