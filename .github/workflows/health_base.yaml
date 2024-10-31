@@ -18,7 +18,7 @@ on:
       channel:
         description: >-
           The channel, or a specific version from a channel, to install
-          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three named channels
           will give you the latest version published to that channel.
         default: "stable"
         required: false
