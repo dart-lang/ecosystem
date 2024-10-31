@@ -14,36 +14,32 @@ class TransferIssuesCommand extends ReportCommand {
   TransferIssuesCommand()
       : super('transfer-issues',
             'Bulk transfer issues from one repo to another.') {
-    argParser.addFlag(
-      'apply-changes',
-      negatable: false,
-      help: 'WARNING: This will transfer the issues. Please preview the changes'
-          "first by running without '--apply-changes'.",
-      defaultsTo: false,
-    );
-    argParser.addMultiOption(
-      'issues',
-      valueHelp: '1,2,3',
-      help: 'Specifiy the numbers of specific issues to transfer, otherwise'
-          ' transfers all.',
-    );
-    argParser.addOption(
-      'source-repo',
-      valueHelp: 'repo-org/repo-name',
-      help: 'The source repository for the issues to be moved from.',
-      mandatory: true,
-    );
-    argParser.addOption(
-      'target-repo',
-      valueHelp: 'repo-org/repo-name',
-      help: 'The target repository name where the issues will be moved to.',
-      mandatory: true,
-    );
-    argParser.addOption(
-      'add-label',
-      help: 'Add a label to all transferred issues.',
-      valueHelp: 'package:foo',
-    );
+    argParser
+      ..addFlag(
+        'apply-changes',
+        negatable: false,
+        help:
+            'WARNING: This will transfer the issues. Please preview the changes'
+            "first by running without '--apply-changes'.",
+        defaultsTo: false,
+      )
+      ..addOption(
+        'source-repo',
+        valueHelp: 'repo-org/repo-name',
+        help: 'The source repository for the issues to be moved from.',
+        mandatory: true,
+      )
+      ..addOption(
+        'target-repo',
+        valueHelp: 'repo-org/repo-name',
+        help: 'The target repository name where the issues will be moved to.',
+        mandatory: true,
+      )
+      ..addOption(
+        'add-label',
+        help: 'Add a label to all transferred issues.',
+        valueHelp: 'package:foo',
+      );
   }
 
   @override
@@ -52,13 +48,12 @@ class TransferIssuesCommand extends ReportCommand {
 
   @override
   Future<int> run() async {
-    var applyChanges = argResults!['apply-changes'] as bool;
+    var parsedArgs = argResults!;
+    var applyChanges = parsedArgs.flag('apply-changes');
 
-    var sourceRepo = argResults!['source-repo'] as String;
-    var targetRepo = argResults!['target-repo'] as String;
+    var sourceRepo = parsedArgs.option('source-repo')!;
+    var targetRepo = parsedArgs.option('target-repo')!;
 
-    var issueNumberString = argResults!['issues'] as List<String>?;
-    var issueNumbers = issueNumberString?.map(int.parse).toList();
     var labelName = argResults!['add-label'] as String?;
 
     if (!applyChanges) {
@@ -68,7 +63,6 @@ class TransferIssuesCommand extends ReportCommand {
     return await transferAndLabelIssues(
       RepositorySlug.full(sourceRepo),
       RepositorySlug.full(targetRepo),
-      issueNumbers,
       labelName,
       applyChanges,
     );
@@ -77,7 +71,6 @@ class TransferIssuesCommand extends ReportCommand {
   Future<int> transferAndLabelIssues(
     RepositorySlug sourceRepo,
     RepositorySlug targetRepo, [
-    List<int>? issueNumbers,
     String? labelName,
     bool applyChanges = false,
   ]) async {
@@ -118,10 +111,7 @@ class TransferIssuesCommand extends ReportCommand {
     return 0;
   }
 
-  Future<List<String>> getIssueIds(
-    RepositorySlug slug, [
-    List<int>? issueNumbers,
-  ]) async {
+  Future<List<String>> getIssueIds(RepositorySlug slug) async {
     final queryString = '''query {
   repository(owner:"${slug.owner}", name:"${slug.name}") {
     issues(last:100) {
@@ -144,9 +134,6 @@ class TransferIssuesCommand extends ReportCommand {
         var nodes = issues['nodes'] as List;
         return nodes
             .map((node) => node as Map)
-            .where((node) => issueNumbers != null
-                ? issueNumbers.contains(node['number'] as int)
-                : true)
             .map((node) => node['id'] as String)
             .toList();
       },
