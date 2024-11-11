@@ -11,6 +11,7 @@ import 'package:git/git.dart';
 import 'repo_tweak.dart';
 import 'tweaks/auto_publish_tweak.dart';
 import 'tweaks/dependabot_tweak.dart';
+import 'tweaks/drop_lint_tweak.dart';
 import 'tweaks/github_action_tweak.dart';
 import 'tweaks/mono_repo_tweak.dart';
 import 'tweaks/no_reponse_tweak.dart';
@@ -19,6 +20,7 @@ import 'utils.dart';
 final allTweaks = Set<RepoTweak>.unmodifiable([
   AutoPublishTweak(),
   DependabotTweak(),
+  DropLintTweak(),
   GitHubActionTweak(),
   MonoRepoTweak(),
   NoResponseTweak(),

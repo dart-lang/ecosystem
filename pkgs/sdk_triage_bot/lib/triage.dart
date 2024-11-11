@@ -29,9 +29,9 @@ Future<void> triage(
   final issue = await githubService.fetchIssue(sdkSlug, issueNumber);
   logger.log('## issue ${issue.htmlUrl}');
   logger.log('');
-  final labels = issue.labels.map((l) => l.name).toList();
-  if (labels.isNotEmpty) {
-    logger.log('labels: ${labels.join(', ')}');
+  final existingLabels = issue.labels.map((l) => l.name).toList();
+  if (existingLabels.isNotEmpty) {
+    logger.log('labels: ${existingLabels.join(', ')}');
     logger.log('');
   }
   logger.log('"${issue.title}"');
@@ -86,6 +86,11 @@ ${trimmedBody(comment.body ?? '')}
     // Failures here can include things like gemini safety issues, ...
     stderr.writeln('gemini: $e');
     exit(1);
+  }
+
+  // If an issue already has a `type-` label, we don't need to apply more.
+  if (existingLabels.any((label) => label.startsWith('type-'))) {
+    newLabels.removeWhere((label) => label.startsWith('type-'));
   }
 
   // ask for the summary
