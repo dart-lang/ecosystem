@@ -116,6 +116,12 @@ jobs:
         with:
           channel: ${{ inputs.channel }}
 
+      - name: Check Dart installs whereis
+        run: whereis dart
+
+      - name: Check Dart installs which
+        run: which dart
+
       - name: Install coverage
         run: dart pub global activate coverage
         if: ${{ inputs.check == 'coverage' }}
