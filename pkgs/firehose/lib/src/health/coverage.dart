@@ -20,6 +20,7 @@ class Coverage {
   final List<Glob> ignoredPackages;
   final Directory directory;
   final List<String> experiments;
+  final String dartExecutable;
 
   Coverage(
     this.coverageWeb,
@@ -27,6 +28,7 @@ class Coverage {
     this.ignoredPackages,
     this.directory,
     this.experiments,
+    this.dartExecutable,
   );
 
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
@@ -99,7 +101,7 @@ class Coverage {
         print('''
 Get coverage for ${package.name} by running coverage in ${package.directory.path}''');
         Process.runSync(
-          'dart',
+          dartExecutable,
           [
             if (experiments.isNotEmpty)
               '--enable-experiment=${experiments.join(',')}',
@@ -111,7 +113,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         if (coverageWeb) {
           print('Run tests with coverage for web');
           var resultChrome = Process.runSync(
-            'dart',
+            dartExecutable,
             [
               if (experiments.isNotEmpty)
                 '--enable-experiment=${experiments.join(',')}',
@@ -130,7 +132,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
 
         print('Run tests with coverage for vm');
         var resultVm = Process.runSync(
-          'dart',
+          dartExecutable,
           [
             if (experiments.isNotEmpty)
               '--enable-experiment=${experiments.join(',')}',
@@ -146,7 +148,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
 
         print('Compute coverage from runs');
         var resultLcov = Process.runSync(
-          'dart',
+          dartExecutable,
           [
             'pub',
             'global',

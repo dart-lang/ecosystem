@@ -53,7 +53,7 @@ class Health {
     String? comment,
     this.log = printLogger,
   })  : ignoredPackages = toGlobs(ignoredPackages),
-        flutterPackages = toGlobs(flutterPackages),
+        flutterPackageGlobs = toGlobs(flutterPackages),
         ignoredFilesForCoverage = toGlobs(ignoredCoverage),
         ignoredFilesForLicense = toGlobs(ignoredLicense),
         baseDirectory = base ?? Directory('../base_repo'),
@@ -62,7 +62,16 @@ class Health {
               directory.path,
               'output',
               'comment.md',
-            );
+            ) {
+    var split = (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
+        .split('\n');
+
+    flutterExecutable =
+        split.firstWhereOrNull((path) => path.contains('flutter'));
+    dartExecutable =
+        split.firstWhereOrNull((path) => !path.contains('flutter')) ??
+            flutterExecutable!;
+  }
 
   static List<Glob> toGlobs(List<String> ignoredPackages) =>
       ignoredPackages.map((pattern) => Glob(pattern, recursive: true)).toList();
@@ -76,10 +85,16 @@ class Health {
   final List<Glob> ignoredPackages;
   final List<Glob> ignoredFilesForLicense;
   final List<Glob> ignoredFilesForCoverage;
-  final List<Glob> flutterPackages;
+  final List<Glob> flutterPackageGlobs;
   final Directory baseDirectory;
   final List<String> experiments;
   final Logger log;
+
+  late final String dartExecutable;
+  late final String? flutterExecutable;
+
+  String executable(bool isFlutter) =>
+      isFlutter ? flutterExecutable ?? dartExecutable : dartExecutable;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -92,7 +107,7 @@ class Health {
     log(' warnOn: $warnOn');
     log(' failOn: $failOn');
     log(' coverageweb: $coverageweb');
-    log(' flutterPackages: $flutterPackages');
+    log(' flutterPackages: $flutterPackageGlobs');
     log(' ignoredPackages: $ignoredPackages');
     log(' ignoredForLicense: $ignoredFilesForLicense');
     log(' ignoredForCoverage: $ignoredFilesForCoverage');
@@ -131,7 +146,8 @@ class Health {
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await listFilesInPRorAll(ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
-    final flutter = packagesContaining(filesInPR, only: flutterPackages);
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
 
     for (var package
         in packagesContaining(filesInPR, ignore: ignoredPackages)) {
@@ -140,14 +156,15 @@ class Health {
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
+      var isFlutterPackage = flutterPackages.contains(package);
       var runApiTool = Process.runSync(
-        'dart',
+        executable(isFlutterPackage),
         [
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
           '--no-check-sdk-version',
-          if (flutter.contains(package)) '--force-use-flutter',
+          if (isFlutterPackage) '--force-use-flutter',
           ...['--old', 'pub://${package.name}'],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
@@ -205,6 +222,9 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   Future<HealthCheckResult> leakingCheck() async {
     var filesInPR = await listFilesInPRorAll(ignoredPackages);
     final leaksForPackage = <Package, List<String>>{};
+
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
     for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
       var relativePath =
@@ -219,7 +239,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         ...['--output', reportPath],
       ];
       var runApiTool = Process.runSync(
-        'dart',
+        executable(flutterPackages.contains(package)),
         arguments,
         workingDirectory: directory.path,
       );
@@ -391,6 +411,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       ignoredPackages,
       directory,
       experiments,
+      dartExecutable,
     );
 
     var files = await listFilesInPRorAll(ignoredPackages);
