@@ -64,16 +64,18 @@ class Health {
               'comment.md',
             ) {
     flutterExecutable =
-        (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
+        (Process.runSync('which', ['-a', 'flutter']).stdout as String)
             .split('\n')
+            .where((element) => element.isNotEmpty)
             .firstOrNull;
 
     var dartExecutables =
-        (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
-            .split('\n');
+        (Process.runSync('which', ['-a', 'dart']).stdout as String)
+            .split('\n')
+            .where((element) => element.isNotEmpty);
     dartExecutable = dartExecutables
-            .firstWhereOrNull((path) => !path.contains('flutter')) ??
-        dartExecutables.firstWhereOrNull((path) => path.contains('flutter'))!;
+        .sortedBy((path) => path.contains('flutter').toString())
+        .first;
   }
 
   static List<Glob> toGlobs(List<String> ignoredPackages) =>
