@@ -63,14 +63,17 @@ class Health {
               'output',
               'comment.md',
             ) {
-    var split = (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
-        .split('\n');
-
     flutterExecutable =
-        split.firstWhereOrNull((path) => path.contains('flutter'));
-    dartExecutable =
-        split.firstWhereOrNull((path) => !path.contains('flutter')) ??
-            flutterExecutable!;
+        (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
+            .split('\n')
+            .firstOrNull;
+
+    var dartExecutables =
+        (Process.runSync('whereis', ['-a', 'dart']).stdout as String)
+            .split('\n');
+    dartExecutable = dartExecutables
+            .firstWhereOrNull((path) => !path.contains('flutter')) ??
+        dartExecutables.firstWhereOrNull((path) => path.contains('flutter'))!;
   }
 
   static List<Glob> toGlobs(List<String> ignoredPackages) =>
@@ -164,7 +167,6 @@ class Health {
           'dart_apitool:main',
           'diff',
           '--no-check-sdk-version',
-          if (isFlutterPackage) '--force-use-flutter',
           ...['--old', 'pub://${package.name}'],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
