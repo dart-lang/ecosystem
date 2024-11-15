@@ -1,6 +1,7 @@
 name: Ecosystem test
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       repos_file:
