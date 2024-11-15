@@ -1,0 +1,15 @@
+name: Ecosystem test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+        
+jobs:
+  test_ecosystem:
+    uses: ./.github/workflows/ecosystem_test.yaml
+    with:
+      repos_file: .github/repos.txt
+      package_name: intl
+      new_version: 0.20.0
+      level: test

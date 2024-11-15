@@ -1,24 +1,23 @@
 name: Ecosystem test
 
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       repos_file:
         description: 'Path to the file containing the list of repository names'
+        type: string
         required: true
-        default: '.github/repos.txt'
       package_name:
         description: 'Name of the package to update'
-        default: 'intl' ##DO-NOT-SUBMIT
-        # required: true
+        type: string
+        required: true
       new_version:
         description: 'New version of the package'
-        default: 0.20.0
-        # required: true
+        type: string
+        required: true
       level:
         description: 'What to check, solve, analyze, or test'
+        type: string
         default: test
         
 jobs:
