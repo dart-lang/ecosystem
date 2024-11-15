@@ -31,7 +31,7 @@ jobs:
 
       - name: Read repository list
         id: repos
-        run: export REPOSITORIES_FILE="${{ inputs.repos_file }}"
+        run: echo "REPOSITORIES_FILE=${{ inputs.repos_file }}" >> $GITHUB_ENV
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
