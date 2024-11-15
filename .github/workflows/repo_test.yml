@@ -1,0 +1,61 @@
+name: Ecosystem test
+
+on:
+  workflow_dispatch:
+    inputs:
+      repos_file:
+        description: 'Path to the file containing the list of repository names'
+        required: true
+        default: '.github/repos.txt'
+      package_name:
+        description: 'Name of the package to update'
+        default: 'intl' ##DO-NOT-SUBMIT
+        # required: true
+      new_version:
+        description: 'New version of the package'
+        default: 0.20.0
+        # required: true
+      level:
+        description: 'What to check, resolve, analyze, or test'
+        
+jobs:
+  update_and_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ${{ fromJson(github.event.inputs.repos) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read repository list
+        id: repos
+        run: |
+          echo "repos=$(cat ${{ github.event.inputs.repos_file }})" >> $GITHUB_OUTPUT
+
+      - name: Update package version in pubspec.yaml
+        run: |
+          sed -i 's/\(${package_name}:\s*\)\(.*\)/\1${{ github.event.inputs.new_version }}/' pubspec.yaml
+
+      - name: Get Flutter SDK Version
+        run: |
+          echo "flutter_version=$(grep 'sdk:\s*flutter' pubspec.yaml | awk '{print $2}')" >> $GITHUB_OUTPUT
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ steps.get-flutter-version.outputs.flutter_version }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        if: ${{ github.event.inputs.level == 'analyze' || github.event.inputs.level == 'test' }}
+        run: flutter analyze
+
+      - name: Run tests
+        if: ${{ github.event.inputs.level == 'test' }}
+        run: flutter test
