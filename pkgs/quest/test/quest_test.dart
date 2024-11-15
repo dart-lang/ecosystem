@@ -31,7 +31,7 @@ class FakeQuest extends Quest {
   }
 
   @override
-  Future<Iterable<String>> getRepositories() async => <String>[
+  Future<Iterable<String>> getRepositories(String file) async => <String>[
     'https://github.com/mosuem/my_app_old_web',
     'https://github.com/mosuem/my_app_new_web',
   ];
