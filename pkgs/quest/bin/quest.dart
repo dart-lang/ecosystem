@@ -68,7 +68,9 @@ class Quest {
       ], workingDirectory: applicationName);
       final depsListResult = processResult.stdout as String;
       print(depsListResult);
-      final depsJson = jsonDecode(depsListResult) as Map<String, dynamic>;
+      final depsJson =
+          jsonDecode(depsListResult.substring(depsListResult.indexOf('{')))
+              as Map<String, dynamic>;
       final depsPackages = depsJson['packages'] as List;
       print(depsPackages);
       if (depsPackages.any((p) => (p as Map)['name'] == candidatePackage)) {
