@@ -16,7 +16,7 @@ This repository is home to general Dart Ecosystem tools and packages.
 
 ## Dart mono-repos
 
-The Dart team generally organizes its code into mono-repos; here's a roadmap.
+Here's an overview of the main Dart team repositories:
 
 | Main repo | Description |
 | --- | --- |
