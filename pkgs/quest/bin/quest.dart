@@ -67,6 +67,7 @@ class Quest {
         '--json',
       ], workingDirectory: applicationName);
       final depsListResult = processResult.stdout as String;
+      print(depsListResult);
       final depsJson = jsonDecode(depsListResult) as Map<String, dynamic>;
       final depsPackages = depsJson['packages'] as List;
       print(depsPackages);
