@@ -5,7 +5,9 @@ Future<void> main(List<String> arguments) async {
   final candidatePackage = arguments.first;
   final version = arguments[1];
   final level = Level.values.firstWhere((l) => l.name == arguments[2]);
-  final chronicles = await Quest(candidatePackage, version, level).embark();
+  final repositoriesFile = arguments[3];
+  final chronicles =
+      await Quest(candidatePackage, version, level, repositoriesFile).embark();
   print(chronicles);
 }
 
@@ -50,12 +52,13 @@ class Quest {
   final String candidatePackage;
   final String version;
   final Level level;
+  final String repositoriesFile;
 
-  Quest(this.candidatePackage, this.version, this.level);
+  Quest(this.candidatePackage, this.version, this.level, this.repositoriesFile);
 
   Future<Chronicles> embark() async {
     final chapters = <Chapter>[];
-    for (var repository in await getRepositories()) {
+    for (var repository in await getRepositories(repositoriesFile)) {
       final applicationName = await cloneRepo(repository);
       print('Cloned $repository');
       final processResult = await Process.run('flutter', [
@@ -98,10 +101,8 @@ class Quest {
     return Chronicles(candidatePackage, version, level, chapters);
   }
 
-  Future<Iterable<String>> getRepositories() async =>
-      await File(
-        const String.fromEnvironment('REPOSITORIES_FILE'),
-      ).readAsLines();
+  Future<Iterable<String>> getRepositories(String path) async =>
+      await File(path).readAsLines();
 
   Future<String> cloneRepo(String repository) async {
     var applicationName = repository.split('/').last;

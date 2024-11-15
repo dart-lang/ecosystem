@@ -5,7 +5,7 @@ import '../bin/quest.dart';
 void main() {
   test('test name', () async {
     final chronicles =
-        await FakeQuest('intl', '^0.20.0', Level.analyze).embark();
+        await FakeQuest('intl', '^0.20.0', Level.analyze, '').embark();
     print(chronicles);
   }, timeout: const Timeout(Duration(minutes: 5)));
 }
@@ -18,7 +18,12 @@ class FakeQuest extends Quest {
         '/home/mosum/projects/ecosystem_testing/my_app_new_web/',
   };
 
-  FakeQuest(super.candidatePackage, super.version, super.level);
+  FakeQuest(
+    super.candidatePackage,
+    super.version,
+    super.level,
+    super.repositoriesFile,
+  );
 
   @override
   Future<String> cloneRepo(String repository) async {
