@@ -44,6 +44,10 @@ jobs:
           channel: main
 
       - name: Update package and test
-        run: dart run pkgs/quest/bin/quest.dart ${{ github.event.inputs.package_name }} ${{ github.event.inputs.new_version }} ${{ github.event.inputs.level }} 
+        run: |
+          echo "${{ github.event.inputs.package_name }}"
+          echo "${{ github.event.inputs.new_version }}"
+          echo "${{ github.event.inputs.level }}"
+          dart run pkgs/quest/bin/quest.dart ${{ github.event.inputs.package_name }} ${{ github.event.inputs.new_version }} ${{ github.event.inputs.level }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
