@@ -47,6 +47,7 @@ jobs:
           echo "${{ inputs.package_name }}"
           echo "${{ inputs.new_version }}"
           echo "${{ inputs.level }}"
+          echo $REPOSITORIES_FILE
           dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.level }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
