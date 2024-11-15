@@ -31,7 +31,7 @@ jobs:
 
       - name: Read repository list
         id: repos
-        run: export REPOSITORIES_FILE="${{ github.event.inputs.repos_file }}"
+        run: export REPOSITORIES_FILE="${{ inputs.repos_file }}"
 
       - name: Setup Dart
         uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
@@ -44,9 +44,9 @@ jobs:
 
       - name: Update package and test
         run: |
-          echo "${{ github.event.inputs.package_name }}"
-          echo "${{ github.event.inputs.new_version }}"
-          echo "${{ github.event.inputs.level }}"
-          dart run pkgs/quest/bin/quest.dart ${{ github.event.inputs.package_name }} ${{ github.event.inputs.new_version }} ${{ github.event.inputs.level }} 
+          echo "${{ inputs.package_name }}"
+          echo "${{ inputs.new_version }}"
+          echo "${{ inputs.level }}"
+          dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.level }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
