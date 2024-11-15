@@ -19,6 +19,7 @@ on:
         # required: true
       level:
         description: 'What to check, solve, analyze, or test'
+        default: test
         
 jobs:
   update_and_test:
@@ -43,7 +44,6 @@ jobs:
           channel: main
 
       - name: Update package and test
-        run: |
-          dart run pkgs/quest/bin/quest.dart ${{ github.event.inputs.package_name }} ${{ github.event.inputs.new_version }} ${{ github.event.inputs.level }} 
+        run: dart run pkgs/quest/bin/quest.dart ${{ github.event.inputs.package_name }} ${{ github.event.inputs.new_version }} ${{ github.event.inputs.level }} 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
