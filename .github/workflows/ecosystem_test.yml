@@ -5,10 +5,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      repos_file:
+      repos_json:
         description: 'Path to the file containing the list of repository names'
         required: true
-        default: '.github/repos.txt'
+        default: '.github/repos.json'
       package_name:
         description: 'Name of the package to update'
         default: 'intl' ##DO-NOT-SUBMIT
@@ -25,18 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo: ${{ fromJson(github.event.inputs.repos) }}
+        repo: ${{ fromJson(github.event.inputs.repos_json) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           repository: ${{ matrix.repo }}
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Read repository list
-        id: repos
-        run: |
-          echo "repos=$(cat ${{ github.event.inputs.repos_file }})" >> $GITHUB_OUTPUT
 
       - name: Update package version in pubspec.yaml
         run: |
