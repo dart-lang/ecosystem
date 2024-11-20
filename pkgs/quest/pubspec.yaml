@@ -8,6 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  io: ^1.0.4
+  path: ^1.9.1
 
 dev_dependencies:
   dart_flutter_team_lints: ^3.0.0

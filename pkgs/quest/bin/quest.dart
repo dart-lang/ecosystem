@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
   final candidatePackage = arguments.first;
@@ -8,6 +9,8 @@ Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[3];
   final chronicles =
       await Quest(candidatePackage, version, level, repositoriesFile).embark();
+  final comment = createComment(chronicles);
+  await writeComment(comment);
   print(chronicles);
 }
 
@@ -95,7 +98,12 @@ class Quest {
           ifAbsent: () => revSuccess,
         );
         chapters.add(
-          Chapter(applicationName, repository, successBefore, successAfter),
+          Chapter(
+            p.basename(applicationName),
+            repository,
+            successBefore,
+            successAfter,
+          ),
         );
       } else {
         print('No package:$candidatePackage found in $repository');
@@ -143,5 +151,34 @@ class Quest {
     print('${processResult.stdout}');
     print('${processResult.stderr}');
     return processResult.exitCode == 0;
+  }
+}
+
+Future<void> writeComment(String content) async {
+  final commentFile = File('output/comment.md');
+  await commentFile.create();
+  await commentFile.writeAsString(content);
+}
+
+String createComment(Chronicles chronicles) {
+  final contents = '''
+## Ecosystem testing summary
+
+
+| Package | Solve | Analyze | Test |
+| ------- | ----- | ------- | ---- |
+${chronicles.chapters.map((e) => '| ${e.packageName} | ${Level.values.map((l) => '${e.successBefore[l]?.toEmoji ?? '-'}/${e.successAfter[l]?.toEmoji ?? '-'}').join(' | ')} |').join('\n')}
+  
+  ''';
+  return contents;
+}
+
+extension on bool {
+  String get toEmoji {
+    if (this) {
+      return '✅';
+    } else {
+      return '❌';
+    }
   }
 }
