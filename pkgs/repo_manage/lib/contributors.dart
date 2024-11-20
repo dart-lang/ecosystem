@@ -19,7 +19,8 @@ class ContributorsCommand extends ReportCommand {
       ..addFlag(
         'dart-lang',
         negatable: false,
-        help: 'Return stats for all dart-lang repos.',
+        help: 'Return stats for all dart-lang repos (otherwise, this defaults '
+            'to the main Dart and Flutter repos).',
       )
       ..addFlag(
         'monthly',
