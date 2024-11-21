@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import '../branches.dart';
+import '../contributors.dart';
 import '../issue_transfer.dart';
 import '../labels.dart';
 import '../labels_update.dart';
@@ -79,10 +80,11 @@ class ReportCommandRunner extends CommandRunner<int> {
       : super('report',
             'Run various reports on Dart and Flutter related repositories.') {
     addCommand(BranchesCommand());
+    addCommand(ContributorsCommand());
     addCommand(LabelsCommand());
     addCommand(LabelsUpdateCommand());
-    addCommand(WeeklyCommand());
     addCommand(TransferIssuesCommand());
+    addCommand(WeeklyCommand());
   }
 
   GitHub get github =>
@@ -147,11 +149,12 @@ class RepoInfo {
 // These are monorepos, high-traffic repos, or otherwise noteable repos.
 final List<String> noteableRepos = [
   'dart-lang/build',
+  'dart-lang/core',
   'dart-lang/ecosystem',
   'dart-lang/ffi',
   'dart-lang/http',
+  'dart-lang/i18n',
   'dart-lang/language',
-  'dart-lang/linter',
   'dart-lang/native',
   'dart-lang/pub',
   'dart-lang/sdk',
