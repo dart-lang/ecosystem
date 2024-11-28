@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Repository Configuration",
+    "description": "Schema for repository configuration",
+    "type": "object",
+    "patternProperties": {
+        "^https:\\/\\/github\\.com\\/[^\\/]+\\/[^\\/]+$": {
+            "type": "object",
+            "properties": {
+                "level": {
+                    "type": "string",
+                    "description": "Level of analysis for the repository",
+                    "enum": [
+                        "solve",
+                        "analyze",
+                        "test"
+                    ]
+                },
+                "packages": {
+                    "type": "object",
+                    "description": "Packages which are tested using this repository",
+                    "properties": {
+                        "exclude": {
+                            "type": "string",
+                            "description": "Packages to exclude from the analysis"
+                        }
+                    }
+                }
+            },
+            "required": [
+                "level"
+            ]
+        }
+    }
+}

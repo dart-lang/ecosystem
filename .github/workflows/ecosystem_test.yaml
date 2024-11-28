@@ -7,14 +7,6 @@ on:
         description: 'Path to the file containing the list of repository names'
         type: string
         required: true
-      package_name:
-        description: 'Name of the package to update'
-        type: string
-        required: true
-      new_version:
-        description: 'New version of the package'
-        type: string
-        required: true
         
 jobs:
   update_and_test:
@@ -29,12 +21,14 @@ jobs:
         with:
           channel: main
 
+      - run: echo ${{ github.event.pull_request.labels }}
+
       - run: dart pub get
         working-directory: pkgs/quest
 
       - name: Update package and test
         run: |
-          dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.repos_file }}
+          dart run pkgs/quest/bin/quest.dart ${{ inputs.repos_file }} ${{ github.event.pull_request.labels }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

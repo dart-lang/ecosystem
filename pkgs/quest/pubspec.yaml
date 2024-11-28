@@ -8,6 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  collection: ^1.19.1
+  firehose: ^0.9.3
   io: ^1.0.4
   path: ^1.9.1
 

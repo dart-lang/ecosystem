@@ -1,17 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:collection/collection.dart';
+import 'package:firehose/firehose.dart' as fire;
 
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
-  final candidatePackage = arguments.first;
-  final version = arguments[1];
-  final repositoriesFile = arguments[2];
-  final chronicles =
-      await Quest(candidatePackage, version, repositoriesFile).embark();
-  final comment = createComment(chronicles);
-  await writeComment(comment);
-  print(chronicles);
+  final repositoriesFile = arguments[0];
+  final labels = arguments[1].split(',');
+
+  final packages = fire.Repository().locatePackages();
+  final package = packages.firstWhereOrNull(
+      (package) => labels.any((label) => label == 'ecosystem-test-$package'));
+  if (package != null) {
+    final chronicles =
+        await Quest('', package.version!.toString(), repositoriesFile).embark();
+    final comment = createComment(chronicles);
+    await writeComment(comment);
+    print(chronicles);
+  }
 }
 
 enum Level { solve, analyze, test }
@@ -57,15 +64,16 @@ class Repository {
 
   static Future<Iterable<Repository>> listFromFile(String path) async {
     final s = await File(path).readAsString();
-    return (jsonDecode(s) as Map).entries
+    return (jsonDecode(s) as Map)
+        .entries
         .map((e) => MapEntry(e.key as String, e.value as Map))
         .map((e) {
-          return Repository(
-            url: e.key,
-            name: (e.value['name'] as String?) ?? p.basename(e.key),
-            level: Level.values.firstWhere((l) => l.name == e.value['level']),
-          );
-        });
+      return Repository(
+        url: e.key,
+        name: (e.value['name'] as String?) ?? p.basename(e.key),
+        level: Level.values.firstWhere((l) => l.name == e.value['level']),
+      );
+    });
   }
 
   @override
@@ -84,11 +92,14 @@ class Quest {
     for (var repository in await Repository.listFromFile(repositoriesFile)) {
       final path = await cloneRepo(repository.url);
       print('Cloned $repository');
-      final processResult = await Process.run('flutter', [
-        'pub',
-        'deps',
-        '--json',
-      ], workingDirectory: path);
+      final processResult = await Process.run(
+          'flutter',
+          [
+            'pub',
+            'deps',
+            '--json',
+          ],
+          workingDirectory: path);
       final depsListResult = processResult.stdout as String;
       print(depsListResult);
       final depsJson =
