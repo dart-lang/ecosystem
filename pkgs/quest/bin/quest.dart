@@ -73,6 +73,7 @@ class Repository {
     final s = await File(path).readAsString();
     return (jsonDecode(s) as Map)
         .entries
+        .where((e) => e.key != r'$schema')
         .map((e) => MapEntry(e.key as String, e.value as Map))
         .map((e) {
       return Repository(
