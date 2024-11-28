@@ -15,8 +15,8 @@ Future<void> main(List<String> arguments) async {
       .where((line) => line.startsWith('ecosystem-test'));
   print('Labels: $labels');
   final packages = fire.Repository().locatePackages();
-  final package = packages.firstWhereOrNull(
-      (package) => labels.any((label) => label == 'ecosystem-test-$package'));
+  final package = packages.firstWhereOrNull((package) =>
+      labels.any((label) => label == 'ecosystem-test-${package.name}'));
   if (package != null) {
     final chronicles =
         await Quest('', package.version!.toString(), repositoriesFile).embark();
