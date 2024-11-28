@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
-  final labels = arguments[1].split(',');
+  final labels = jsonDecode(arguments[1]) as List<String>;
 
   final packages = fire.Repository().locatePackages();
   final package = packages.firstWhereOrNull(
