@@ -9,6 +9,6 @@ jobs:
   test_ecosystem:
     uses: ./.github/workflows/ecosystem_test.yaml
     with:
-      repos_file: .github/test_repos/intl.txt
+      repos_file: .github/test_repos/intl.json
       package_name: intl
       new_version: 0.20.0
