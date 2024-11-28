@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Repository Configuration",
-    "description": "Schema for repository configuration",
+    "description": "Schema for repositories for ecosystem testing",
     "type": "object",
     "patternProperties": {
         "^https:\\/\\/github\\.com\\/[^\\/]+\\/[^\\/]+$": {
@@ -9,7 +9,7 @@
             "properties": {
                 "level": {
                     "type": "string",
-                    "description": "Level of analysis for the repository",
+                    "description": "Level of testing depth.",
                     "enum": [
                         "solve",
                         "analyze",
