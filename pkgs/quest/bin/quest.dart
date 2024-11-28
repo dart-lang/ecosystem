@@ -8,7 +8,11 @@ import 'package:path/path.dart' as p;
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
   print(arguments[1]);
-  final labels = jsonDecode(arguments[1]) as List<String>;
+  final lines = arguments[1].split('\n');
+  final labels = lines
+      .sublist(1, lines.length - 1)
+      .map((e) => e.trim())
+      .where((line) => line.startsWith('ecosystem-test'));
   print('Labels: $labels');
   final packages = fire.Repository().locatePackages();
   final package = packages.firstWhereOrNull(
