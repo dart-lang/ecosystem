@@ -46,6 +46,12 @@ jobs:
             fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
       - run: unzip comment.zip
 
+      - name: 'Print the comment'
+        run: |
+          if [ -f "./comment.md" ]; then
+            cat ./comment.md
+          fi
+
 
       # Create the comment, or update the existing one, with the markdown
       # generated in the Health workflow.
