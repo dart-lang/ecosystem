@@ -21,14 +21,14 @@ jobs:
         with:
           channel: main
 
-      - run: echo ${{ toJSON(github.event.pull_request.labels.*.name) }}
+      - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
       - run: dart pub get
         working-directory: pkgs/quest
 
       - name: Update package and test
         run: |
-          dart run pkgs/quest/bin/quest.dart ${{ inputs.repos_file }} ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          dart run pkgs/quest/bin/quest.dart ${{ inputs.repos_file }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
