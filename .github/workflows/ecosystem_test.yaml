@@ -25,11 +25,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
-        with:
-          sdk: dev
-
       - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
         with:
           channel: main
@@ -39,8 +34,6 @@ jobs:
 
       - name: Update package and test
         run: |
-          echo "${{ inputs.package_name }}"
-          echo "${{ inputs.new_version }}"
           dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.repos_file }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

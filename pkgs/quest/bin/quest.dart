@@ -160,7 +160,7 @@ class Quest {
 
 Future<void> writeComment(String content) async {
   final commentFile = File('output/comment.md');
-  await commentFile.create();
+  await commentFile.create(recursive: true);
   await commentFile.writeAsString(content);
 }
 
