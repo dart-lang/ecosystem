@@ -31,9 +31,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Find Comment
+        uses: peter-evans/find-comment@90e9b82d6319a7ae3f32bc0b434db48d6c376e55
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: github-actions[bot]
+          body-includes: '## Ecosystem testing'
+
+      - name: Write comment id to file
+        if: ${{ steps.fc.outputs.comment-id != 0 }} 
+        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+
       - name: Upload markdown
         if: success() || failure()
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:
           name: output
-          path: output/comment.md
+          path: output/

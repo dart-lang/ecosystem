@@ -185,7 +185,7 @@ Future<void> writeComment(String content) async {
 
 String createComment(Chronicles chronicles) {
   final contents = '''
-## Ecosystem testing summary
+## Ecosystem testing
 
 
 | Package | Solve | Analyze | Test |
