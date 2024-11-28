@@ -1,0 +1,8 @@
+{
+    "https://github.com/mosuem/my_app_old_web": {
+        "level": "analyze"
+    },
+    "https://github.com/mosuem/my_app_new_web": {
+        "level": "test"
+    }
+}

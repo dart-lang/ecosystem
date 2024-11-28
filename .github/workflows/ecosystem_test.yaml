@@ -15,10 +15,6 @@ on:
         description: 'New version of the package'
         type: string
         required: true
-      level:
-        description: 'What to check, solve, analyze, or test'
-        type: string
-        default: test
         
 jobs:
   update_and_test:
@@ -42,8 +38,7 @@ jobs:
         run: |
           echo "${{ inputs.package_name }}"
           echo "${{ inputs.new_version }}"
-          echo "${{ inputs.level }}"
-          dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.level }} ${{ inputs.repos_file }}
+          dart run pkgs/quest/bin/quest.dart ${{ inputs.package_name }} ${{ inputs.new_version }} ${{ inputs.repos_file }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

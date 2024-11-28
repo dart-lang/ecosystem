@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:io/io.dart';
@@ -15,6 +16,13 @@ void main() {
           '/home/mosum/projects/ecosystem_testing/my_app_new_web/',
     };
     final temp = await Directory.systemTemp.createTemp();
+    final repoFile = await File(p.join(temp.path, 'repos.json')).create();
+    await repoFile.writeAsString(
+      jsonEncode({
+        'https://github.com/mosuem/my_app_old_web': {'level': 'analyze'},
+        'https://github.com/mosuem/my_app_new_web': {'level': 'test'},
+      }),
+    );
     final tempLocations = locations.map((key, value) {
       final path = p.join(temp.path, p.basename(value));
       copyPathSync(value, path);
@@ -25,13 +33,13 @@ void main() {
         await FakeQuest(
           'intl',
           '^0.20.0',
-          Level.analyze,
-          '',
+          repoFile.path,
           tempLocations,
         ).embark();
 
     final comment = createComment(chronicles);
     print(comment);
+    await temp.delete(recursive: true);
   }, timeout: const Timeout(Duration(minutes: 5)));
 }
 
@@ -41,16 +49,10 @@ class FakeQuest extends Quest {
   FakeQuest(
     super.candidatePackage,
     super.version,
-    super.level,
     super.repositoriesFile,
     this.locations,
   );
 
   @override
-  Future<String> cloneRepo(String repository) async {
-    return locations[repository]!;
-  }
-
-  @override
-  Future<Iterable<String>> getRepositories(String file) async => locations.keys;
+  Future<String> cloneRepo(String url) async => locations[url]!;
 }
