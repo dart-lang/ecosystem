@@ -18,8 +18,10 @@ Future<void> main(List<String> arguments) async {
   final package = packages.firstWhereOrNull((package) =>
       labels.any((label) => label == 'ecosystem-test-${package.name}'));
   if (package != null) {
+    print('Found $package. Embark on a quest!');
     final chronicles =
-        await Quest('', package.version!.toString(), repositoriesFile).embark();
+        await Quest(package.name, package.version!.toString(), repositoriesFile)
+            .embark();
     final comment = createComment(chronicles);
     await writeComment(comment);
     print(chronicles);
