@@ -192,9 +192,12 @@ class Quest {
     return success;
   }
 
-  Future<CheckResult> runFlutter(List<String> arguments, String path) async {
+  Future<CheckResult> runFlutter(List<String> arguments, String path,
+      [bool useDart = false]) async {
+    print('Running `flutter ${arguments.join(' ')}` in $path');
     final processResult = await Process.run(
-      'flutter',
+      //Due to https://github.com/flutter/flutter/issues/144898, we can't run Flutter on `pub add`
+      useDart ? 'dart' : 'flutter',
       arguments,
       workingDirectory: path,
     );
