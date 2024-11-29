@@ -33,7 +33,7 @@ jobs:
 
       - name: Output issue number
         run: |
-          mkdir output
+          mkdir -p output
           echo ${{ github.event.number }} > output/issueNumber
 
       - name: Find Comment
