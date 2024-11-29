@@ -183,15 +183,17 @@ class Quest {
   }
 
   Future<Map<Level, CheckResult>> runChecks(String path, Level level) async {
-    final success = <Level, CheckResult>{};
-    success[Level.solve] = await runFlutter(['pub', 'get'], path);
-    if (level.index >= Level.analyze.index) {
-      success[Level.analyze] = await runFlutter(['analyze'], path);
+    final result = <Level, CheckResult>{};
+    result[Level.solve] = await runFlutter(['pub', 'get'], path);
+    if (level.index >= Level.analyze.index &&
+        result[Level.solve]?.success == true) {
+      result[Level.analyze] = await runFlutter(['analyze'], path);
     }
-    if (level.index >= Level.test.index) {
-      success[Level.test] = await runFlutter(['test'], path);
+    if (level.index >= Level.test.index &&
+        result[Level.solve]?.success == true) {
+      result[Level.test] = await runFlutter(['test'], path);
     }
-    return success;
+    return result;
   }
 
   Future<CheckResult> runFlutter(
