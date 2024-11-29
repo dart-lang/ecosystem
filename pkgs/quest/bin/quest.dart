@@ -7,7 +7,8 @@ import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
-  final gitUri = arguments[1].replaceRange(0, 'git'.length, 'http');
+  var gitUri = arguments[1].replaceRange(0, 'git'.length, 'https');
+  gitUri = gitUri.substring(0, gitUri.length - '.git'.length);
   final branch = arguments[2];
   final lines = arguments[3].split('\n');
   final labels = lines
