@@ -193,12 +193,16 @@ class Quest {
     return success;
   }
 
-  Future<CheckResult> runFlutter(List<String> arguments, String path,
-      [bool useDart = false]) async {
-    print('Running `flutter ${arguments.join(' ')}` in $path');
+  Future<CheckResult> runFlutter(
+    List<String> arguments,
+    String path, [
+    bool useDart = false,
+  ]) async {
+    final executable = useDart ? 'dart' : 'flutter';
+    print('Running `$executable ${arguments.join(' ')}` in $path');
     final processResult = await Process.run(
       //Due to https://github.com/flutter/flutter/issues/144898, we can't run Flutter on `pub add`
-      useDart ? 'dart' : 'flutter',
+      executable,
       arguments,
       workingDirectory: path,
     );
