@@ -151,7 +151,8 @@ class Quest {
         await runFlutter(['clean'], path);
 
         print('Rev package:$candidatePackage to version $version $repository');
-        final revSuccess = await runFlutter(['pub', 'add', version], path);
+        final revSuccess =
+            await runFlutter(['pub', 'add', version], path, true);
 
         print('Run checks for modified package');
         final resultAfter = await runChecks(path, repository.level);
