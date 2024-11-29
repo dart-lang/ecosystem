@@ -46,13 +46,16 @@ Chronicles(package: $package, version: $version, chapters: $chapters)''';
 
 class Chapter {
   final Repository repository;
-  bool get success => !Level.values.any((level) =>
-      before[level]?.success == true && after[level]?.success == false);
   final Map<Level, CheckResult> before;
   final Map<Level, CheckResult> after;
 
   Chapter(
       {required this.repository, required this.before, required this.after});
+
+  bool get success => failure == null;
+
+  Level? get failure => Level.values.firstWhereOrNull((level) =>
+      before[level]?.success == true && after[level]?.success == false);
 
   String toRow() => '''
 | ${repository.name} | ${Level.values.map((l) => '${before[l]?.success.toEmoji ?? '-'}/${after[l]?.success.toEmoji ?? '-'}').join(' | ')} |''';
@@ -218,7 +221,7 @@ ${chronicles.chapters.map((chapter) => chapter.toRow()).join('\n')}
 
 <details>
 <summary>
-<strong>Logs per app</strong>
+<strong>Details per app</strong>
 </summary>
 ${chronicles.chapters.map((chapter) => '''
 <details>
@@ -226,9 +229,14 @@ ${chronicles.chapters.map((chapter) => '''
 <strong>${chapter.repository.name}</strong> ${chapter.success ? '✅' : '❌'};
 </summary>
 
-| Package | Solve | Analyze | Test |
-| ------- | ----- | ------- | ---- |
-${chapter.toRow()}
+${chapter.success ? 'The app tests passed!' : '''
+The failure occured at ${chapter.failure!.name}, this is the error output of that step:
+```
+${chapter.after[chapter.failure!]?.stderr}
+```
+'''}
+
+The complete list of logs is:
 
 ${chapter.before.keys.map((level) => '''
 <details>
@@ -262,11 +270,11 @@ ${chapter.after[level]?.stderr}
 ```
 
 </details>
-''').join('\n')};
+''').join('\n')}
 
 </details>
 
-''').join('\n')};
+''').join('\n')}
 
 </details>
   
