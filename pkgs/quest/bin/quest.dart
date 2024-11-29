@@ -8,8 +8,8 @@ import 'package:path/path.dart' as p;
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
   final gitUri = arguments[1];
-  final branch = arguments[3];
-  final lines = arguments[4].split('\n');
+  final branch = arguments[2];
+  final lines = arguments[3].split('\n');
   final labels = lines
       .sublist(1, lines.length - 1)
       .map((e) => e.trim())
