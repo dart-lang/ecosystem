@@ -207,10 +207,16 @@ class Quest {
       arguments,
       workingDirectory: path,
     );
+    final stdout = processResult.stdout as String;
+    final stderr = processResult.stderr as String;
+    print('stdout:');
+    print(stdout);
+    print('stderr:');
+    print(stdout);
     return CheckResult(
       success: processResult.exitCode == 0,
-      stdout: processResult.stdout as String,
-      stderr: processResult.stderr as String,
+      stdout: stdout,
+      stderr: stderr,
     );
   }
 }

@@ -29,13 +29,12 @@ void main() {
       return MapEntry(key, path);
     });
 
-    final chronicles =
-        await FakeQuest(
-          'intl',
-          '^0.20.0',
-          repoFile.path,
-          tempLocations,
-        ).embark();
+    final chronicles = await FakeQuest(
+      'intl',
+      'intl:{"git":{"url":"https://github.com/mosuem/i18n","ref":"pr","path":"pkgs/intl"}}',
+      repoFile.path,
+      tempLocations,
+    ).embark();
 
     final comment = createComment(chronicles);
     print(comment);

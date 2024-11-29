@@ -27,7 +27,7 @@ jobs:
 
       - name: Update package and test
         run: |
-          dart pub global run quest ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.base_ref }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          dart pub global run quest ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
