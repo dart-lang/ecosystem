@@ -212,7 +212,7 @@ class Quest {
     print('stdout:');
     print(stdout);
     print('stderr:');
-    print(stdout);
+    print(stderr);
     return CheckResult(
       success: processResult.exitCode == 0,
       stdout: stdout,
