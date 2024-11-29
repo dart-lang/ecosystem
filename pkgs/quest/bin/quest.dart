@@ -20,8 +20,8 @@ Future<void> main(List<String> arguments) async {
       labels.any((label) => label == 'ecosystem-test-${package.name}'));
   if (package != null) {
     print('Found $package. Embark on a quest!');
-    final version =
-        '${package.name}:{"git":{"url":"$gitUri","ref":"$branch","path":"${p.relative(package.directory.path, from: Directory.current.path)}"}}';
+    final version = '''
+'${package.name}:{"git":{"url":"$gitUri","ref":"$branch","path":"${p.relative(package.directory.path, from: Directory.current.path)}"}}\'''';
     final chronicles = await Quest(
       package.name,
       version,
