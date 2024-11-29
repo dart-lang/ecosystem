@@ -236,7 +236,7 @@ ${chronicles.chapters.map((chapter) => chapter.toRow()).join('\n')}
 ${chronicles.chapters.map((chapter) => '''
 <details>
 <summary>
-<strong>${chapter.repository.name}</strong> ${chapter.success ? '✅' : '❌'};
+<strong>${chapter.repository.name}</strong> ${chapter.success ? '✅' : '❌'}
 </summary>
 
 ${chapter.success ? 'The app tests passed!' : '''
