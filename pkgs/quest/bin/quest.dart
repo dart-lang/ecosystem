@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart' as fire;
-
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
@@ -46,16 +46,36 @@ Chronicles(package: $package, version: $version, chapters: $chapters)''';
 
 class Chapter {
   final Repository repository;
-  final Map<Level, bool> successBefore;
-  final Map<Level, bool> successAfter;
+  bool get success => !Level.values.any((level) =>
+      before[level]?.success == true && after[level]?.success == false);
+  final Map<Level, CheckResult> before;
+  final Map<Level, CheckResult> after;
 
-  Chapter(this.repository, this.successBefore, this.successAfter);
+  Chapter(
+      {required this.repository, required this.before, required this.after});
+
+  String toRow() => '''
+| ${repository.name} | ${Level.values.map((l) => '${before[l]?.success.toEmoji ?? '-'}/${after[l]?.success.toEmoji ?? '-'}').join(' | ')} |''';
 
   @override
-  String toString() {
-    return '''
-Chapter(packageName: ${repository.name}, packageUri: ${repository.url}, successBefore: $successBefore, successAfter: $successAfter)''';
-  }
+  String toString() =>
+      'Chapter(repository: $repository, before: $before, after: $after)';
+}
+
+class CheckResult {
+  final bool success;
+  final String stdout;
+  final String stderr;
+
+  CheckResult({
+    required this.success,
+    required this.stdout,
+    required this.stderr,
+  });
+
+  @override
+  String toString() =>
+      'ChapterLevel(success: $success, stdout: $stdout, stderr: $stderr)';
 }
 
 class Repository {
@@ -117,7 +137,7 @@ class Quest {
       print(depsPackages);
       if (depsPackages.any((p) => (p as Map)['name'] == candidatePackage)) {
         print('Run checks for vanilla package');
-        final successBefore = await runChecks(path, repository.level);
+        final resultBefore = await runChecks(path, repository.level);
 
         print('Clean repo');
         await runFlutter(['clean'], path);
@@ -130,13 +150,16 @@ class Quest {
         ], path);
 
         print('Run checks for modified package');
-        final successAfter = await runChecks(path, repository.level);
-        successAfter.update(
-          Level.solve,
-          (value) => value ? revSuccess : value,
-          ifAbsent: () => revSuccess,
-        );
-        chapters.add(Chapter(repository, successBefore, successAfter));
+        final resultAfter = await runChecks(path, repository.level);
+
+        // flutter pub add runs an implicit pub get
+        resultAfter[Level.solve] = revSuccess;
+
+        chapters.add(Chapter(
+          repository: repository,
+          before: resultBefore,
+          after: resultAfter,
+        ));
       } else {
         print('No package:$candidatePackage found in $repository');
       }
@@ -153,8 +176,8 @@ class Quest {
     return path;
   }
 
-  Future<Map<Level, bool>> runChecks(String path, Level level) async {
-    final success = <Level, bool>{};
+  Future<Map<Level, CheckResult>> runChecks(String path, Level level) async {
+    final success = <Level, CheckResult>{};
     success[Level.solve] = await runFlutter(['pub', 'get'], path);
     if (level.index >= Level.analyze.index) {
       success[Level.analyze] = await runFlutter(['analyze'], path);
@@ -165,15 +188,17 @@ class Quest {
     return success;
   }
 
-  Future<bool> runFlutter(List<String> arguments, String path) async {
+  Future<CheckResult> runFlutter(List<String> arguments, String path) async {
     final processResult = await Process.run(
       'flutter',
       arguments,
       workingDirectory: path,
     );
-    print('${processResult.stdout}');
-    print('${processResult.stderr}');
-    return processResult.exitCode == 0;
+    return CheckResult(
+      success: processResult.exitCode == 0,
+      stdout: processResult.stdout as String,
+      stderr: processResult.stderr as String,
+    );
   }
 }
 
@@ -187,10 +212,63 @@ String createComment(Chronicles chronicles) {
   final contents = '''
 ## Ecosystem testing
 
+| Package | Solve | Analyze | Test |
+| ------- | ----- | ------- | ---- |
+${chronicles.chapters.map((chapter) => chapter.toRow()).join('\n')}
+
+<details>
+<summary>
+<strong>Logs per app</strong>
+</summary>
+${chronicles.chapters.map((chapter) => '''
+<details>
+<summary>
+<strong>${chapter.repository.name}</strong> ${chapter.success ? '✅' : '❌'};
+</summary>
 
 | Package | Solve | Analyze | Test |
 | ------- | ----- | ------- | ---- |
-${chronicles.chapters.map((e) => '| ${e.repository.name} | ${Level.values.map((l) => '${e.successBefore[l]?.toEmoji ?? '-'}/${e.successAfter[l]?.toEmoji ?? '-'}').join(' | ')} |').join('\n')}
+${chapter.toRow()}
+
+${chapter.before.keys.map((level) => '''
+<details>
+<summary>
+<strong>Logs for ${level.name}</strong>
+</summary>
+
+
+### Before:
+
+StdOut:
+```
+${chapter.before[level]?.stdout}
+```
+
+StdErr:
+```
+${chapter.before[level]?.stderr}
+```
+
+### After:
+
+StdOut:
+```
+${chapter.after[level]?.stdout}
+```
+
+StdErr:
+```
+${chapter.after[level]?.stderr}
+```
+
+</details>
+''').join('\n')};
+
+</details>
+
+''').join('\n')};
+
+</details>
   
   ''';
   return contents;
