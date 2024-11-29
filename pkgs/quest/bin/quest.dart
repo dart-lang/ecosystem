@@ -7,8 +7,9 @@ import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
-  print(arguments[1]);
-  final lines = arguments[1].split('\n');
+  final gitUri = arguments[1];
+  final branch = arguments[3];
+  final lines = arguments[4].split('\n');
   final labels = lines
       .sublist(1, lines.length - 1)
       .map((e) => e.trim())
@@ -19,9 +20,13 @@ Future<void> main(List<String> arguments) async {
       labels.any((label) => label == 'ecosystem-test-${package.name}'));
   if (package != null) {
     print('Found $package. Embark on a quest!');
-    final chronicles =
-        await Quest(package.name, package.version!.toString(), repositoriesFile)
-            .embark();
+    final version =
+        '${package.name}:{"git":{"url":"$gitUri","ref":"$branch","path":"${p.relative(package.directory.path, from: Directory.current.path)}"}}';
+    final chronicles = await Quest(
+      package.name,
+      version,
+      repositoriesFile,
+    ).embark();
     final comment = createComment(chronicles);
     await writeComment(comment);
     print(chronicles);
@@ -146,11 +151,7 @@ class Quest {
         await runFlutter(['clean'], path);
 
         print('Rev package:$candidatePackage to version $version $repository');
-        final revSuccess = await runFlutter([
-          'pub',
-          'add',
-          "$candidatePackage:'$version'",
-        ], path);
+        final revSuccess = await runFlutter(['pub', 'add', version], path);
 
         print('Run checks for modified package');
         final resultAfter = await runChecks(path, repository.level);
