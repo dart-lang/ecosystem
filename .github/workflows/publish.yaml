@@ -119,13 +119,13 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+      - uses: subosito/flutter-action@74af56c5ed2697ba4621264652728e8d217e53d3
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
           
 
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
+      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -157,7 +157,7 @@ jobs:
           echo "COMMENT_ID=$COMMENT_ID" >> $GITHUB_ENV
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@6f2ce0ef39607bc6465c7fdf93368dc08095f938
+        uses: peter-evans/create-or-update-comment@267c0605edbbc0183ed9973a6ce2d1a158d96027
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID == '') }}
         continue-on-error: true
         with:
@@ -166,7 +166,7 @@ jobs:
           edit-mode: replace
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@6f2ce0ef39607bc6465c7fdf93368dc08095f938
+        uses: peter-evans/create-or-update-comment@267c0605edbbc0183ed9973a6ce2d1a158d96027
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID != '') }}
         with:
           comment-id: ${{ env.COMMENT_ID }}
@@ -202,12 +202,12 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+      - uses: subosito/flutter-action@74af56c5ed2697ba4621264652728e8d217e53d3
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
 
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
+      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
