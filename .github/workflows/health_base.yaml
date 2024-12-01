@@ -99,12 +99,12 @@ jobs:
 
       - run: mkdir -p current_repo/output/
           
-      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+      - uses: subosito/flutter-action@74af56c5ed2697ba4621264652728e8d217e53d3
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
   
-      - uses: dart-lang/setup-dart@0a8a0fc875eb934c15d08629302413c671d3f672
+      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
