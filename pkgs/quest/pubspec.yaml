@@ -1,12 +1,12 @@
 name: quest
-description: A sample command-line application.
-version: 1.0.0
+description: Test package upgrades against the ecosystem.
 repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/quest
+
+publish_to: none
 
 environment:
   sdk: ^3.5.0
 
-# Add regular dependencies here.
 dependencies:
   collection: ^1.19.1
   firehose: ^0.9.3
