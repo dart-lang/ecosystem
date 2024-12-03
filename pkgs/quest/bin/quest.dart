@@ -152,10 +152,11 @@ class Quest {
   Quest(this.candidatePackage, this.version, this.applicationFile);
 
   Future<Chronicles> embark() async {
+    final tempDir = await Directory.systemTemp.createTemp();
     final chapters = <Application, Chapter>{};
     for (var application in await Application.listFromFile(applicationFile)) {
-      final path = await cloneRepo(application.url);
-      print('Cloned $application');
+      final path = await cloneRepo(application.url, tempDir);
+      print('Cloned $application into $path');
       final processResult = await Process.run(
           'flutter',
           [
@@ -196,17 +197,20 @@ class Quest {
         print('No package:$candidatePackage found in $application');
       }
     }
+    await tempDir.delete(recursive: true);
     return Chronicles(candidatePackage, version, chapters);
   }
 
   /// Uses `gh` to clone the Github repo at [url].
-  Future<String> cloneRepo(String url) async {
-    var path = url.split('/').last;
-    if (Directory(path).existsSync()) {
-      path = '${path}_${url.hashCode}';
+  Future<String> cloneRepo(String url, Directory tempDir) async {
+    final name = url.split('/').last;
+
+    var fullPath = p.join(tempDir.path, name);
+    if (Directory(fullPath).existsSync()) {
+      fullPath = p.join(tempDir.path, '${name}_${url.hashCode}');
     }
-    await Process.run('gh', ['repo', 'clone', url, '--', path]);
-    return path;
+    await Process.run('gh', ['repo', 'clone', url, '--', fullPath]);
+    return fullPath;
   }
 
   /// Uses `gh` to clone the Github repo at [url].
