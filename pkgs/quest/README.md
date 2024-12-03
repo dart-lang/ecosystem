@@ -115,4 +115,4 @@ Testing: If a dependency exists, Quest runs tests against the application with t
 Reporting: Generates a Markdown comment summarizing the test results for each application and each testing level. The comment includes details about success/failure and logs for debugging.
 
 # Contributing
-Contributions are welcome! Please see the contribution guidelines (if available).
+Contributions are welcome! Please see the [contribution guidelines](../../CONTRIBUTING.md).
