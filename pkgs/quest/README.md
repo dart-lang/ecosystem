@@ -1,4 +1,4 @@
-# Quest: Automated Ecosystem Testing for Dart Packages
+# Quest: Ecosystem Testing for Dart Packages
 Embark your package on a quest of testing against a suite of applications. This helps identify potential breaking changes introduced by package updates, ensuring seamless integration across the ecosystem.
 
 ## What does it do?
