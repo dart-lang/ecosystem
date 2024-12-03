@@ -9,4 +9,4 @@ jobs:
   test_ecosystem:
     uses: ./.github/workflows/ecosystem_test.yaml
     with:
-      repos_file: .github/test_repos/intl.json
+      repos_file: .github/test_repos/repos.json
