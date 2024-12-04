@@ -156,28 +156,25 @@ class Health {
 
     for (var package
         in packagesContaining(filesInPR, ignore: ignoredPackages)) {
-      log('Look for changes in $package with base $baseDirectory');
+      log('Look for changes in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
-      var isFlutterPackage = flutterPackages.contains(package);
-      var runApiTool = Process.runSync(
-        executable(isFlutterPackage),
+      runDashProcess(
+        flutterPackages,
+        package,
         [
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
           '--no-check-sdk-version',
-          ...['--old', 'pub://${package.name}'],
+          ...['--old', getCurrentVersionOfPackage(package)],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
           ...['--report-file-path', reportPath],
         ],
-        workingDirectory: directory.path,
       );
-      log(runApiTool.stderr as String);
-      log(runApiTool.stdout as String);
 
       var fullReportString = File(reportPath).readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
@@ -209,6 +206,22 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     );
   }
 
+  String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
+
+  ProcessResult runDashProcess(
+      List<Package> flutterPackages, Package package, List<String> arguments) {
+    var exec = executable(flutterPackages.contains(package));
+    log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
+    var runApiTool = Process.runSync(
+      exec,
+      arguments,
+      workingDirectory: directory.path,
+    );
+    log(runApiTool.stderr as String);
+    log(runApiTool.stdout as String);
+    return runApiTool;
+  }
+
   BreakingLevel _breakingLevel(Map<String, dynamic> report) {
     BreakingLevel breakingLevel;
     if ((report['noChangesDetected'] as bool?) ?? false) {
@@ -235,20 +248,17 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
-      var arguments = [
-        ...['pub', 'global', 'run'],
-        'dart_apitool:main',
-        'extract',
-        ...['--input', relativePath],
-        ...['--output', reportPath],
-      ];
-      var runApiTool = Process.runSync(
-        executable(flutterPackages.contains(package)),
-        arguments,
-        workingDirectory: directory.path,
+      var runApiTool = runDashProcess(
+        flutterPackages,
+        package,
+        [
+          ...['pub', 'global', 'run'],
+          'dart_apitool:main',
+          'extract',
+          ...['--input', relativePath],
+          ...['--output', reportPath],
+        ],
       );
-      log(runApiTool.stderr as String);
-      log(runApiTool.stdout as String);
 
       if (runApiTool.exitCode == 0) {
         var fullReportString = await File(reportPath).readAsString();
@@ -262,7 +272,13 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       } else {
         throw ProcessException(
           'Api tool finished with exit code ${runApiTool.exitCode}',
-          arguments,
+          [
+            ...['pub', 'global', 'run'],
+            'dart_apitool:main',
+            'extract',
+            ...['--input', relativePath],
+            ...['--output', reportPath],
+          ],
         );
       }
     }

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
+import 'package:firehose/src/repo.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
@@ -119,7 +120,7 @@ Future<void> checkGolden(
 }) async {
   final commentPath = p.join(
       Directory.systemTemp.createTempSync().path, 'comment_${check.name}.md');
-  await Health(
+  await FakeHealth(
     directory,
     check,
     [],
@@ -143,6 +144,29 @@ Future<void> checkGolden(
   } else {
     expect(comment, goldenFile.readAsStringSync());
   }
+}
+
+class FakeHealth extends Health {
+  FakeHealth(
+    super.directory,
+    super.check,
+    super.warnOn,
+    super.failOn,
+    super.coverageweb,
+    super.ignoredPackages,
+    super.ignoredLicense,
+    super.ignoredCoverage,
+    super.experiments,
+    super.github,
+    super.flutterPackages, {
+    super.base,
+    super.comment,
+    super.log,
+  });
+
+  @override
+  String getCurrentVersionOfPackage(Package package) =>
+      p.join('../base_test_repo/pkgs', package.name);
 }
 
 class FakeGithubApi implements GithubApi {
