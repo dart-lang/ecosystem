@@ -151,6 +151,10 @@ class Quest {
 
   Quest(this.candidatePackage, this.version, this.applicationFile);
 
+  /// For each package under test, this:
+  /// * Does a pub get (and optionally analyze and test)
+  /// * Upgrades to the new dep version
+  /// * Again runs pub get (and optionally analyze and test)
   Future<Chronicles> embark() async {
     final tempDir = await Directory.systemTemp.createTemp();
     final chapters = <Application, Chapter>{};

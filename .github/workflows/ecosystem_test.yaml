@@ -23,7 +23,7 @@ jobs:
 
       - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
-      - run: dart pub global activate -s git https://github.com/mosuem/ecosystem.git --git-ref main --git-path pkgs/quest
+      - run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/quest
 
       - name: Update package and test
         run: |
