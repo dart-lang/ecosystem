@@ -216,7 +216,14 @@ class Quest {
     if (Directory(fullPath).existsSync()) {
       fullPath = p.join(tempDir.path, '${name}_${url.hashCode}');
     }
-    await Process.run('gh', ['repo', 'clone', url, '--', fullPath]);
+    final processResult =
+        await Process.run('gh', ['repo', 'clone', url, '--', fullPath]);
+    final stdout = processResult.stdout as String;
+    final stderr = processResult.stderr as String;
+    print('stdout:');
+    print(stdout);
+    print('stderr:');
+    print(stderr);
     return fullPath;
   }
 
