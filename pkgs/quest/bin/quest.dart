@@ -9,6 +9,9 @@ import 'package:collection/collection.dart';
 import 'package:firehose/firehose.dart' as fire;
 import 'package:path/path.dart' as p;
 
+final checkEmoji = '\u2705';
+final crossEmoji = '\u274C';
+
 Future<void> main(List<String> arguments) async {
   final repositoriesFile = arguments[0];
   var gitUri = arguments[1].replaceRange(0, 'git'.length, 'https');
@@ -283,7 +286,7 @@ ${chronicles.chapters.entries.map((entry) {
     return '''
 <details>
 <summary>
-<strong>${application.name}</strong> ${chapter.success ? '✅' : '❌'}
+<strong>${application.name}</strong> ${chapter.success ? checkEmoji : crossEmoji}
 </summary>
 
 ${chapter.success ? 'The app tests passed!' : '''
@@ -343,9 +346,9 @@ ${chapter.after[level]?.stderr}
 extension on bool {
   String get toEmoji {
     if (this) {
-      return '✅';
+      return checkEmoji;
     } else {
-      return '❌';
+      return crossEmoji;
     }
   }
 }

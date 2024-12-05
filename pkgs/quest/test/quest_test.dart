@@ -38,6 +38,6 @@ final goldenComment = '''
 
 | Package | Solve | Analyze | Test |
 | ------- | ----- | ------- | ---- |
-| my_app_old_web | ✅/❌ | ✅/✅ | -/- |
-| my_app_new_web | ✅/✅ | ✅/✅ | ✅/✅ |
+| my_app_old_web | $checkEmoji/$crossEmoji | $checkEmoji/$checkEmoji | -/- |
+| my_app_new_web | $checkEmoji/$checkEmoji | $checkEmoji/$checkEmoji | $checkEmoji/$checkEmoji |
 ''';
