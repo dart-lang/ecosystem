@@ -7,6 +7,11 @@ on:
         description: 'Path to the file containing the list of repository names'
         type: string
         required: true
+      local_debug:
+        description: Whether to use a local version of ecosystem testing - only for debug
+        default: false
+        type: boolean
+        required: false
         
 jobs:
   update_and_test:
@@ -23,7 +28,12 @@ jobs:
 
       - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
+      - name: Install firehose
+        run: dart pub global activate -s path pkgs/quest
+        if:  ${{ inputs.local_debug }}
+
       - run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/quest
+        if:  ${{ !inputs.local_debug }}
 
       - name: Update package and test
         run: |
