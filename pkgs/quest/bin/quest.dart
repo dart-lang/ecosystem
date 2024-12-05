@@ -164,16 +164,8 @@ class Quest {
     for (var application in await Application.listFromFile(applicationFile)) {
       final path = await cloneRepo(application.url, tempDir);
       print('Cloned $application into $path');
-      final processResult = await Process.run(
-          'flutter',
-          [
-            'pub',
-            'deps',
-            '--json',
-          ],
-          workingDirectory: path);
-      final depsListResult = processResult.stdout as String;
-      print(depsListResult);
+      final depsListResult =
+          (await runFlutter(['pub', 'deps', '--json'], path)).stdout;
       final depsJson =
           jsonDecode(depsListResult.substring(depsListResult.indexOf('{')))
               as Map<String, dynamic>;
