@@ -166,7 +166,8 @@ class Quest {
       print('Cloned $application into $path');
       final depsListResult =
           (await runFlutter(['pub', 'deps', '--json'], path)).stdout;
-      print(tempDir.listSync(recursive: true).join('\n'));
+      print(
+          'Temp dir contents: ${tempDir.listSync(recursive: true).join('\n')}');
       final depsJson =
           jsonDecode(depsListResult.substring(depsListResult.indexOf('{')))
               as Map<String, dynamic>;
