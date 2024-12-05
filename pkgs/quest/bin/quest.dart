@@ -220,7 +220,6 @@ class Quest {
     return fullPath;
   }
 
-  /// Uses `gh` to clone the Github repo at [url].
   Future<Map<Level, CheckResult>> runChecks(String path, Level level) async {
     final result = <Level, CheckResult>{};
     result[Level.solve] = await runFlutter(['pub', 'get'], path);
