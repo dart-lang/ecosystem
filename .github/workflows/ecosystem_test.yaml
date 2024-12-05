@@ -1,0 +1,66 @@
+name: Ecosystem test
+
+on:
+  workflow_call:
+    inputs:
+      repos_file:
+        description: 'Path to the file containing the list of repository names'
+        type: string
+        required: true
+      local_debug:
+        description: Whether to use a local version of ecosystem testing - only for debug
+        default: false
+        type: boolean
+        required: false
+        
+jobs:
+  update_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+        with:
+          channel: main
+
+      - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+
+      - name: Install firehose
+        run: dart pub global activate -s path pkgs/quest
+        if:  ${{ inputs.local_debug }}
+
+      - run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/quest
+        if:  ${{ !inputs.local_debug }}
+
+      - name: Update package and test
+        run: |
+          dart pub global run quest ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Output issue number
+        run: |
+          mkdir -p output
+          echo ${{ github.event.number }} > output/issueNumber
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@90e9b82d6319a7ae3f32bc0b434db48d6c376e55
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: github-actions[bot]
+          body-includes: '## Ecosystem testing'
+
+      - name: Write comment id to file
+        if: ${{ steps.fc.outputs.comment-id != 0 }} 
+        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+
+      - name: Upload markdown
+        if: success() || failure()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: output
+          path: output/

@@ -1,0 +1,13 @@
+name: Ecosystem test:Internal
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+        
+jobs:
+  test_ecosystem:
+    uses: ./.github/workflows/ecosystem_test.yaml
+    with:
+      repos_file: .github/test_repos/repos.json
+      local_debug: true

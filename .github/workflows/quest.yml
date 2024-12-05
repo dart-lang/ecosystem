@@ -1,0 +1,41 @@
+name: package:quest
+
+permissions: read-all
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/quest.yml'
+      - 'pkgs/quest/**'
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/quest.yml'
+      - 'pkgs/quest/**'
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+defaults:
+  run:
+    working-directory: pkgs/quest
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+        with:
+          channel: main
+
+      - run: dart pub get
+
+      - run: dart analyze --fatal-infos
+
+      - run: dart format --output=none --set-exit-if-changed .
+
+      - run: dart test
