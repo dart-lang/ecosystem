@@ -18,7 +18,7 @@ Future<void> main(List<String> arguments) async {
   gitUri = gitUri.substring(0, gitUri.length - '.git'.length);
   final branch = arguments[2];
   final allLabels = arguments[3].split('\n');
-  if (allLabels.length >= 1) {
+  if (allLabels.isNotEmpty) {
     final labels = allLabels
         .map((e) => e.trim())
         .where((line) => line.startsWith('ecosystem-test'));
@@ -31,9 +31,13 @@ Future<void> main(List<String> arguments) async {
     );
     if (package != null) {
       print('Found $package. Embark on a quest!');
-      final version =
-          '${package.name}:${json.encode({
-            'git': {'url': gitUri, 'ref': branch, 'path': p.relative(package.directory.path, from: Directory.current.path)},
+      final version = '${package.name}:${json.encode({
+            'git': {
+              'url': gitUri,
+              'ref': branch,
+              'path': p.relative(package.directory.path,
+                  from: Directory.current.path)
+            },
           })}';
       final chronicles =
           await Quest(package.name, version, repositoriesFile).embark();
@@ -77,8 +81,9 @@ class Chapter {
   bool get success => failure == null;
 
   Level? get failure => Level.values.firstWhereOrNull(
-    (level) => before[level]?.success == true && after[level]?.success == false,
-  );
+        (level) =>
+            before[level]?.success == true && after[level]?.success == false,
+      );
 
   String toRow(Application application) => '''
 | ${application.name} | ${Level.values.map((l) => '${before[l]?.success.toEmoji ?? '-'}/${after[l]?.success.toEmoji ?? '-'}').join(' | ')} |''';
@@ -120,16 +125,17 @@ class Application {
 
   static Future<Iterable<Application>> listFromFile(String path) async {
     final s = await File(path).readAsString();
-    return (jsonDecode(s) as Map).entries
+    return (jsonDecode(s) as Map)
+        .entries
         .where((e) => e.key != r'$schema')
         .map((e) => MapEntry(e.key as String, e.value as Map))
         .map((e) {
-          return Application(
-            url: e.key,
-            name: (e.value['name'] as String?) ?? p.basename(e.key),
-            level: Level.values.firstWhere((l) => l.name == e.value['level']),
-          );
-        });
+      return Application(
+        url: e.key,
+        name: (e.value['name'] as String?) ?? p.basename(e.key),
+        level: Level.values.firstWhere((l) => l.name == e.value['level']),
+      );
+    });
   }
 
   @override
