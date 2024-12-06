@@ -17,43 +17,35 @@ Future<void> main(List<String> arguments) async {
   var gitUri = arguments[1].replaceRange(0, 'git'.length, 'https');
   gitUri = gitUri.substring(0, gitUri.length - '.git'.length);
   final branch = arguments[2];
-  final lines = arguments[3].split('\n');
-  final labels = lines
-      .sublist(1, lines.length - 1)
-      .map((e) => e.trim())
-      .where((line) => line.startsWith('ecosystem-test'));
-  print('Labels: $labels');
-  final packages = fire.Repository().locatePackages();
-  //TODO: Possibly run for all packages, not just the first.
-  final package = packages.firstWhereOrNull((package) =>
-      labels.any((label) => label == 'ecosystem-test-${package.name}'));
-  if (package != null) {
-    print('Found $package. Embark on a quest!');
-    final version = '${package.name}:${json.encode({
-          'git': {
-            'url': gitUri,
-            'ref': branch,
-            'path':
-                p.relative(package.directory.path, from: Directory.current.path)
-          }
-        })}';
-    final chronicles = await Quest(
-      package.name,
-      version,
-      repositoriesFile,
-    ).embark();
-    final comment = createComment(chronicles);
-    await writeComment(comment);
-    print(chronicles);
-    exitCode = chronicles.success ? 0 : 1;
+  final allLabels = arguments[3].split('\n');
+  if (allLabels.length >= 1) {
+    final labels = allLabels
+        .map((e) => e.trim())
+        .where((line) => line.startsWith('ecosystem-test'));
+    print('Labels: $labels');
+    final packages = fire.Repository().locatePackages();
+    //TODO: Possibly run for all packages, not just the first.
+    final package = packages.firstWhereOrNull(
+      (package) =>
+          labels.any((label) => label == 'ecosystem-test-${package.name}'),
+    );
+    if (package != null) {
+      print('Found $package. Embark on a quest!');
+      final version =
+          '${package.name}:${json.encode({
+            'git': {'url': gitUri, 'ref': branch, 'path': p.relative(package.directory.path, from: Directory.current.path)},
+          })}';
+      final chronicles =
+          await Quest(package.name, version, repositoriesFile).embark();
+      final comment = createComment(chronicles);
+      await writeComment(comment);
+      print(chronicles);
+      exitCode = chronicles.success ? 0 : 1;
+    }
   }
 }
 
-enum Level {
-  solve,
-  analyze,
-  test;
-}
+enum Level { solve, analyze, test }
 
 /// The result of embarking on a quest. Stores the [package] which was tested
 /// with its new [version] as well as the [chapters] of the chronicles, each
@@ -84,8 +76,9 @@ class Chapter {
 
   bool get success => failure == null;
 
-  Level? get failure => Level.values.firstWhereOrNull((level) =>
-      before[level]?.success == true && after[level]?.success == false);
+  Level? get failure => Level.values.firstWhereOrNull(
+    (level) => before[level]?.success == true && after[level]?.success == false,
+  );
 
   String toRow(Application application) => '''
 | ${application.name} | ${Level.values.map((l) => '${before[l]?.success.toEmoji ?? '-'}/${after[l]?.success.toEmoji ?? '-'}').join(' | ')} |''';
@@ -127,17 +120,16 @@ class Application {
 
   static Future<Iterable<Application>> listFromFile(String path) async {
     final s = await File(path).readAsString();
-    return (jsonDecode(s) as Map)
-        .entries
+    return (jsonDecode(s) as Map).entries
         .where((e) => e.key != r'$schema')
         .map((e) => MapEntry(e.key as String, e.value as Map))
         .map((e) {
-      return Application(
-        url: e.key,
-        name: (e.value['name'] as String?) ?? p.basename(e.key),
-        level: Level.values.firstWhere((l) => l.name == e.value['level']),
-      );
-    });
+          return Application(
+            url: e.key,
+            name: (e.value['name'] as String?) ?? p.basename(e.key),
+            level: Level.values.firstWhere((l) => l.name == e.value['level']),
+          );
+        });
   }
 
   @override
@@ -179,8 +171,11 @@ class Quest {
         await runFlutter(['clean'], path);
 
         print('Rev package:$candidatePackage to version $version $application');
-        final revSuccess =
-            await runFlutter(['pub', 'add', version], path, true);
+        final revSuccess = await runFlutter(
+          ['pub', 'add', version],
+          path,
+          true,
+        );
 
         print('Run checks for modified package');
         final resultAfter = await runChecks(path, application.level);
