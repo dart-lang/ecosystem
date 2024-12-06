@@ -221,7 +221,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   ProcessResult runDashProcess(
       List<Package> flutterPackages, Package package, List<String> arguments) {
-    var exec = executable(flutterPackages.contains(package));
+    var exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
     var runApiTool = Process.runSync(
       exec,
