@@ -26,7 +26,7 @@ name: Health
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
 #       upload_coverage: false
-#       use-flutter: true
+#       flutter_packages: "pkgs/my_flutter_package"
 #       ignore_license: "**.g.dart"
 #       ignore_coverage: "**.mock.dart,**.g.dart"
 #       ignore_packages: "pkgs/helper_package"
@@ -42,6 +42,12 @@ on:
       # parameter is not required; it defaults to `stable` - using the most recent
       # stable release of the Dart SDK.
       sdk:
+        description: >-
+          The Dart SDK version, either a semver or one of `dev`, `stable` etc.
+        default: "stable"
+        required: false
+        type: string
+      channel:
         description: >-
           The channel, or a specific version from a channel, to install
           ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
@@ -81,11 +87,11 @@ on:
         default: false
         type: boolean
         required: false
-      use-flutter:
-        description: Whether to setup Flutter in this workflow.
-        default: false
+      flutter_packages:
+        description: List of packages depending on Flutter.
+        default: "\"\""
         required: false
-        type: boolean
+        type: string
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
@@ -122,7 +128,7 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -135,7 +141,7 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_license: ${{ inputs.ignore_license }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
@@ -151,7 +157,7 @@ jobs:
       upload_coverage: ${{ inputs.upload_coverage }}
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_coverage: ${{ inputs.ignore_coverage }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
@@ -166,7 +172,7 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -179,7 +185,7 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -192,7 +198,7 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
-      use-flutter: ${{ inputs.use-flutter }}
+      flutter_packages: ${{ inputs.flutter_packages }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 

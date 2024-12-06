@@ -47,26 +47,40 @@ class Health {
     List<String> ignoredLicense,
     List<String> ignoredCoverage,
     this.experiments,
-    this.github, {
+    this.github,
+    List<String> flutterPackages, {
     Directory? base,
     String? comment,
     this.log = printLogger,
-  })  : ignoredPackages = ignoredPackages
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
-        ignoredFilesForCoverage = ignoredCoverage
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
-        ignoredFilesForLicense = ignoredLicense
-            .map((pattern) => Glob(pattern, recursive: true))
-            .toList(),
+  })  : ignoredPackages = toGlobs(ignoredPackages),
+        flutterPackageGlobs = toGlobs(flutterPackages),
+        ignoredFilesForCoverage = toGlobs(ignoredCoverage),
+        ignoredFilesForLicense = toGlobs(ignoredLicense),
         baseDirectory = base ?? Directory('../base_repo'),
         commentPath = comment ??
             path.join(
               directory.path,
               'output',
               'comment.md',
-            );
+            ) {
+    flutterExecutable =
+        (Process.runSync('which', ['-a', 'flutter']).stdout as String)
+            .split('\n')
+            .where((element) => element.isNotEmpty)
+            .firstOrNull;
+
+    var dartExecutables =
+        (Process.runSync('which', ['-a', 'dart']).stdout as String)
+            .split('\n')
+            .where((element) => element.isNotEmpty);
+    dartExecutable = dartExecutables
+        .sortedBy((path) => path.contains('flutter').toString())
+        .first;
+  }
+
+  static List<Glob> toGlobs(List<String> ignoredPackages) =>
+      ignoredPackages.map((pattern) => Glob(pattern, recursive: true)).toList();
+
   final GithubApi github;
 
   final Check check;
@@ -76,9 +90,16 @@ class Health {
   final List<Glob> ignoredPackages;
   final List<Glob> ignoredFilesForLicense;
   final List<Glob> ignoredFilesForCoverage;
+  final List<Glob> flutterPackageGlobs;
   final Directory baseDirectory;
   final List<String> experiments;
   final Logger log;
+
+  late final String dartExecutable;
+  late final String? flutterExecutable;
+
+  String executable(bool isFlutter) =>
+      isFlutter ? flutterExecutable ?? dartExecutable : dartExecutable;
 
   Future<void> healthCheck() async {
     // Do basic validation of our expected env var.
@@ -91,6 +112,7 @@ class Health {
     log(' warnOn: $warnOn');
     log(' failOn: $failOn');
     log(' coverageweb: $coverageweb');
+    log(' flutterPackages: $flutterPackageGlobs');
     log(' ignoredPackages: $ignoredPackages');
     log(' ignoredForLicense: $ignoredFilesForLicense');
     log(' ignoredForCoverage: $ignoredFilesForCoverage');
@@ -127,33 +149,32 @@ class Health {
       };
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
+    final filesInPR = await listFilesInPRorAll(ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
-    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
-      log('Look for changes in $package with base $baseDirectory');
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
+
+    for (var package
+        in packagesContaining(filesInPR, ignore: ignoredPackages)) {
+      log('Look for changes in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
-      var baseRelativePath = path.relative(
-          path.join(baseDirectory.path, relativePath),
-          from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
-      var runApiTool = Process.runSync(
-        'dart',
+      runDashProcess(
+        flutterPackages,
+        package,
         [
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'diff',
           '--no-check-sdk-version',
-          ...['--old', baseRelativePath],
+          ...['--old', getCurrentVersionOfPackage(package)],
           ...['--new', relativePath],
           ...['--report-format', 'json'],
           ...['--report-file-path', reportPath],
         ],
-        workingDirectory: directory.path,
       );
-      log(runApiTool.stderr as String);
-      log(runApiTool.stdout as String);
 
       var fullReportString = File(reportPath).readAsStringSync();
       var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
@@ -185,6 +206,22 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     );
   }
 
+  String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
+
+  ProcessResult runDashProcess(
+      List<Package> flutterPackages, Package package, List<String> arguments) {
+    var exec = executable(flutterPackages.contains(package));
+    log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
+    var runApiTool = Process.runSync(
+      exec,
+      arguments,
+      workingDirectory: directory.path,
+    );
+    log(runApiTool.stderr as String);
+    log(runApiTool.stdout as String);
+    return runApiTool;
+  }
+
   BreakingLevel _breakingLevel(Map<String, dynamic> report) {
     BreakingLevel breakingLevel;
     if ((report['noChangesDetected'] as bool?) ?? false) {
@@ -200,36 +237,49 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> leakingCheck() async {
-    final filesInPR = await github.listFilesForPR(directory, ignoredPackages);
+    var filesInPR = await listFilesInPRorAll(ignoredPackages);
     final leaksForPackage = <Package, List<String>>{};
-    for (var package in packagesContaining(filesInPR, ignoredPackages)) {
+
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
+    for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
-      var runApiTool = Process.runSync(
-        'dart',
+      var runApiTool = runDashProcess(
+        flutterPackages,
+        package,
         [
           ...['pub', 'global', 'run'],
           'dart_apitool:main',
           'extract',
           ...['--input', relativePath],
           ...['--output', reportPath],
-          '--set-exit-on-missing-export',
         ],
-        workingDirectory: directory.path,
       );
-      log(runApiTool.stderr as String);
-      log(runApiTool.stdout as String);
 
-      var fullReportString = File(reportPath).readAsStringSync();
-      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-      var leaks = decoded['missingEntryPoints'] as List<dynamic>;
+      if (runApiTool.exitCode == 0) {
+        var fullReportString = await File(reportPath).readAsString();
+        var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+        var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-      log('Leaking symbols in API:\n$leaks');
-      if (leaks.isNotEmpty) {
-        leaksForPackage[package] = leaks.cast();
+        log('Leaking symbols in API:\n$leaks');
+        if (leaks.isNotEmpty) {
+          leaksForPackage[package] = leaks.cast();
+        }
+      } else {
+        throw ProcessException(
+          'Api tool finished with exit code ${runApiTool.exitCode}',
+          [
+            ...['pub', 'global', 'run'],
+            'dart_apitool:main',
+            'extract',
+            ...['--input', relativePath],
+            ...['--output', reportPath],
+          ],
+        );
       }
     }
     return HealthCheckResult(
@@ -248,7 +298,7 @@ ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await github.listFilesForPR(directory, ignoredPackages);
+    var files = await listFilesInPRorAll(ignoredPackages);
     var allFilePaths = await getFilesWithoutLicenses(
       directory,
       [...ignoredFilesForLicense, ...ignoredPackages],
@@ -294,6 +344,13 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
     );
   }
 
+  bool healthYamlChanged(List<GitFile> files) => files
+      .where((file) =>
+          [FileStatus.added, FileStatus.modified].contains(file.status))
+      .any((file) =>
+          file.filename.endsWith('health.yaml') ||
+          file.filename.endsWith('health.yml'));
+
   Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(
       github,
@@ -322,7 +379,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
-    final files = await github.listFilesForPR(directory, ignoredPackages);
+    var files = await listFilesInPRorAll(ignoredPackages);
     log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -353,26 +410,44 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
   }
 
+  Future<List<GitFile>> listFilesInPRorAll(List<Glob> ignore) async {
+    final files = await github.listFilesForPR(directory, ignore);
+    return healthYamlChanged(files) ? await _getAllFiles(ignore) : files;
+  }
+
+  Future<List<GitFile>> _getAllFiles(List<Glob> ignored) async =>
+      await directory
+          .list(recursive: true)
+          .where((entity) => entity is File)
+          .map((file) => path.relative(file.path, from: directory.path))
+          .where((file) => ignored.none((glob) => glob.matches(file)))
+          .map((file) => GitFile(file, FileStatus.added, directory))
+          .toList();
+
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = await Coverage(
+    var coverage = Coverage(
       coverageweb,
       ignoredFilesForCoverage,
       ignoredPackages,
       directory,
       experiments,
-    ).compareCoverages(github, directory);
+      dartExecutable,
+    );
+
+    var files = await listFilesInPRorAll(ignoredPackages);
+    var coverageResult = coverage.compareCoveragesFor(files, baseDirectory);
 
     var markdownResult = '''
 | File | Coverage |
 | :--- | :--- |
-${coverage.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
+${coverageResult.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
 
 This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-Coverage) is informational (issues shown here will not fail the PR).
 ''';
 
     return HealthCheckResult(
       Check.coverage,
-      Severity.values[coverage.coveragePerFile.values
+      Severity.values[coverageResult.coveragePerFile.values
           .map((change) => change.severity.index)
           .fold(0, max)],
       markdownResult,
@@ -415,12 +490,13 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
   }
 
   List<Package> packagesContaining(
-    List<GitFile> filesInPR,
-    List<Glob> ignoredPackages,
-  ) {
+    List<GitFile> filesInPR, {
+    List<Glob>? ignore,
+    List<Glob>? only,
+  }) {
     var files = filesInPR.where((element) => element.status.isRelevant);
     return Repository(directory)
-        .locatePackages(ignoredPackages)
+        .locatePackages(ignore: ignore, only: only)
         .where((package) => files.any((file) =>
             path.isWithin(package.directory.path, file.pathInRepository)))
         .toList();

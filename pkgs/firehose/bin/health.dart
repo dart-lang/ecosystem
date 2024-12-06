@@ -48,17 +48,23 @@ void main(List<String> arguments) async {
     ..addFlag(
       'coverage_web',
       help: 'Whether to run web tests for coverage',
+    )
+    ..addMultiOption(
+      'flutter_packages',
+      defaultsTo: [],
+      help: 'The Flutter packages in this repo',
     );
   final parsedArgs = argParser.parse(arguments);
-  final checkStr = parsedArgs['check'] as String;
+  final checkStr = parsedArgs.option('check');
   final check = Check.values.firstWhere((c) => c.name == checkStr);
-  final warnOn = parsedArgs['warn_on'] as List<String>;
-  final failOn = parsedArgs['fail_on'] as List<String>;
+  final warnOn = parsedArgs.multiOption('warn_on');
+  final failOn = parsedArgs.multiOption('fail_on');
+  final flutterPackages = _listNonEmpty(parsedArgs, 'flutter_packages');
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
   final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
   final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
-  final coverageWeb = parsedArgs['coverage_web'] as bool;
+  final coverageWeb = parsedArgs.flag('coverage_web');
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
@@ -74,6 +80,7 @@ void main(List<String> arguments) async {
     ignoreCoverage,
     experiments,
     GithubApi(),
+    flutterPackages,
   ).healthCheck();
 }
 

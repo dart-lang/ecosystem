@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
+import 'package:firehose/src/repo.dart';
 import 'package:github/src/common/model/repos.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
@@ -14,37 +15,39 @@ import 'package:test/test.dart';
 
 Future<void> main() async {
   late final Directory directory;
-  late final FakeGithubApi fakeGithubApi;
+  late final FakeGithubApi Function(List<GitFile> additional) fakeGithubApi;
 
   setUpAll(() async {
     directory = Directory(p.join('test_data', 'test_repo'));
-    fakeGithubApi = FakeGithubApi(prLabels: [], files: [
-      GitFile(
-        'pkgs/package1/bin/package1.dart',
-        FileStatus.modified,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package2/lib/anotherLib.dart',
-        FileStatus.added,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package2/someImage.png',
-        FileStatus.added,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package5/lib/src/package5_base.dart',
-        FileStatus.modified,
-        directory,
-      ),
-      GitFile(
-        'pkgs/package5/pubspec.yaml',
-        FileStatus.modified,
-        directory,
-      ),
-    ]);
+    fakeGithubApi =
+        (List<GitFile> additional) => FakeGithubApi(prLabels: [], files: [
+              GitFile(
+                'pkgs/package1/bin/package1.dart',
+                FileStatus.modified,
+                directory,
+              ),
+              GitFile(
+                'pkgs/package2/lib/anotherLib.dart',
+                FileStatus.added,
+                directory,
+              ),
+              GitFile(
+                'pkgs/package2/someImage.png',
+                FileStatus.added,
+                directory,
+              ),
+              GitFile(
+                'pkgs/package5/lib/src/package5_base.dart',
+                FileStatus.modified,
+                directory,
+              ),
+              GitFile(
+                'pkgs/package5/pubspec.yaml',
+                FileStatus.modified,
+                directory,
+              ),
+              ...additional
+            ]);
 
     await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
@@ -53,7 +56,28 @@ Future<void> main() async {
   for (var check in Check.values) {
     test(
       'Check health workflow "${check.name}" against golden files',
-      () async => await checkGolden(check, fakeGithubApi, directory),
+      () async => await checkGolden(
+        check,
+        fakeGithubApi([]),
+        directory,
+      ),
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    test(
+      'Check health workflow "${check.name}" against golden files '
+      'with health.yaml changed itself',
+      () async => await checkGolden(
+          check,
+          fakeGithubApi([
+            GitFile(
+              '.github/workflows/health.yaml',
+              FileStatus.added,
+              directory,
+            ),
+          ]),
+          directory,
+          suffix: '_healthchanged'),
       timeout: const Timeout(Duration(minutes: 2)),
     );
   }
@@ -61,7 +85,7 @@ Future<void> main() async {
   test('Ignore license test', () async {
     await checkGolden(
       Check.license,
-      fakeGithubApi,
+      fakeGithubApi([]),
       directory,
       suffix: '_ignore_license',
       ignoredLicense: ['pkgs/package3/**'],
@@ -74,7 +98,7 @@ Future<void> main() async {
       for (var check in Check.values) {
         await checkGolden(
           check,
-          fakeGithubApi,
+          fakeGithubApi([]),
           directory,
           suffix: '_ignore_package',
           ignoredPackage: ['pkgs/package1'],
@@ -92,10 +116,11 @@ Future<void> checkGolden(
   String suffix = '',
   List<String> ignoredLicense = const [],
   List<String> ignoredPackage = const [],
+  List<String> flutterPackages = const [],
 }) async {
   final commentPath = p.join(
       Directory.systemTemp.createTempSync().path, 'comment_${check.name}.md');
-  await Health(
+  await FakeHealth(
     directory,
     check,
     [],
@@ -106,6 +131,7 @@ Future<void> checkGolden(
     [],
     [],
     fakeGithubApi,
+    flutterPackages,
     base: Directory(p.join('test_data', 'base_test_repo')),
     comment: commentPath,
     log: printOnFailure,
@@ -118,6 +144,29 @@ Future<void> checkGolden(
   } else {
     expect(comment, goldenFile.readAsStringSync());
   }
+}
+
+class FakeHealth extends Health {
+  FakeHealth(
+    super.directory,
+    super.check,
+    super.warnOn,
+    super.failOn,
+    super.coverageweb,
+    super.ignoredPackages,
+    super.ignoredLicense,
+    super.ignoredCoverage,
+    super.experiments,
+    super.github,
+    super.flutterPackages, {
+    super.base,
+    super.comment,
+    super.log,
+  });
+
+  @override
+  String getCurrentVersionOfPackage(Package package) =>
+      p.join('../base_test_repo/pkgs', package.name);
 }
 
 class FakeGithubApi implements GithubApi {

@@ -3,6 +3,9 @@
 - Remove the `version` pubspec checks (these largely duplicate the feedback
   provided by publishing automation).
 - Set minimum SDK version to `3.5.0` because of the `dart_apitool` dependency.
+- Run health workflow on all packages if it is changed.
+- Specify Flutter packages in the repo, to only have a single workflow file.
+- Compare to last published version in breaking check.
 
 ## 0.9.3
 

@@ -15,6 +15,14 @@ on:
         default: "stable"
         required: false
         type: string
+      channel:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three named channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
       check:
         description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking"
         type: string
@@ -44,11 +52,11 @@ on:
         default: false
         type: boolean
         required: false
-      use-flutter:
-        description: Whether to setup Flutter in this workflow.
-        default: false
+      flutter_packages:
+        description: List of packages depending on Flutter.
+        default: "\"\""
         required: false
-        type: boolean
+        type: string
       ignore_license:
         description: Which files to ignore for the license check.
         default: "\"\""
@@ -98,23 +106,29 @@ jobs:
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
-          
-      - uses: subosito/flutter-action@74af56c5ed2697ba4621264652728e8d217e53d3
-        if: ${{ inputs.use-flutter }}
-        with:
-          channel: ${{ inputs.sdk }}
   
       - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
-        if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
+
+      - uses: subosito/flutter-action@74af56c5ed2697ba4621264652728e8d217e53d3
+        if: ${{ inputs.flutter_packages != '' }}
+        with:
+          channel: ${{ inputs.channel }}
+
+      - name: Check Dart installs whereis
+        run: whereis dart
+
+      - name: Check Dart installs which
+        run: which dart
 
       - name: Install coverage
         run: dart pub global activate coverage
         if: ${{ inputs.check == 'coverage' }}
 
       - name: Install firehose
-        run: dart pub global activate firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref=forceFlutter
+        # DO-NOT-SUBMIT
         if:  ${{ !inputs.local_debug }}
 
       - name: Install local firehose
@@ -139,6 +153,7 @@ jobs:
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
+            --flutter_packages ${{ inputs.flutter_packages }} \
             --ignore_license ${{ inputs.ignore_license }} \
             --ignore_coverage ${{ inputs.ignore_coverage }} \
             --ignore_packages ${{ inputs.ignore_packages }} \
