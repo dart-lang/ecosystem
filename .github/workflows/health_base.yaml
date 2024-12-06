@@ -134,10 +134,6 @@ jobs:
         run: dart pub global activate --source path current_repo/pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
         
-      - name: Install api_tool
-        run: dart pub global activate dart_apitool
-        if: ${{ inputs.check == 'breaking' || inputs.check == 'leaking' }}
-      
       - name: Check PR health
         id: healthstep
         if: ${{ github.event_name == 'pull_request' }}

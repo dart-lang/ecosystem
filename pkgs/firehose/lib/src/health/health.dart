@@ -161,6 +161,16 @@ class Health {
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
+
+      runDashProcess(
+        flutterPackages,
+        package,
+        [
+          ...['pub', 'global', 'activate'],
+          'dart_apitool',
+        ],
+      );
+
       runDashProcess(
         flutterPackages,
         package,
@@ -248,16 +258,27 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
-      var runApiTool = runDashProcess(
+
+      runDashProcess(
         flutterPackages,
         package,
         [
-          ...['pub', 'global', 'run'],
-          'dart_apitool:main',
-          'extract',
-          ...['--input', relativePath],
-          ...['--output', reportPath],
+          ...['pub', 'global', 'activate'],
+          'dart_apitool',
         ],
+      );
+
+      var arguments = [
+        ...['pub', 'global', 'run'],
+        'dart_apitool:main',
+        'extract',
+        ...['--input', relativePath],
+        ...['--output', reportPath],
+      ];
+      var runApiTool = runDashProcess(
+        flutterPackages,
+        package,
+        arguments,
       );
 
       if (runApiTool.exitCode == 0) {
@@ -271,14 +292,9 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         }
       } else {
         throw ProcessException(
+          executable(flutterPackages.contains(package)),
+          arguments,
           'Api tool finished with exit code ${runApiTool.exitCode}',
-          [
-            ...['pub', 'global', 'run'],
-            'dart_apitool:main',
-            'extract',
-            ...['--input', relativePath],
-            ...['--output', reportPath],
-          ],
         );
       }
     }
