@@ -1,4 +1,4 @@
-name: package:quest
+name: package:canary
 
 permissions: read-all
 
@@ -6,19 +6,19 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - '.github/workflows/quest.yml'
-      - 'pkgs/quest/**'
+      - '.github/workflows/canary.yml'
+      - 'pkgs/canary/**'
   push:
     branches: [ main ]
     paths:
-      - '.github/workflows/quest.yml'
-      - 'pkgs/quest/**'
+      - '.github/workflows/canary.yml'
+      - 'pkgs/canary/**'
   schedule:
     - cron: '0 0 * * 0' # weekly
 
 defaults:
   run:
-    working-directory: pkgs/quest
+    working-directory: pkgs/canary
 
 env:
   GH_TOKEN: ${{ github.token }}

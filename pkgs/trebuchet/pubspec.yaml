@@ -1,5 +1,6 @@
 name: trebuchet
 description: A tool for hurling packages into monorepos.
+repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/trebuchet
 
 publish_to: none
 
