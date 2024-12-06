@@ -1,4 +1,4 @@
-name: Ecosystem test:Internal
+name: Canary:Internal
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
         
 jobs:
   test_ecosystem:
-    uses: ./.github/workflows/ecosystem_test.yaml
+    uses: ./.github/workflows/canary.yaml
     with:
       repos_file: .github/test_repos/repos.json
       local_debug: true
