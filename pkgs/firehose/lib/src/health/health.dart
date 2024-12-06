@@ -151,9 +151,10 @@ class Health {
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await listFilesInPRorAll(ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
+
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
-
+    log('This list of Flutter packages is $flutterPackages');
     for (var package
         in packagesContaining(filesInPR, ignore: ignoredPackages)) {
       log('Look for changes in $package');
@@ -252,6 +253,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
+    log('This list of Flutter packages is $flutterPackages');
     for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
       var relativePath =
