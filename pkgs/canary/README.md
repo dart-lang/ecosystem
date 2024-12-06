@@ -1,5 +1,5 @@
-# Quest: Ecosystem Testing for Dart Packages
-Embark your package on a quest of testing against a suite of applications. This helps identify potential breaking changes introduced by package updates, ensuring seamless integration across the ecosystem.
+# Canary: Ecosystem Testing for Dart Packages
+Before publishing, send a canary out to test a package against a suite of applications. This helps identify potential breaking changes introduced by package updates, ensuring seamless integration across the ecosystem.
 
 ## What does it do?
 It checks if your package upgrade would result in failures in the ecosystem. This is achieved by running the following pseudocode:
@@ -35,9 +35,9 @@ for (final app in applicationSuite) {
 }
 ```
 
-2. Add a workflow file with the following contents:
+2. Add a workflow file `canary.yaml` with the following contents:
 ```yaml
-name: Ecosystem test
+name: Canary
 
 on:
   pull_request:
@@ -46,12 +46,12 @@ on:
         
 jobs:
   test_ecosystem:
-    uses: dart-lang/ecosystem/.github/workflows/ecosystem_test.yaml@main
+    uses: dart-lang/ecosystem/.github/workflows/canary.yaml@main
     with:
       repos_file: .github/test_repos/repos.json
 ```
 
-3. To show the markdown result as a comment, also add a workflow file
+3. To show the markdown result as a comment, also add a workflow file `post_summaries.yaml`
 ```yaml
 name: Comment on the pull request
 
@@ -60,9 +60,7 @@ on:
   # do things like create comments on the PR, even if the original workflow couldn't.
   workflow_run:
     workflows: 
-      - Health
-      - Publish
-      - Ecosystem test
+      - Canary
     types:
       - completed
 

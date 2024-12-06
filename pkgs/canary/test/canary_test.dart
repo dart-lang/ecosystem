@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import '../bin/quest.dart';
+import '../bin/canary.dart';
 
 void main() {
   test('test name', () async {
@@ -21,13 +21,13 @@ void main() {
       }),
     );
 
-    final chronicles = await Quest(
+    final mineAirQuality = await Canary(
       'intl',
       'intl:{"git":{"url":"https://github.com/mosuem/i18n","ref":"pr","path":"pkgs/intl"}}',
       repoFile.path,
-    ).embark();
+    ).intoTheMine();
 
-    final comment = createComment(chronicles);
+    final comment = createComment(mineAirQuality);
     expect(comment, startsWith(goldenComment));
     await temp.delete(recursive: true);
   }, timeout: const Timeout(Duration(minutes: 5)));

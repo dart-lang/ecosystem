@@ -1,5 +1,5 @@
 {
-    "$schema": "../../pkgs/quest/schema.json",
+    "$schema": "../../pkgs/canary/schema.json",
     "https://github.com/mosuem/my_app_old_web": {
         "level": "analyze"
     },

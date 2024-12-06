@@ -1,6 +1,6 @@
-name: quest
+name: canary
 description: Test package upgrades against the ecosystem.
-repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/quest
+repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/canary
 
 publish_to: none
 
