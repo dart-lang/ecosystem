@@ -17,35 +17,33 @@ Future<void> main(List<String> arguments) async {
   var gitUri = arguments[1].replaceRange(0, 'git'.length, 'https');
   gitUri = gitUri.substring(0, gitUri.length - '.git'.length);
   final branch = arguments[2];
-  final allLabels = arguments[3].split('\n');
-  if (allLabels.isNotEmpty) {
-    final labels = allLabels
-        .map((e) => e.trim())
-        .where((line) => line.startsWith('ecosystem-test'));
-    print('Labels: $labels');
-    final packages = fire.Repository().locatePackages();
-    //TODO: Possibly run for all packages, not just the first.
-    final package = packages.firstWhereOrNull(
-      (package) =>
-          labels.any((label) => label == 'ecosystem-test-${package.name}'),
-    );
-    if (package != null) {
-      print('Found $package. Embark on a quest!');
-      final version = '${package.name}:${json.encode({
-            'git': {
-              'url': gitUri,
-              'ref': branch,
-              'path': p.relative(package.directory.path,
-                  from: Directory.current.path)
-            },
-          })}';
-      final chronicles =
-          await Quest(package.name, version, repositoriesFile).embark();
-      final comment = createComment(chronicles);
-      await writeComment(comment);
-      print(chronicles);
-      exitCode = chronicles.success ? 0 : 1;
-    }
+  final labels = arguments[3]
+      .split('\n')
+      .map((e) => e.trim())
+      .where((line) => line.startsWith('ecosystem-test'));
+  print('Labels: $labels');
+  final packages = fire.Repository().locatePackages();
+  //TODO: Possibly run for all packages, not just the first.
+  final package = packages.firstWhereOrNull(
+    (package) =>
+        labels.any((label) => label == 'ecosystem-test-${package.name}'),
+  );
+  if (package != null) {
+    print('Found $package. Embark on a quest!');
+    final version = '${package.name}:${json.encode({
+          'git': {
+            'url': gitUri,
+            'ref': branch,
+            'path':
+                p.relative(package.directory.path, from: Directory.current.path)
+          },
+        })}';
+    final chronicles =
+        await Quest(package.name, version, repositoriesFile).embark();
+    final comment = createComment(chronicles);
+    await writeComment(comment);
+    print(chronicles);
+    exitCode = chronicles.success ? 0 : 1;
   }
 }
 
