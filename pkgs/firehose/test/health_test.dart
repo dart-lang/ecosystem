@@ -49,7 +49,15 @@ Future<void> main() async {
               ...additional
             ]);
 
-    await Process.run('dart', ['pub', 'global', 'activate', 'dart_apitool']);
+    await Process.run('dart', [
+      'pub',
+      'global',
+      'activate',
+      '-sgit',
+      'https://github.com/bmw-tech/dart_apitool.git',
+      '--git-ref',
+      apiToolHash,
+    ]);
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
   });
 
