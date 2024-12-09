@@ -1,3 +1,7 @@
+## 0.10.1
+
+- Small fixes to the PR health checker.
+
 ## 0.10.0
 
 - Remove the `version` pubspec checks (these largely duplicate the feedback
