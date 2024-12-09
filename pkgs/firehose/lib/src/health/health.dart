@@ -228,8 +228,8 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       arguments,
       workingDirectory: directory.path,
     );
-    log(runApiTool.stderr as String);
-    log(runApiTool.stdout as String);
+    log('StdOut:\n ${runApiTool.stdout as String}');
+    log('StdErr:\n ${runApiTool.stderr as String}');
     return runApiTool;
   }
 
