@@ -17,6 +17,8 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
+const apiToolHash = '123049d3fa3c1459a5129b2b61d852a388a8511e';
+
 enum Check {
   license('License Headers', 'license'),
   changelog('Changelog Entry', 'changelog'),
@@ -167,8 +169,11 @@ class Health {
         flutterPackages,
         package,
         [
-          ...['pub', 'global', 'activate'],
-          'dart_apitool',
+          'pub',
+          'global',
+          'activate',
+          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
+          ...['--git-ref', apiToolHash],
         ],
       );
 
@@ -265,8 +270,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         flutterPackages,
         package,
         [
-          ...['pub', 'global', 'activate'],
-          'dart_apitool',
+          'pub',
+          'global',
+          'activate',
+          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
+          ...['--git-ref', apiToolHash],
         ],
       );
 
