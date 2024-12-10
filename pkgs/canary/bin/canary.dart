@@ -51,6 +51,8 @@ Future<void> main(List<String> arguments) async {
 
 enum Level { solve, analyze, test }
 
+/// A mapping of a package to application test results.
+///
 /// The result of sending a canary into the mine. Stores the [package] which was
 /// tested with its new [version] as well as the [shaftAirQualities] holding the
 /// information on each individual [Application] which was tested against.
@@ -68,6 +70,8 @@ class MineAirQuality {
 MineAirQuality(package: $package, version: $version, shaftAirQualities: $shaftAirQualities)''';
 }
 
+/// Test results for a specific application.
+///
 /// This stores the result of testing the canary against an individual
 /// [Application].
 class ShaftAirQuality {
