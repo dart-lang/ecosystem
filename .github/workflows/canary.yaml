@@ -1,4 +1,4 @@
-name: Ecosystem test
+name: Canary
 
 on:
   workflow_call:
@@ -14,7 +14,7 @@ on:
         required: false
         
 jobs:
-  update_and_test:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -28,16 +28,16 @@ jobs:
 
       - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
-      - name: Install firehose
-        run: dart pub global activate -s path pkgs/quest
+      - name: Install local version of `package:canary`
+        run: dart pub global activate -s path pkgs/canary
         if:  ${{ inputs.local_debug }}
 
-      - run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/quest
+      - run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/canary
         if:  ${{ !inputs.local_debug }}
 
       - name: Update package and test
         run: |
-          dart pub global run quest ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          dart pub global run canary ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

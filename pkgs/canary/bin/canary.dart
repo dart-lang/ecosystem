@@ -29,82 +29,88 @@ Future<void> main(List<String> arguments) async {
         labels.any((label) => label == 'ecosystem-test-${package.name}'),
   );
   if (package != null) {
-    print('Found $package. Embark on a quest!');
+    print('Found $package to serve as a canary.');
     final version = '${package.name}:${json.encode({
           'git': {
             'url': gitUri,
             'ref': branch,
-            'path':
-                p.relative(package.directory.path, from: Directory.current.path)
+            'path': p.relative(
+              package.directory.path,
+              from: Directory.current.path,
+            )
           },
         })}';
-    final chronicles =
-        await Quest(package.name, version, repositoriesFile).embark();
-    final comment = createComment(chronicles);
+    final mineAirQuality =
+        await Canary(package.name, version, repositoriesFile).intoTheMine();
+    final comment = createComment(mineAirQuality);
     await writeComment(comment);
-    print(chronicles);
-    exitCode = chronicles.success ? 0 : 1;
+    print(mineAirQuality);
+    exitCode = mineAirQuality.success ? 0 : 1;
   }
 }
 
 enum Level { solve, analyze, test }
 
-/// The result of embarking on a quest. Stores the [package] which was tested
-/// with its new [version] as well as the [chapters] of the chronicles, each
-/// storing the result of testing a single [Application].
-class Chronicles {
+/// A mapping of a package to application test results.
+///
+/// The result of sending a canary into the mine. Stores the [package] which was
+/// tested with its new [version] as well as the [shaftAirQualities] holding the
+/// information on each individual [Application] which was tested against.
+class MineAirQuality {
   final String package;
   final String version;
-  final Map<Application, Chapter> chapters;
+  final Map<Application, ShaftAirQuality> shaftAirQualities;
 
-  Chronicles(this.package, this.version, this.chapters);
+  MineAirQuality(this.package, this.version, this.shaftAirQualities);
 
-  bool get success => chapters.values.every((chapter) => chapter.success);
+  bool get success => shaftAirQualities.values.every((shaft) => shaft.success);
 
   @override
-  String toString() {
-    return '''
-Chronicles(package: $package, version: $version, chapters: $chapters)''';
-  }
+  String toString() => '''
+MineAirQuality(package: $package, version: $version, shaftAirQualities: $shaftAirQualities)''';
 }
 
-/// An individual chapter in the [Chronicles]. This stores the result of testing
-///  against an individual [Application].
-class Chapter {
-  final Map<Level, CheckResult> before;
-  final Map<Level, CheckResult> after;
+/// Test results for a specific application.
+///
+/// This stores the result of testing the canary against an individual
+/// [Application].
+class ShaftAirQuality {
+  final Map<Level, AirQuality> before;
+  final Map<Level, AirQuality> after;
 
-  Chapter({required this.before, required this.after});
+  ShaftAirQuality({required this.before, required this.after});
 
   bool get success => failure == null;
 
   Level? get failure => Level.values.firstWhereOrNull(
         (level) =>
-            before[level]?.success == true && after[level]?.success == false,
+            before[level]?.breathable == true &&
+            after[level]?.breathable == false,
       );
 
   String toRow(Application application) => '''
-| ${application.name} | ${Level.values.map((l) => '${before[l]?.success.toEmoji ?? '-'}/${after[l]?.success.toEmoji ?? '-'}').join(' | ')} |''';
+| ${application.name} | ${Level.values.map((l) => '${before[l]?.breathable.toEmoji ?? '-'}/${after[l]?.breathable.toEmoji ?? '-'}').join(' | ')} |''';
 
   @override
-  String toString() => 'Chapter(before: $before, after: $after)';
+  String toString() => 'ShaftAirQuality(before: $before, after: $after)';
 }
 
 /// A success bool paired with the stdout and stderr for easier debugging.
-class CheckResult {
-  final bool success;
+class AirQuality {
+  /// Whether the check was a success.
+  final bool breathable;
   final String stdout;
   final String stderr;
 
-  CheckResult({
-    required this.success,
+  AirQuality({
+    required this.breathable,
     required this.stdout,
     required this.stderr,
   });
 
   @override
   String toString() =>
-      'ChapterLevel(success: $success, stdout: $stdout, stderr: $stderr)';
+      'AirQuality(success: $breathable, stdout: $stdout, stderr: $stderr)';
 }
 
 /// An application to test against, specified by the [url] where it can be
@@ -137,26 +143,28 @@ class Application {
   }
 
   @override
-  String toString() => 'Repository(url: $url, name: $name, level: $level)';
+  String toString() => 'Application(url: $url, name: $name, level: $level)';
 }
 
-/// Contains the logic to fill [Chronicles] with the [Chapter]s of testing the
-/// [candidatePackage] at [version] against the [Application]s listed in the
-/// [applicationFile].
-class Quest {
-  final String candidatePackage;
+/// Contains the logic to determine the [MineAirQuality] and its individual
+/// [ShaftAirQuality]s, by testing the [canaryPackage] at [version] against the
+/// [Application]s listed in the [applicationFile].
+class Canary {
+  final String canaryPackage;
   final String version;
+
+  /// The mine in the analogy, where we send our canary to test.
   final String applicationFile;
 
-  Quest(this.candidatePackage, this.version, this.applicationFile);
+  Canary(this.canaryPackage, this.version, this.applicationFile);
 
   /// For each package under test, this:
   /// * Does a pub get (and optionally analyze and test)
   /// * Upgrades to the new dep version
   /// * Again runs pub get (and optionally analyze and test)
-  Future<Chronicles> embark() async {
+  Future<MineAirQuality> intoTheMine() async {
     final tempDir = await Directory.systemTemp.createTemp();
-    final chapters = <Application, Chapter>{};
+    final shaftAirQualities = <Application, ShaftAirQuality>{};
     for (var application in await Application.listFromFile(applicationFile)) {
       final path = await cloneRepo(application.url, tempDir);
       print('Cloned $application into $path');
@@ -167,36 +175,36 @@ class Quest {
               as Map<String, dynamic>;
       final depsPackages = depsJson['packages'] as List;
       print(depsPackages);
-      if (depsPackages.any((p) => (p as Map)['name'] == candidatePackage)) {
-        print('Run checks for vanilla package');
+      if (depsPackages.any((p) => (p as Map)['name'] == canaryPackage)) {
+        print('Test against the vanilla package');
         final resultBefore = await runChecks(path, application.level);
 
         print('Clean repo');
         await runFlutter(['clean'], path);
 
-        print('Rev package:$candidatePackage to version $version $application');
+        print('Rev package:$canaryPackage to version $version $application');
         final revSuccess = await runFlutter(
           ['pub', 'add', version],
           path,
           true,
         );
 
-        print('Run checks for modified package');
+        print('Test against the modified package');
         final resultAfter = await runChecks(path, application.level);
 
         // flutter pub add runs an implicit pub get
         resultAfter[Level.solve] = revSuccess;
 
-        chapters[application] = Chapter(
+        shaftAirQualities[application] = ShaftAirQuality(
           before: resultBefore,
           after: resultAfter,
         );
       } else {
-        print('No package:$candidatePackage found in $application');
+        print('No package:$canaryPackage found in $application');
       }
     }
     await tempDir.delete(recursive: true);
-    return Chronicles(candidatePackage, version, chapters);
+    return MineAirQuality(canaryPackage, version, shaftAirQualities);
   }
 
   /// Uses `gh` to clone the Github repo at [url].
@@ -219,21 +227,21 @@ class Quest {
     return fullPath;
   }
 
-  Future<Map<Level, CheckResult>> runChecks(String path, Level level) async {
-    final result = <Level, CheckResult>{};
+  Future<Map<Level, AirQuality>> runChecks(String path, Level level) async {
+    final result = <Level, AirQuality>{};
     result[Level.solve] = await runFlutter(['pub', 'get'], path);
     if (level.index >= Level.analyze.index &&
-        result[Level.solve]?.success == true) {
+        result[Level.solve]?.breathable == true) {
       result[Level.analyze] = await runFlutter(['analyze'], path);
     }
     if (level.index >= Level.test.index &&
-        result[Level.solve]?.success == true) {
+        result[Level.solve]?.breathable == true) {
       result[Level.test] = await runFlutter(['test'], path);
     }
     return result;
   }
 
-  Future<CheckResult> runFlutter(
+  Future<AirQuality> runFlutter(
     List<String> arguments,
     String path, [
     bool useDart = false,
@@ -252,8 +260,8 @@ class Quest {
     print(stdout);
     print('stderr:');
     print(stderr);
-    return CheckResult(
-      success: processResult.exitCode == 0,
+    return AirQuality(
+      breathable: processResult.exitCode == 0,
       stdout: stdout,
       stderr: stderr,
     );
@@ -266,37 +274,37 @@ Future<void> writeComment(String content) async {
   await commentFile.writeAsString(content);
 }
 
-String createComment(Chronicles chronicles) {
+String createComment(MineAirQuality mine) {
   final contents = '''
 ## Ecosystem testing
 
 | Package | Solve | Analyze | Test |
 | ------- | ----- | ------- | ---- |
-${chronicles.chapters.entries.map((chapter) => chapter.value.toRow(chapter.key)).join('\n')}
+${mine.shaftAirQualities.entries.map((shaft) => shaft.value.toRow(shaft.key)).join('\n')}
 
 <details>
 <summary>
 <strong>Details per app</strong>
 </summary>
-${chronicles.chapters.entries.map((entry) {
+${mine.shaftAirQualities.entries.map((entry) {
     final application = entry.key;
-    final chapter = entry.value;
+    final shaft = entry.value;
     return '''
 <details>
 <summary>
-<strong>${application.name}</strong> ${chapter.success ? checkEmoji : crossEmoji}
+<strong>${application.name}</strong> ${shaft.success ? checkEmoji : crossEmoji}
 </summary>
 
-${chapter.success ? 'The app tests passed!' : '''
-The failure occured at the "${chapter.failure!.name}" step, this is the error output of that step:
+${shaft.success ? 'The app tests passed!' : '''
+The failure occured at the "${shaft.failure!.name}" step, this is the error output of that step:
 ```
-${chapter.after[chapter.failure!]?.stderr}
+${shaft.after[shaft.failure!]?.stderr}
 ```
 '''}
 
 The complete list of logs is:
 
-${chapter.before.keys.map((level) => '''
+${shaft.before.keys.map((level) => '''
 <details>
 <summary>
 <strong>Logs for step: ${level.name}</strong>
@@ -307,24 +315,24 @@ ${chapter.before.keys.map((level) => '''
 
 StdOut:
 ```
-${chapter.before[level]?.stdout}
+${shaft.before[level]?.stdout}
 ```
 
 StdErr:
 ```
-${chapter.before[level]?.stderr}
+${shaft.before[level]?.stderr}
 ```
 
 ### After:
 
 StdOut:
 ```
-${chapter.after[level]?.stdout}
+${shaft.after[level]?.stdout}
 ```
 
 StdErr:
 ```
-${chapter.after[level]?.stderr}
+${shaft.after[level]?.stderr}
 ```
 
 </details>
