@@ -127,17 +127,13 @@ jobs:
         if: ${{ inputs.check == 'coverage' }}
 
       - name: Install firehose
-        run: dart pub global activate firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
         if:  ${{ !inputs.local_debug }}
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
         if:  ${{ inputs.local_debug }} 
         
-      - name: Install api_tool
-        run: dart pub global activate dart_apitool
-        if: ${{ inputs.check == 'breaking' || inputs.check == 'leaking' }}
-      
       - name: Check PR health
         id: healthstep
         if: ${{ github.event_name == 'pull_request' }}

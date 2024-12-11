@@ -17,6 +17,8 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
+const apiToolHash = '123049d3fa3c1459a5129b2b61d852a388a8511e';
+
 enum Check {
   license('License Headers', 'license'),
   changelog('Changelog Entry', 'changelog'),
@@ -151,9 +153,10 @@ class Health {
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await listFilesInPRorAll(ignoredPackages);
     final changeForPackage = <Package, BreakingChange>{};
+
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
-
+    log('This list of Flutter packages is $flutterPackages');
     for (var package
         in packagesContaining(filesInPR, ignore: ignoredPackages)) {
       log('Look for changes in $package');
@@ -161,6 +164,19 @@ class Health {
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
+
+      runDashProcess(
+        flutterPackages,
+        package,
+        [
+          'pub',
+          'global',
+          'activate',
+          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
+          ...['--git-ref', apiToolHash],
+        ],
+      );
+
       runDashProcess(
         flutterPackages,
         package,
@@ -210,15 +226,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   ProcessResult runDashProcess(
       List<Package> flutterPackages, Package package, List<String> arguments) {
-    var exec = executable(flutterPackages.contains(package));
+    var exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
     var runApiTool = Process.runSync(
       exec,
       arguments,
       workingDirectory: directory.path,
     );
-    log(runApiTool.stderr as String);
-    log(runApiTool.stdout as String);
+    log('StdOut:\n ${runApiTool.stdout as String}');
+    log('StdErr:\n ${runApiTool.stderr as String}');
     return runApiTool;
   }
 
@@ -242,22 +258,37 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
+    log('This list of Flutter packages is $flutterPackages');
     for (var package in packagesContaining(filesInPR)) {
       log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
-      var runApiTool = runDashProcess(
+
+      runDashProcess(
         flutterPackages,
         package,
         [
-          ...['pub', 'global', 'run'],
-          'dart_apitool:main',
-          'extract',
-          ...['--input', relativePath],
-          ...['--output', reportPath],
+          'pub',
+          'global',
+          'activate',
+          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
+          ...['--git-ref', apiToolHash],
         ],
+      );
+
+      var arguments = [
+        ...['pub', 'global', 'run'],
+        'dart_apitool:main',
+        'extract',
+        ...['--input', relativePath],
+        ...['--output', reportPath],
+      ];
+      var runApiTool = runDashProcess(
+        flutterPackages,
+        package,
+        arguments,
       );
 
       if (runApiTool.exitCode == 0) {
@@ -271,14 +302,9 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         }
       } else {
         throw ProcessException(
+          executable(flutterPackages.contains(package)),
+          arguments,
           'Api tool finished with exit code ${runApiTool.exitCode}',
-          [
-            ...['pub', 'global', 'run'],
-            'dart_apitool:main',
-            'extract',
-            ...['--input', relativePath],
-            ...['--output', reportPath],
-          ],
         );
       }
     }
