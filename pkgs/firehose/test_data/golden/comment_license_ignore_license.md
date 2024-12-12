@@ -12,7 +12,6 @@
 | Files |
 | :--- |
 |pkgs/package1/bin/package1.dart|
-|pkgs/package2/lib/anotherLib.dart|
 |pkgs/package5/lib/src/package5_base.dart|
 
 All source files should start with a [license header](https://github.com/dart-lang/ecosystem/wiki/License-Header).
