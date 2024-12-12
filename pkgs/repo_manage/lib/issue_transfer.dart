@@ -39,6 +39,7 @@ class TransferIssuesCommand extends ReportCommand {
         'add-label',
         help: 'Add a label to all transferred issues.',
         valueHelp: 'package:foo',
+        mandatory: true,
       );
   }
 
@@ -54,7 +55,7 @@ class TransferIssuesCommand extends ReportCommand {
     var sourceRepo = parsedArgs.option('source-repo')!;
     var targetRepo = parsedArgs.option('target-repo')!;
 
-    var labelName = argResults!['add-label'] as String?;
+    var labelName = argResults!['add-label'] as String;
 
     if (!applyChanges) {
       print('This is a dry run, no issues will be transferred!');
@@ -70,15 +71,14 @@ class TransferIssuesCommand extends ReportCommand {
 
   Future<int> transferAndLabelIssues(
     RepositorySlug sourceRepo,
-    RepositorySlug targetRepo, [
-    String? labelName,
+    RepositorySlug targetRepo,
+    String labelName, [
     bool applyChanges = false,
   ]) async {
-    if (labelName != null) {
-      print('Create label $labelName');
-      if (applyChanges) {
-        await reportRunner.github.issues.createLabel(targetRepo, labelName);
-      }
+    print('Create label $labelName in source and target repo');
+    if (applyChanges) {
+      await reportRunner.github.issues.createLabel(targetRepo, labelName);
+      await reportRunner.github.issues.createLabel(sourceRepo, labelName);
     }
 
     var issues = await transferIssues(
@@ -90,28 +90,11 @@ class TransferIssuesCommand extends ReportCommand {
 
     print('Transferred ${issues.length} issues');
 
-    if (labelName != null) {
-      var label =
-          getInput('Label the transferred issues with $labelName? (y/N)');
-      if (label) {
-        print('Adding label $labelName to all transferred issues');
-        for (var issueNumber in issues) {
-          print('Add to issue $issueNumber');
-          if (applyChanges) {
-            await reportRunner.github.issues.addLabelsToIssue(
-              targetRepo,
-              issueNumber,
-              [labelName],
-            );
-          }
-        }
-      }
-    }
-
     return 0;
   }
 
-  Future<List<String>> getIssueIds(RepositorySlug slug) async {
+  Future<List<({String id, int number})>> getIssueIds(
+      RepositorySlug slug) async {
     final queryString = '''query {
   repository(owner:"${slug.owner}", name:"${slug.name}") {
     issues(last:100) {
@@ -134,7 +117,8 @@ class TransferIssuesCommand extends ReportCommand {
         var nodes = issues['nodes'] as List;
         return nodes
             .map((node) => node as Map)
-            .map((node) => node['id'] as String)
+            .map((node) =>
+                (id: node['id'] as String, number: node['number'] as int))
             .toList();
       },
     ));
@@ -163,7 +147,7 @@ class TransferIssuesCommand extends ReportCommand {
   Future<List<int>> transferIssues(
     RepositorySlug sourceRepo,
     RepositorySlug targetRepo,
-    String? issueLabel,
+    String issueLabel,
     bool applyChanges,
   ) async {
     var repositoryId = await getRepositoryId(targetRepo);
@@ -183,8 +167,19 @@ class TransferIssuesCommand extends ReportCommand {
 
       for (var issueIdChunk in issueIds.slices(10)) {
         print('Transferring a chunk of ${issueIdChunk.length} issues');
+        print('Adding label $issueLabel to all issues in chunk');
+        for (var issueNumber in issueIdChunk) {
+          print('Add to issue $issueNumber');
+          if (applyChanges) {
+            await reportRunner.github.issues.addLabelsToIssue(
+              sourceRepo,
+              issueNumber.number,
+              [issueLabel],
+            );
+          }
+        }
         var transferredIssues = await _transferMutation(
-          issueIdChunk,
+          issueIdChunk.map((issue) => issue.id).toList(),
           repositoryId,
           applyChanges,
         );
