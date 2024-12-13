@@ -233,7 +233,7 @@ Add a line to the changelog:
       '''
 Add the package to the top-level readme of the monorepo:
 ```
-| [$input]($prefix/$input/) | ${pubspec?.description ?? ''} | [![package issues](https://img.shields.io/badge/package:$input-4774bc)](https://github.com/dart-lang/tools/issues?q=is%3Aissue+is%3Aopen+label%3Apackage%3A$input) | [![pub package](https://img.shields.io/pub/v/$input.svg)](https://pub.dev/packages/$input) |
+| [$input]($prefix/$input/) | ${pubspec?.description ?? ''} | [![package issues](https://img.shields.io/badge/issues-4774bc)](https://github.com/dart-lang/tools/issues?q=is%3Aissue+is%3Aopen+label%3Apackage%3A$input) | [![pub package](https://img.shields.io/pub/v/$input.svg)](https://pub.dev/packages/$input) |
 ```
 ''',
       "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
