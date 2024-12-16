@@ -41,11 +41,13 @@ class Coverage {
         .where((file) => file.status != FileStatus.removed)
         .where((file) => isInSomePackage(packages, file.filename))
         .where((file) => isNotATest(packages, file.filename))
+        .whereNot(
+            (file) => ignoredFiles.any((glob) => glob.matches(file.filename)))
         .toList();
     print('The files of interest are $filesOfInterest');
 
     var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages(ignore: ignoredFiles);
+    var basePackages = baseRepository.locatePackages(ignore: ignoredPackages);
     print('Found packages $basePackages at $base');
 
     var changedPackages = packages
