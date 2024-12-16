@@ -26,7 +26,7 @@ Future<List<String>> getFilesWithoutLicenses(
         if (ignoredFiles.none((glob) =>
             glob.matches(path.relative(file.path, from: repositoryDir.path)))) {
           var fileContents = File(file.path).readAsStringSync();
-          if (!fileIsGenerated(fileContents) &&
+          if (!fileIsGenerated(fileContents, file.path) &&
               !fileContainsCopyright(fileContents)) {
             print(relativePath);
             return relativePath;
@@ -41,10 +41,12 @@ Done, found ${filesWithoutLicenses.length} files without license headers''');
   return filesWithoutLicenses;
 }
 
-bool fileIsGenerated(String fileContents) => fileContents
-    .split('\n')
-    .takeWhile((line) => line.startsWith('//') || line.isEmpty)
-    .any((line) => line.toLowerCase().contains('generate'));
+bool fileIsGenerated(String fileContents, String path) =>
+    path.endsWith('g.dart') ||
+    fileContents
+        .split('\n')
+        .takeWhile((line) => line.startsWith('//') || line.isEmpty)
+        .any((line) => line.toLowerCase().contains('generate'));
 
 bool fileContainsCopyright(String fileContents) =>
     fileContents.contains('// Copyright (c)');
