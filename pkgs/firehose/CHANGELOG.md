@@ -1,3 +1,7 @@
+## 0.10.2-wip
+
+- Don't check licenses of generated files in PR health workflow.
+
 ## 0.10.1
 
 - Small fixes to the PR health checker.
