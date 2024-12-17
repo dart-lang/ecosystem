@@ -1,0 +1,13 @@
+# Below are suggested reviewers for PRs to packages in this repository.
+#
+# These are suggestions; it is fine to have your changes reviewed by someone
+# else.
+
+/pkgs/blast_repo/              @kevmoo
+/pkgs/canary/                  @mosuem
+/pkgs/corpus/                  @devoncarew
+/pkgs/dart_flutter_team_lints/ @devoncarew @natebosch
+/pkgs/firehose/                @devoncarew @mosuem
+/pkgs/repo_manage/             @devoncarew @mosuem
+/pkgs/sdk_triage_bot/          @devoncarew
+/pkgs/trebuchet/               @mosuem
