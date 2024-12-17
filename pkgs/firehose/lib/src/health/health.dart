@@ -29,9 +29,9 @@ enum Check {
 
   final String tag;
 
-  final String name;
+  final String displayName;
 
-  const Check(this.tag, this.name);
+  const Check(this.tag, this.displayName);
 }
 
 class Health {
@@ -46,8 +46,7 @@ class Health {
     this.failOn,
     this.coverageweb,
     List<String> ignoredPackages,
-    List<String> ignoredLicense,
-    List<String> ignoredCoverage,
+    Map<Check, List<String>> ignoredFor,
     this.experiments,
     this.github,
     List<String> flutterPackages, {
@@ -56,8 +55,8 @@ class Health {
     this.log = printLogger,
   })  : ignoredPackages = toGlobs(ignoredPackages),
         flutterPackageGlobs = toGlobs(flutterPackages),
-        ignoredFilesForCoverage = toGlobs(ignoredCoverage),
-        ignoredFilesForLicense = toGlobs(ignoredLicense),
+        ignoredFor =
+            ignoredFor.map((c, globString) => MapEntry(c, toGlobs(globString))),
         baseDirectory = base ?? Directory('../base_repo'),
         commentPath = comment ??
             path.join(
@@ -90,8 +89,7 @@ class Health {
   final List<String> failOn;
   final bool coverageweb;
   final List<Glob> ignoredPackages;
-  final List<Glob> ignoredFilesForLicense;
-  final List<Glob> ignoredFilesForCoverage;
+  final Map<Check, List<Glob>> ignoredFor;
   final List<Glob> flutterPackageGlobs;
   final Directory baseDirectory;
   final List<String> experiments;
@@ -99,6 +97,8 @@ class Health {
 
   late final String dartExecutable;
   late final String? flutterExecutable;
+
+  List<Glob> get ignored => [...ignoredPackages, ...ignoredFor[check] ?? []];
 
   String executable(bool isFlutter) =>
       isFlutter ? flutterExecutable ?? dartExecutable : dartExecutable;
@@ -109,25 +109,24 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    var checkName = check.name;
+    var checkName = check.displayName;
     log('Start health check for the check $checkName with');
     log(' warnOn: $warnOn');
     log(' failOn: $failOn');
     log(' coverageweb: $coverageweb');
     log(' flutterPackages: $flutterPackageGlobs');
     log(' ignoredPackages: $ignoredPackages');
-    log(' ignoredForLicense: $ignoredFilesForLicense');
-    log(' ignoredForCoverage: $ignoredFilesForCoverage');
+    log(' ignoredFor: $ignoredFor');
     log(' baseDirectory: $baseDirectory');
     log(' experiments: $experiments');
     log('Checking for $checkName');
     if (!github.prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
-      if (warnOn.contains(check.name) &&
+      if (warnOn.contains(check.displayName) &&
           firstResult.severity == Severity.error) {
         finalResult = firstResult.withSeverity(Severity.warning);
-      } else if (failOn.contains(check.name) &&
+      } else if (failOn.contains(check.displayName) &&
           firstResult.severity == Severity.warning) {
         finalResult = firstResult.withSeverity(Severity.error);
       } else {
@@ -151,14 +150,13 @@ class Health {
       };
 
   Future<HealthCheckResult> breakingCheck() async {
-    final filesInPR = await listFilesInPRorAll(ignoredPackages);
+    final filesInPR = await listFilesInPRorAll();
     final changeForPackage = <Package, BreakingChange>{};
 
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
-    for (var package
-        in packagesContaining(filesInPR, ignore: ignoredPackages)) {
+    for (var package in packagesContaining(filesInPR, ignore: ignored)) {
       log('Look for changes in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -253,7 +251,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> leakingCheck() async {
-    var filesInPR = await listFilesInPRorAll(ignoredPackages);
+    var filesInPR = await listFilesInPRorAll();
     final leaksForPackage = <Package, List<String>>{};
 
     final flutterPackages =
@@ -324,11 +322,8 @@ ${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await listFilesInPRorAll(ignoredPackages);
-    var allFilePaths = await getFilesWithoutLicenses(
-      directory,
-      [...ignoredFilesForLicense, ...ignoredPackages],
-    );
+    var files = await listFilesInPRorAll();
+    var allFilePaths = await getFilesWithoutLicenses(directory, ignored);
 
     var groupedPaths = allFilePaths.groupListsBy((filePath) {
       return files.any((f) => f.filename == filePath);
@@ -380,7 +375,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(
       github,
-      ignoredPackages,
+      ignored,
       directory,
     );
 
@@ -405,7 +400,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
-    var files = await listFilesInPRorAll(ignoredPackages);
+    var files = await listFilesInPRorAll();
     log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -436,31 +431,29 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
     );
   }
 
-  Future<List<GitFile>> listFilesInPRorAll(List<Glob> ignore) async {
-    final files = await github.listFilesForPR(directory, ignore);
-    return healthYamlChanged(files) ? await _getAllFiles(ignore) : files;
+  Future<List<GitFile>> listFilesInPRorAll() async {
+    final files = await github.listFilesForPR(directory, ignored);
+    return healthYamlChanged(files) ? await _getAllFiles() : files;
   }
 
-  Future<List<GitFile>> _getAllFiles(List<Glob> ignored) async =>
-      await directory
-          .list(recursive: true)
-          .where((entity) => entity is File)
-          .map((file) => path.relative(file.path, from: directory.path))
-          .where((file) => ignored.none((glob) => glob.matches(file)))
-          .map((file) => GitFile(file, FileStatus.added, directory))
-          .toList();
+  Future<List<GitFile>> _getAllFiles() async => await directory
+      .list(recursive: true)
+      .where((entity) => entity is File)
+      .map((file) => path.relative(file.path, from: directory.path))
+      .where((file) => ignored.none((glob) => glob.matches(file)))
+      .map((file) => GitFile(file, FileStatus.added, directory))
+      .toList();
 
   Future<HealthCheckResult> coverageCheck() async {
     var coverage = Coverage(
       coverageweb,
-      ignoredFilesForCoverage,
-      ignoredPackages,
+      ignored,
       directory,
       experiments,
       dartExecutable,
     );
 
-    var files = await listFilesInPRorAll(ignoredPackages);
+    var files = await listFilesInPRorAll();
     var coverageResult = coverage.compareCoveragesFor(files, baseDirectory);
 
     var markdownResult = '''
@@ -495,7 +488,7 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
 $markdown
 
-${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.name}-check`.' : ''}
+${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.displayName}-check`.' : ''}
 </details>
 
 ''';

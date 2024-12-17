@@ -14,7 +14,7 @@ final license = '''
 // BSD-style license that can be found in the LICENSE file.''';
 
 Future<List<String>> getFilesWithoutLicenses(
-    Directory repositoryDir, List<Glob> ignoredFiles) async {
+    Directory repositoryDir, List<Glob> ignored) async {
   var dartFiles = await repositoryDir
       .list(recursive: true)
       .where((file) => file.path.endsWith('.dart'))
@@ -23,7 +23,7 @@ Future<List<String>> getFilesWithoutLicenses(
   var filesWithoutLicenses = dartFiles
       .map((file) {
         var relativePath = path.relative(file.path, from: repositoryDir.path);
-        if (ignoredFiles.none((glob) =>
+        if (ignored.none((glob) =>
             glob.matches(path.relative(file.path, from: repositoryDir.path)))) {
           var fileContents = File(file.path).readAsStringSync();
           if (!fileIsGenerated(fileContents, file.path) &&

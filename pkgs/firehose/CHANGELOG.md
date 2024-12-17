@@ -1,6 +1,7 @@
 ## 0.10.2-wip
 
 - Don't check licenses of generated files in PR health workflow.
+- Add generalized ignore-per-checks to health workflow.
 
 ## 0.10.1
 

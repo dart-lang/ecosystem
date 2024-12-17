@@ -28,7 +28,11 @@ name: Health
 #       upload_coverage: false
 #       flutter_packages: "pkgs/my_flutter_package"
 #       ignore_license: "**.g.dart"
+#       ignore_changelog: ""
 #       ignore_coverage: "**.mock.dart,**.g.dart"
+#       ignore_breaking: ""
+#       ignore_leaking: ""
+#       ignore_donotsubmit: ""
 #       ignore_packages: "pkgs/helper_package"
 #       checkout_submodules: false
 #       experiments: "native-assets"
@@ -97,8 +101,28 @@ on:
         default: "\"\""
         required: false
         type: string
+      ignore_changelog:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
       ignore_coverage:
         description: Which files to ignore for the coverage check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_breaking:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_leaking:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_donotsubmit:
+        description: Which files to ignore for the license check.
         default: "\"\""
         required: false
         type: string
@@ -129,6 +153,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_changelog: ${{ inputs.ignore_changelog }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -173,6 +198,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_breaking: ${{ inputs.ignore_breaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -186,6 +212,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_donotsubmit: ${{ inputs.ignore_donotsubmit }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
@@ -199,6 +226,7 @@ jobs:
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
       flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_leaking: ${{ inputs.ignore_leaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
 
