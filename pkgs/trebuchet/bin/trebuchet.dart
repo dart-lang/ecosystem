@@ -129,8 +129,12 @@ class Trebuchet {
 
     print('Start moving package');
 
-    print('Rename to `pkgs/`');
-    await filterRepo(['--path-rename', ':pkgs/$input/']);
+    print('Checkout correct branch at target repo');
+    await runProcess('git', ['checkout', targetBranchName]);
+
+    final prefix = 'pkgs';
+    print('Rename to `$prefix/`');
+    await filterRepo(['--path-rename', ':$prefix/$input/']);
 
     print('Prefix tags');
     await filterRepo(['--tag-rename', ':$input-']);
@@ -169,12 +173,12 @@ class Trebuchet {
     Pubspec? pubspec;
     if (!dryRun) {
       final pubspecFile =
-          File(p.join(targetPath, 'pkgs', input, 'pubspec.yaml'));
+          File(p.join(targetPath, prefix, input, 'pubspec.yaml'));
       final pubspecContents = await pubspecFile.readAsString();
       pubspec = Pubspec.parse(pubspecContents);
       final newPubspecContents = pubspecContents.replaceFirst(
         'repository: https://github.com/dart-lang/$input',
-        'repository: https://github.com/dart-lang/$target/tree/$targetBranchName/pkgs/$input',
+        'repository: https://github.com/dart-lang/$target/tree/$targetBranchName/$prefix/$input',
       );
       await pubspecFile.writeAsString(newPubspecContents);
     }
@@ -196,7 +200,7 @@ labels: "package:$input"
     print('Remove CONTRIBUTING.md');
     if (!dryRun) {
       final contributingFile =
-          File(p.join(targetPath, 'pkgs', input, 'CONTRIBUTING.md'));
+          File(p.join(targetPath, prefix, input, 'CONTRIBUTING.md'));
       if (await contributingFile.exists()) await contributingFile.delete();
     }
 
@@ -229,7 +233,7 @@ Add a line to the changelog:
       '''
 Add the package to the top-level readme of the monorepo:
 ```
-| [$input](pkgs/$input/) | ${pubspec?.description ?? ''} | [![pub package](https://img.shields.io/pub/v/$input.svg)](https://pub.dev/packages/$input) |
+| [$input]($prefix/$input/) | ${pubspec?.description ?? ''} | [![package issues](https://img.shields.io/badge/issues-4774bc)](https://github.com/dart-lang/tools/issues?q=is%3Aissue+is%3Aopen+label%3Apackage%3A$input) | [![pub package](https://img.shields.io/pub/v/$input.svg)](https://pub.dev/packages/$input) |
 ```
 ''',
       "**Important!** Merge the PR with 'Create a merge commit' (enabling then disabling the `Allow merge commits` admin setting)",
@@ -239,12 +243,14 @@ Add the following text to https://github.com/dart-lang/$input/:'
 
 ```
 > [!IMPORTANT]  
-> This repo has moved to https://github.com/dart-lang/$target/tree/$targetBranchName/pkgs/$input
+> This repo has moved to https://github.com/dart-lang/$target/tree/$targetBranchName/$prefix/$input
 ```
 ''',
       'Publish using the autopublish workflow',
       """Push tags to GitHub using
-```git tag --list '$input*' | xargs git push origin```
+```
+git tag --list '$input*' | xargs git push origin
+```
 """,
       '''
 Close open PRs in dart-lang/$input with the following message:
@@ -254,7 +260,9 @@ Closing as the [dart-lang/$input](https://github.com/dart-lang/$input) repositor
 ```
       ''',
       '''Transfer issues by running
-```dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes```
+```
+dart run pkgs/repo_manage/bin/report.dart transfer-issues --source-repo dart-lang/$input --target-repo dart-lang/$target --add-label package:$input --apply-changes
+```
 ''',
       'Archive https://github.com/dart-lang/$input/',
     ];
