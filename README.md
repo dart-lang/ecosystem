@@ -1,5 +1,3 @@
-[![Dart CI](https://github.com/dart-lang/ecosystem/actions/workflows/dart.yml/badge.svg)](https://github.com/dart-lang/ecosystem/actions/workflows/dart.yml)
-
 ## Overview
 
 This repository is home to general Dart Ecosystem tools and packages.
