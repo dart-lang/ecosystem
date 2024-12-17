@@ -42,7 +42,7 @@ Done, found ${filesWithoutLicenses.length} files without license headers''');
 }
 
 bool fileIsGenerated(String fileContents, String path) =>
-    path.endsWith('g.dart') ||
+    path.endsWith('.g.dart') ||
     fileContents
         .split('\n')
         .takeWhile((line) => line.startsWith('//') || line.isEmpty)

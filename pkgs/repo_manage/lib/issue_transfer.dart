@@ -178,6 +178,7 @@ class TransferIssuesCommand extends ReportCommand {
             );
           }
         }
+        await Future<void>.delayed(const Duration(milliseconds: 500));
         var transferredIssues = await _transferMutation(
           issueIdChunk.map((issue) => issue.id).toList(),
           repositoryId,
@@ -189,7 +190,7 @@ class TransferIssuesCommand extends ReportCommand {
           return allIssueIds;
         }
         allIssueIds.addAll(transferredIssues.$1);
-        await Future<void>.delayed(const Duration(seconds: 1));
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       }
 
       if (!applyChanges) {
