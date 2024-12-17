@@ -16,16 +16,14 @@ import 'lcov.dart';
 
 class Coverage {
   final bool coverageWeb;
-  final List<Glob> ignoredFiles;
-  final List<Glob> ignoredPackages;
+  final List<Glob> ignored;
   final Directory directory;
   final List<String> experiments;
   final String dartExecutable;
 
   Coverage(
     this.coverageWeb,
-    this.ignoredFiles,
-    this.ignoredPackages,
+    this.ignored,
     this.directory,
     this.experiments,
     this.dartExecutable,
@@ -33,7 +31,7 @@ class Coverage {
 
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
     var repository = Repository(directory);
-    var packages = repository.locatePackages(ignore: ignoredPackages);
+    var packages = repository.locatePackages(ignore: ignored);
     print('Found packages $packages at $directory');
 
     var filesOfInterest = files
@@ -41,13 +39,12 @@ class Coverage {
         .where((file) => file.status != FileStatus.removed)
         .where((file) => isInSomePackage(packages, file.filename))
         .where((file) => isNotATest(packages, file.filename))
-        .where(
-            (file) => ignoredFiles.none((glob) => glob.matches(file.filename)))
+        .where((file) => ignored.none((glob) => glob.matches(file.filename)))
         .toList();
     print('The files of interest are $filesOfInterest');
 
     var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages(ignore: ignoredPackages);
+    var basePackages = baseRepository.locatePackages(ignore: ignored);
     print('Found packages $basePackages at $base');
 
     var changedPackages = packages

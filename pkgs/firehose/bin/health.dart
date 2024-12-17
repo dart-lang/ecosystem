@@ -9,7 +9,7 @@ import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 
 void main(List<String> arguments) async {
-  var checkTypes = Check.values.map((c) => c.name);
+  var checkTypes = Check.values.map((c) => c.displayName);
   var argParser = ArgParser()
     ..addOption(
       'check',
@@ -20,16 +20,6 @@ void main(List<String> arguments) async {
       'ignore_packages',
       defaultsTo: [],
       help: 'Which packages to ignore.',
-    )
-    ..addMultiOption(
-      'ignore_license',
-      defaultsTo: [],
-      help: 'Which files to ignore for the license check.',
-    )
-    ..addMultiOption(
-      'ignore_coverage',
-      defaultsTo: [],
-      help: 'Which files to ignore for the coverage check.',
     )
     ..addMultiOption(
       'warn_on',
@@ -54,15 +44,22 @@ void main(List<String> arguments) async {
       defaultsTo: [],
       help: 'The Flutter packages in this repo',
     );
+  for (var check in Check.values) {
+    argParser.addMultiOption(
+      'ignore_${check.name}',
+      defaultsTo: [],
+      help: 'Which files to ignore for the ${check.displayName} check.',
+    );
+  }
   final parsedArgs = argParser.parse(arguments);
   final checkStr = parsedArgs.option('check');
-  final check = Check.values.firstWhere((c) => c.name == checkStr);
+  final check = Check.values.firstWhere((c) => c.displayName == checkStr);
   final warnOn = parsedArgs.multiOption('warn_on');
   final failOn = parsedArgs.multiOption('fail_on');
   final flutterPackages = _listNonEmpty(parsedArgs, 'flutter_packages');
   final ignorePackages = _listNonEmpty(parsedArgs, 'ignore_packages');
-  final ignoreLicense = _listNonEmpty(parsedArgs, 'ignore_license');
-  final ignoreCoverage = _listNonEmpty(parsedArgs, 'ignore_coverage');
+  final ignoredFor = Map.fromEntries(Check.values
+      .map((c) => MapEntry(c, _listNonEmpty(parsedArgs, 'ignore_${c.name}'))));
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
   final coverageWeb = parsedArgs.flag('coverage_web');
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
@@ -76,8 +73,7 @@ void main(List<String> arguments) async {
     failOn,
     coverageWeb,
     ignorePackages,
-    ignoreLicense,
-    ignoreCoverage,
+    ignoredFor,
     experiments,
     GithubApi(),
     flutterPackages,

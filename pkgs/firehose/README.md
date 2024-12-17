@@ -229,17 +229,16 @@ jobs:
 
 | Name | Type | Description | Example |
 | ------------- | ------------- | ------------- | ------------- |
-| checks  | List of strings  | What to check for in the PR health check | `"version,changelog,license,coverage,breaking,do-not-submit,leaking"` |
-| fail_on  | List of strings  | Which checks should lead to failure | `"version,changelog,do-not-submit"` |
-| warn_on  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
-| upload_coverage  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
-| coverage_web  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
-| use-flutter  | boolean  | Whether to setup Flutter in this workflow | `false` |
-| ignore_license  | List of globs  | | `"**.g.dart"` |
-| ignore_coverage  | List of globs  | Which files to ignore for the license check | `"**.mock.dart,**.g.dart"` |
-| ignore_packages  | List of globs  | Which packages to ignore | `"pkgs/helper_package"` |
-| checkout_submodules  | boolean  | Whether to checkout submodules of git repositories | `false` |
-| experiments  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |
+| `checks`  | List of strings  | What to check for in the PR health check | `"version,changelog,license,coverage,breaking,do-not-submit,leaking"` |
+| `fail_on`  | List of strings  | Which checks should lead to failure | `"version,changelog,do-not-submit"` |
+| `warn_on`  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
+| `upload_coverage`  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
+| `coverage_web`  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
+| `flutter_packages`  | List of strings  | List of packages depending on Flutter | `"pkgs/intl_flutter"` |
+| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, or `donotsubmit` | `"**.g.dart"` |
+| `ignore_packages`  | List of globs  | Which packages to ignore completely | `"pkgs/helper_package"` |
+| `checkout_submodules`  | boolean  | Whether to checkout submodules of git repositories | `false` |
+| `experiments`  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |
 
 ### Workflow docs
 

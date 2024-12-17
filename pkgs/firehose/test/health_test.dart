@@ -63,7 +63,7 @@ Future<void> main() async {
 
   for (var check in Check.values) {
     test(
-      'Check health workflow "${check.name}" against golden files',
+      'Check health workflow "${check.displayName}" against golden files',
       () async => await checkGolden(
         check,
         fakeGithubApi([]),
@@ -73,7 +73,7 @@ Future<void> main() async {
     );
 
     test(
-      'Check health workflow "${check.name}" against golden files '
+      'Check health workflow "${check.displayName}" against golden files '
       'with health.yaml changed itself',
       () async => await checkGolden(
           check,
@@ -96,7 +96,9 @@ Future<void> main() async {
       fakeGithubApi([]),
       directory,
       suffix: '_ignore_license',
-      ignoredLicense: ['pkgs/package3/**'],
+      ignoreFor: {
+        Check.license: ['pkgs/package3/**']
+      },
     );
   });
 
@@ -122,12 +124,12 @@ Future<void> checkGolden(
   FakeGithubApi fakeGithubApi,
   Directory directory, {
   String suffix = '',
-  List<String> ignoredLicense = const [],
+  Map<Check, List<String>> ignoreFor = const {},
   List<String> ignoredPackage = const [],
   List<String> flutterPackages = const [],
 }) async {
-  final commentPath = p.join(
-      Directory.systemTemp.createTempSync().path, 'comment_${check.name}.md');
+  final commentPath = p.join(Directory.systemTemp.createTempSync().path,
+      'comment_${check.displayName}.md');
   await FakeHealth(
     directory,
     check,
@@ -135,8 +137,7 @@ Future<void> checkGolden(
     [],
     false,
     ignoredPackage,
-    ignoredLicense,
-    [],
+    ignoreFor,
     [],
     fakeGithubApi,
     flutterPackages,
@@ -145,8 +146,8 @@ Future<void> checkGolden(
     log: printOnFailure,
   ).healthCheck();
   var comment = await File(commentPath).readAsString();
-  var goldenFile =
-      File(p.join('test_data', 'golden', 'comment_${check.name}$suffix.md'));
+  var goldenFile = File(
+      p.join('test_data', 'golden', 'comment_${check.displayName}$suffix.md'));
   if (Platform.environment['RESET_GOLDEN'] == '1') {
     goldenFile.writeAsStringSync(comment);
   } else {
@@ -163,7 +164,6 @@ class FakeHealth extends Health {
     super.coverageweb,
     super.ignoredPackages,
     super.ignoredLicense,
-    super.ignoredCoverage,
     super.experiments,
     super.github,
     super.flutterPackages, {

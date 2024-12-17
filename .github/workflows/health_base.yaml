@@ -62,8 +62,28 @@ on:
         default: "\"\""
         required: false
         type: string
+      ignore_changelog:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
       ignore_coverage:
         description: Which files to ignore for the coverage check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_breaking:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_leaking:
+        description: Which files to ignore for the license check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_donotsubmit:
+        description: Which files to ignore for the license check.
         default: "\"\""
         required: false
         type: string
@@ -149,9 +169,13 @@ jobs:
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
             --flutter_packages ${{ inputs.flutter_packages }} \
-            --ignore_license ${{ inputs.ignore_license }} \
-            --ignore_coverage ${{ inputs.ignore_coverage }} \
             --ignore_packages ${{ inputs.ignore_packages }} \
+            --ignore_license ${{ inputs.ignore_license }} \
+            --ignore_changelog ${{ inputs.ignore_changelog }} \
+            --ignore_coverage ${{ inputs.ignore_coverage }} \
+            --ignore_breaking ${{ inputs.ignore_breaking }} \
+            --ignore_leaking ${{ inputs.ignore_leaking }} \
+            --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
             --experiments ${{ inputs.experiments }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
