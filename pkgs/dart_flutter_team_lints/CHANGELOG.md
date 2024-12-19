@@ -1,4 +1,4 @@
-# 3.3.0
+## 3.3.0
 
 - Added `strict_top_level_inference`.
 - Require Dart `3.7`.
