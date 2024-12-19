@@ -1,3 +1,8 @@
+## 3.3.0
+
+- Added `strict_top_level_inference`.
+- Require Dart `3.7`.
+
 ## 3.2.1
 
 - Depend on the `5.0.0` release of `package:lints`.
