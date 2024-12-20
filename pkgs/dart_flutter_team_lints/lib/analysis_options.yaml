@@ -45,6 +45,7 @@ linter:
     - comment_references
     - conditional_uri_does_not_exist
     - only_throw_errors
+    - strict_top_level_inference
     - test_types_in_equals
     - throw_in_finally
     - type_annotate_public_apis

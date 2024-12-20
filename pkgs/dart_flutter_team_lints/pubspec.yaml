@@ -1,10 +1,10 @@
 name: dart_flutter_team_lints
 description: An analysis rule set used by the Dart and Flutter teams.
-version: 3.2.1
+version: 3.3.0
 repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/dart_flutter_team_lints
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.7.0-0
 
 dependencies:
   lints: ^5.0.0
