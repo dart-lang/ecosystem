@@ -51,15 +51,16 @@ Future<void> triage(
   String? lastComment;
   if (issue.hasComments) {
     final comments = await githubService.fetchIssueComments(sdkSlug, issue);
-    final comment = comments.last;
-
-    lastComment = '''
+    final comment = comments.lastOrNull;
+    if (comment != null) {
+      lastComment = '''
 ---
 
 Here is the last comment on the issue (by user @${comment.user?.login}):
 
 ${trimmedBody(comment.body ?? '')}
 ''';
+    }
   }
 
   // decide if we should triage
