@@ -1,0 +1,14 @@
+name: puppy
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  io: ^1.0.5
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.0.0
+
+executables:
+  for_all_package_dirs:
