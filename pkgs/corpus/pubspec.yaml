@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   analyzer: ^7.0.0
-  args: ^2.0.0
+  args: ^2.1.0
   cli_util: ^0.4.0
   collection: ^1.19.0
   http: ^1.0.0
