@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [stable, dev]
+        sdk: [3.6, dev]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
@@ -38,6 +38,6 @@ jobs:
       - run: dart analyze --fatal-infos
 
       - run: dart format --output=none --set-exit-if-changed .
-        if: ${{ matrix.sdk == 'stable' }}
+        if: ${{ matrix.sdk == 'dev' }}
 
       - run: dart test
