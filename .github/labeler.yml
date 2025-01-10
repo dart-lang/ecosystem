@@ -24,6 +24,10 @@
   - changed-files:
     - any-glob-to-any-file: 'pkgs/repo_manage/**'
 
+'package:puppy':
+  - changed-files:
+    - any-glob-to-any-file: 'pkgs/puppy/**'
+
 'package:sdk_triage_bot':
   - changed-files:
     - any-glob-to-any-file: 'pkgs/sdk_triage_bot/**'
