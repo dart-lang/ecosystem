@@ -5,7 +5,7 @@ cd <puppy pkg path>
 dart pub global activate --source=path .
 ```
 
-### Tools
+### Commands
 
-- `for_all_package_dirs`: runs a command in every directory containing
+- `run`: runs a command in every directory containing
   `pubspec.yaml`.
