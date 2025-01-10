@@ -4,11 +4,11 @@
 
 import 'package:args/command_runner.dart';
 import 'package:puppy/src/constants.dart';
-import 'package:puppy/src/map_command.dart';
+import 'package:puppy/src/run_command.dart';
 
 Future<void> main(List<String> args) async {
   var runner = CommandRunner<void>(cmdName, 'Dart repository management tools.')
-    ..addCommand(MapCommand());
+    ..addCommand(RunCommand());
 
   await runner.run(args);
 }
