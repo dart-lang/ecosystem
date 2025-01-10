@@ -9,6 +9,8 @@ import 'package:args/command_runner.dart';
 import 'package:build_cli_annotations/build_cli_annotations.dart';
 import 'package:io/ansi.dart';
 
+import 'constants.dart';
+
 part 'map_command.g.dart';
 
 class MapCommand extends _$MapArgsCommand<void> {
@@ -40,7 +42,7 @@ class MapArgs {
     if (rest.isEmpty) {
       throw UsageException(
         'Missing command to invoke!',
-        'puppy map [--deep] <command to invoke>',
+        '$cmdName map [--deep] <command to invoke>',
       );
     }
   }
