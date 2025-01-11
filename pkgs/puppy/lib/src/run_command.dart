@@ -25,7 +25,28 @@ class RunCommand extends _$RunArgsCommand<void> {
 
   @override
   Future<void>? run() async {
-    await _doMap(_options);
+    final args = _options;
+
+    final exe = args.rest.first;
+    final extraArgs = args.rest.skip(1).toList();
+
+    final packages = findPackages(Directory.current, deep: args.deep);
+    final exits = <String, int>{};
+
+    for (final packageDir in packages) {
+      print(green.wrap(packageDir.path));
+      final proc = await Process.start(
+        exe,
+        extraArgs,
+        mode: ProcessStartMode.inheritStdio,
+        workingDirectory: packageDir.path,
+      );
+
+      // TODO(kevmoo): display a summary of results on completion
+      exits[packageDir.path] = await proc.exitCode;
+
+      print('');
+    }
   }
 }
 
@@ -46,28 +67,5 @@ class RunArgs {
         '$cmdName map [--deep] <command to invoke>',
       );
     }
-  }
-}
-
-Future<void> _doMap(RunArgs args) async {
-  final exe = args.rest.first;
-  final extraArgs = args.rest.skip(1).toList();
-
-  final packages = findPackages(Directory.current, deep: args.deep);
-  final exits = <String, int>{};
-
-  for (final packageDir in packages) {
-    print(green.wrap(packageDir.path));
-    final proc = await Process.start(
-      exe,
-      extraArgs,
-      mode: ProcessStartMode.inheritStdio,
-      workingDirectory: packageDir.path,
-    );
-
-    // TODO(kevmoo): display a summary of results on completion
-    exits[packageDir.path] = await proc.exitCode;
-
-    print('');
   }
 }
