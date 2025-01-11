@@ -1,4 +1,5 @@
 name: puppy
+description: A package for miscellaneous Dart CLI tools.
 publish_to: none
 
 environment:
