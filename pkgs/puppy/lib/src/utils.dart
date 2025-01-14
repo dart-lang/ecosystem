@@ -29,5 +29,7 @@ List<Directory> findPackages(Directory root, {bool deep = false}) {
 
   traverse(Directory.current, deep: deep);
 
+  results.sort((a, b) => a.path.compareTo(b.path));
+
   return results;
 }

@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:build_cli_annotations/build_cli_annotations.dart';
 import 'package:io/ansi.dart';
+import 'package:path/path.dart' as p;
 
 import 'constants.dart';
 import 'utils.dart';
@@ -21,7 +22,7 @@ class RunCommand extends _$RunArgsCommand<void> {
       '`pubspec.yaml`.';
 
   @override
-  String get name => 'map';
+  String get name => 'run';
 
   @override
   Future<void>? run() async {
@@ -33,8 +34,13 @@ class RunCommand extends _$RunArgsCommand<void> {
     final packages = findPackages(Directory.current, deep: args.deep);
     final exits = <String, int>{};
 
+    var count = 0;
     for (final packageDir in packages) {
-      print(green.wrap(packageDir.path));
+      final relative = p.relative(packageDir.path);
+
+      print(
+        green.wrap('$relative (${++count} of ${packages.length})'),
+      );
       final proc = await Process.start(
         exe,
         extraArgs,
