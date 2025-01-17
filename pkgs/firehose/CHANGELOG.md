@@ -2,6 +2,7 @@
 
 - Don't check licenses of generated files in PR health workflow.
 - Add generalized ignore-per-checks to health workflow.
+- Update dart_apitool version in health workflow.
 
 ## 0.10.1
 
