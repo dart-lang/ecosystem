@@ -231,8 +231,14 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       arguments,
       workingDirectory: directory.path,
     );
-    log('StdOut:\n ${runApiTool.stdout as String}');
-    log('StdErr:\n ${runApiTool.stderr as String}');
+    final out = (runApiTool.stdout as String).trimRight();
+    if (out.isNotEmpty) {
+      print(out);
+    }
+    final err = (runApiTool.stderr as String).trimRight();
+    if (err.isNotEmpty) {
+      print(err);
+    }
     return runApiTool;
   }
 
@@ -257,7 +263,10 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
+
     for (var package in packagesContaining(filesInPR)) {
+      log('');
+      log('--- $package ---');
       log('Look for leaks in $package');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
@@ -294,9 +303,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
         var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-        log('Leaking symbols in API:\n$leaks');
         if (leaks.isNotEmpty) {
+          final desc = leaks.map((item) => '$item').join(', ');
+          log('Leaking symbols in API: $desc.');
+
           leaksForPackage[package] = leaks.cast();
+
+          final report = const JsonEncoder.withIndent('  ').convert(decoded);
+          log('');
+          log(report);
         }
       } else {
         throw ProcessException(
