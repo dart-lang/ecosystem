@@ -266,8 +266,8 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
     for (var package in packagesContaining(filesInPR)) {
       log('');
-      log('--- $package ---');
-      log('Look for leaks in $package');
+      log('--- ${package.name} ---');
+      log('Look for leaks in ${package.name}');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
@@ -298,21 +298,28 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         arguments,
       );
 
+      log('');
+
       if (runApiTool.exitCode == 0) {
         var fullReportString = await File(reportPath).readAsString();
         var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
         var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
         if (leaks.isNotEmpty) {
-          final desc = leaks.map((item) => '$item').join(', ');
-          log('Leaking symbols in API: $desc.');
-
           leaksForPackage[package] = leaks.cast();
 
-          final report = const JsonEncoder.withIndent('  ').convert(decoded);
+          final desc = leaks.map((item) => '$item').join(', ');
+          log('Leaked symbols found: $desc.');
+
           log('');
+
+          final report = const JsonEncoder.withIndent('  ').convert(decoded);
           log(report);
+        } else {
+          log('No leaks found.');
         }
+
+        log('');
       } else {
         throw ProcessException(
           executable(flutterPackages.contains(package)),
