@@ -173,6 +173,7 @@ class Health {
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
           ...['--git-ref', apiToolHash],
         ],
+        logStdout: false,
       );
 
       runDashProcess(
@@ -223,7 +224,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
 
   ProcessResult runDashProcess(
-      List<Package> flutterPackages, Package package, List<String> arguments) {
+    List<Package> flutterPackages,
+    Package package,
+    List<String> arguments, {
+    bool logStdout = true,
+  }) {
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
     var runApiTool = Process.runSync(
@@ -232,7 +237,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       workingDirectory: directory.path,
     );
     final out = (runApiTool.stdout as String).trimRight();
-    if (out.isNotEmpty) {
+    if (logStdout && out.isNotEmpty) {
       print(out);
     }
     final err = (runApiTool.stderr as String).trimRight();
@@ -283,6 +288,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
           ...['--git-ref', apiToolHash],
         ],
+        logStdout: false,
       );
 
       var arguments = [
