@@ -305,8 +305,6 @@ class VerificationResults {
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
   String describeAsMarkdown({bool withTag = true}) {
-    results.sort((a, b) => Enum.compareByIndex(a.severity, b.severity));
-
     return results.map((r) {
       var sev = r.severity == Severity.error ? '(error) ' : '';
       var tagColumn = '';

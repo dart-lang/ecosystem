@@ -173,6 +173,7 @@ class Health {
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
           ...['--git-ref', apiToolHash],
         ],
+        logStdout: false,
       );
 
       runDashProcess(
@@ -223,7 +224,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
 
   ProcessResult runDashProcess(
-      List<Package> flutterPackages, Package package, List<String> arguments) {
+    List<Package> flutterPackages,
+    Package package,
+    List<String> arguments, {
+    bool logStdout = true,
+  }) {
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
     var runApiTool = Process.runSync(
@@ -231,8 +236,14 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       arguments,
       workingDirectory: directory.path,
     );
-    log('StdOut:\n ${runApiTool.stdout as String}');
-    log('StdErr:\n ${runApiTool.stderr as String}');
+    final out = (runApiTool.stdout as String).trimRight();
+    if (logStdout && out.isNotEmpty) {
+      print(out);
+    }
+    final err = (runApiTool.stderr as String).trimRight();
+    if (err.isNotEmpty) {
+      print(err);
+    }
     return runApiTool;
   }
 
@@ -257,8 +268,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
+
     for (var package in packagesContaining(filesInPR)) {
-      log('Look for leaks in $package');
+      log('');
+      log('--- ${package.name} ---');
+      log('Look for leaks in ${package.name}');
       var relativePath =
           path.relative(package.directory.path, from: directory.path);
       var tempDirectory = Directory.systemTemp.createTempSync();
@@ -274,6 +288,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
           ...['--git-ref', apiToolHash],
         ],
+        logStdout: false,
       );
 
       var arguments = [
@@ -289,15 +304,28 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         arguments,
       );
 
+      log('');
+
       if (runApiTool.exitCode == 0) {
         var fullReportString = await File(reportPath).readAsString();
         var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
         var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
-        log('Leaking symbols in API:\n$leaks');
         if (leaks.isNotEmpty) {
           leaksForPackage[package] = leaks.cast();
+
+          final desc = leaks.map((item) => '$item').join(', ');
+          log('Leaked symbols found: $desc.');
+
+          log('');
+
+          final report = const JsonEncoder.withIndent('  ').convert(decoded);
+          log(report);
+        } else {
+          log('No leaks found.');
         }
+
+        log('');
       } else {
         throw ProcessException(
           executable(flutterPackages.contains(package)),
