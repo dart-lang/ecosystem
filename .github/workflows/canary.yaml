@@ -22,7 +22,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: subosito/flutter-action@44ac965b96f18d999802d4b807e3256d5a3f9fa1
+      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
         with:
           channel: main
 
@@ -47,7 +47,7 @@ jobs:
           echo ${{ github.event.number }} > output/issueNumber
 
       - name: Find Comment
-        uses: peter-evans/find-comment@90e9b82d6319a7ae3f32bc0b434db48d6c376e55
+        uses: peter-evans/find-comment@c1b7dc4909a4ebc1def27dba63afb389a2c6a4db
         id: fc
         with:
           issue-number: ${{ github.event.number }}
@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload markdown
         if: success() || failure()
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: output
           path: output/

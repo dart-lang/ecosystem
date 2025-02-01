@@ -248,7 +248,7 @@ jobs:
       - run: ls -R single-comments
 
       - name: Find Comment
-        uses: peter-evans/find-comment@995a00c77ea44c38cf1613bacfdf7377713cbf64
+        uses: peter-evans/find-comment@c1b7dc4909a4ebc1def27dba63afb389a2c6a4db
         id: fc
         with:
           issue-number: ${{ github.event.number }}
@@ -267,7 +267,7 @@ jobs:
         run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
  
       - name: Upload folder with number and markdown
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: output
           path: output/
