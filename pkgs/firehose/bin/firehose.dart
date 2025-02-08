@@ -20,7 +20,7 @@ void main(List<String> arguments) async {
 
     if (argResults[helpFlag] as bool) {
       _usage(argParser);
-      exit(0);
+      return;
     }
 
     final validate = argResults[validateFlag] as bool;
@@ -34,7 +34,8 @@ void main(List<String> arguments) async {
     if (!validate && !publish) {
       _usage(argParser,
           error: 'Error: one of --validate or --publish must be specified.');
-      exit(1);
+      exitCode = 1;
+      return;
     }
 
     final github = GithubApi();
@@ -42,7 +43,8 @@ void main(List<String> arguments) async {
       _usage(argParser,
           error: 'Error: --publish can only be executed from within a GitHub '
               'action.');
-      exit(1);
+      exitCode = 1;
+      return;
     }
 
     final firehose = Firehose(Directory.current, useFlutter, ignoredPackages);
@@ -54,7 +56,8 @@ void main(List<String> arguments) async {
     }
   } on ArgParserException catch (e) {
     _usage(argParser, error: e.message);
-    exit(1);
+    exitCode = 1;
+    return;
   }
 }
 
