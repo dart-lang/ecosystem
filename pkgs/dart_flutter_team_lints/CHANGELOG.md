@@ -1,3 +1,7 @@
+## 3.4.0
+
+- Added `unnecessary_underscores`.
+
 ## 3.3.0
 
 - Added `strict_top_level_inference`.
