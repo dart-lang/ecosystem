@@ -127,7 +127,7 @@ jobs:
 
       - run: mkdir -p current_repo/output/
   
-      - uses: dart-lang/setup-dart@e630b99d28a3b71860378cafdc2a067c71107f94
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
         with:
           sdk: ${{ inputs.sdk }}
 
@@ -192,7 +192,7 @@ jobs:
 
       - name: Upload markdown
         if: success() || failure()
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: comment-${{ inputs.check }}
           path: current_repo/output/comment.md

@@ -241,14 +241,14 @@ jobs:
 
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806
         with:
           path: single-comments
 
       - run: ls -R single-comments
 
       - name: Find Comment
-        uses: peter-evans/find-comment@c1b7dc4909a4ebc1def27dba63afb389a2c6a4db
+        uses: peter-evans/find-comment@9735ba2ed6a47d05499d9b653e05f347f3031e89
         id: fc
         with:
           issue-number: ${{ github.event.number }}
@@ -267,7 +267,7 @@ jobs:
         run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
  
       - name: Upload folder with number and markdown
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
         with:
           name: output
           path: output/
