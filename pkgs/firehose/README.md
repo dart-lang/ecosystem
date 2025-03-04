@@ -77,13 +77,16 @@ on:
 jobs:
   publish:
     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+    permissions:
+      id-token: write
+      pull-requests: write
 ```
 
 #### Enabling comments on forks
 
 - add the following to your `publish.yaml`:
 ```yaml
-with:
+    with:
        write-comments: false
 ``` 
 - copy the yaml below into a `.github/workflows/post_summaries.yaml` file in your repo
