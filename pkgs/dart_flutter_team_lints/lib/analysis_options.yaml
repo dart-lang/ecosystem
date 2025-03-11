@@ -44,6 +44,7 @@ linter:
     - avoid_dynamic_calls
     - comment_references
     - conditional_uri_does_not_exist
+    - discarded_futures
     - only_throw_errors
     - strict_top_level_inference
     - test_types_in_equals

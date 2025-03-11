@@ -1,3 +1,7 @@
+## 3.5.0
+
+- Added `discarded_futures`.
+
 ## 3.4.0
 
 - Added `unnecessary_underscores`.
