@@ -20,3 +20,5 @@ jobs:
       warn_on: license,coverage,breaking,leaking
       ignore_license: 'pkgs/firehose/test_data'
       ignore_coverage: 'pkgs/firehose/bin,pkgs/firehose/test_data'
+    permissions:
+      pull-requests: write
