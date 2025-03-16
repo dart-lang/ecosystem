@@ -1,3 +1,7 @@
+## 3.5.1
+
+- Removed `discarded_futures`; this produced more results than expected.
+
 ## 3.5.0
 
 - Added `discarded_futures`.
