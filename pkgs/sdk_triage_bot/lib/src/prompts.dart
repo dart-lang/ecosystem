@@ -19,12 +19,12 @@ or area-web).
 
 Here are the descriptions of the different triage areas:
 
-area-analyzer: Use area-analyzer for Dart analyzer issues, including the analysis server and code completion.
 area-build: Use area-build for SDK build issues.
 area-core-library: SDK core library issues (core, async, ...); use area-vm or area-web for platform specific libraries.
 area-dart-cli: Use area-dart-cli for issues related to the 'dart' command like tool.
 area-dart2wasm: Issues for the dart2wasm compiler.
-area-front-end: Use area-front-end for front end / CFE / kernel format related issues.
+area-dart-model: For issues related to conformance to the language spec in the parser, compilers or the CLI analyzer.
+area-devexp: For issues related to the analysis server, IDE support, linter, `dart fix`, and diagnostic messages.
 area-google3: Tracking issues for internal work. Note that this area is not triaged.
 area-infrastructure: Use area-infrastructure for SDK infrastructure issues, like continuous integration bot changes.
 area-intellij: Tracking issues for the Dart IntelliJ plugin.
