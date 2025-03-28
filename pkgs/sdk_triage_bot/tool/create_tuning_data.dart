@@ -17,8 +17,9 @@ import 'package:sdk_triage_bot/src/prompts.dart';
 //   - make sure we have at least 10 items from each area
 
 const Map<String, int> areaSampleCount = {
-  'area-analyzer': 100,
   'area-core-library': 100,
+  'area-dart-model': 100,
+  'area-devexp': 100,
   'area-front-end': 100,
   'area-vm': 100,
   'area-web': 100,
