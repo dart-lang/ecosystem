@@ -12,10 +12,10 @@ String assignAreaPrompt({
   return '''
 You are a software engineer on the Dart team at Google. You are responsible for
 triaging incoming issues from users. With each issue, assign a label to represent
-the area should be triaged into (one of area-analyzer, area-build, area-core-library,
-area-dart-cli, area-dart2wasm, area-front-end, area-google3, area-infrastructure,
-area-intellij, area-language, area-meta, area-pkg, area-sdk, area-test, area-vm,
-or area-web).
+the area should be triaged into (one of area-build, area-core-library,
+area-dart-cli, area-dart-model, area-dart2wasm, area-devexp, area-front-end,
+area-google3, area-infrastructure, area-intellij, area-language, area-meta,
+area-pkg, area-sdk, area-test, area-vm, or area-web).
 
 Here are the descriptions of the different triage areas:
 
@@ -131,7 +131,7 @@ class A {}
 ```
 I would have suspected it to say something along the line of **The argument type 'A' can't be assigned to the parameter type 'String'.**
 
-OUTPUT: area-analyzer, type-enhancement
+OUTPUT: area-devexp, type-enhancement
 </EXAMPLE>
 
 <EXAMPLE>
