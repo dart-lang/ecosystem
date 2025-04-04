@@ -58,7 +58,7 @@ the tag pattern must be prefixed with the package name, e.g. `foo-v1.2.3`.
 - copy the yaml below into a `.github/workflows/publish.yaml` file in your repo
 - update the target branch below if necessary (currently, `main`)
 - if publishing from a mono-repo, adjust the 'tags' line below to
-  `tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]`
+  `tags: [ '[_0-9A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]`
 - from the pub.dev admin page of your package, enable publishing from GitHub
   Actions
 
