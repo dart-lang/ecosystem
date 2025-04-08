@@ -273,8 +273,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       log('');
       log('--- ${package.name} ---');
       log('Look for leaks in ${package.name}');
-      var relativePath =
-          path.relative(package.directory.path, from: directory.path);
+      final absolutePath = package.directory.path;
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
 
@@ -295,7 +294,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         ...['pub', 'global', 'run'],
         'dart_apitool:main',
         'extract',
-        ...['--input', relativePath],
+        ...['--input', absolutePath],
         ...['--output', reportPath],
       ];
       var runApiTool = runDashProcess(

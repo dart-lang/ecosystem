@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "health",
-            "program": "pkgs/firehose/bin/health.dart",
+            "program": "${workspaceFolder}/pkgs/firehose/bin/health.dart",
             "request": "launch",
             "type": "dart",
             "env": {
@@ -16,9 +16,10 @@
                 "GITHUB_STEP_SUMMARY": "/tmp/github_step_summary_mock.md",
             },
             "args": [
-                "--checks",
-                "version,changelog,license,coverage,do-not-submit,leaking"
-            ]
+                "--check",
+                "leaking"
+            ],
+            // "cwd": "/Users/dacoharkes/src/dart-lang/native/pkgs/native_assets_cli"
         }
     ]
 }
