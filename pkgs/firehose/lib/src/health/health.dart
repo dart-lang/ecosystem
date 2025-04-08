@@ -273,7 +273,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       log('');
       log('--- ${package.name} ---');
       log('Look for leaks in ${package.name}');
-      final absolutePath = package.directory.path;
+      final absolutePath = package.directory.absolute.path;
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'leaks.json');
 
