@@ -158,8 +158,7 @@ class Health {
     log('This list of Flutter packages is $flutterPackages');
     for (var package in packagesContaining(filesInPR, ignore: ignored)) {
       log('Look for changes in $package');
-      var relativePath =
-          path.relative(package.directory.path, from: directory.path);
+      final absolutePath = package.directory.absolute.path;
       var tempDirectory = Directory.systemTemp.createTempSync();
       var reportPath = path.join(tempDirectory.path, 'report.json');
 
@@ -185,7 +184,7 @@ class Health {
           'diff',
           '--no-check-sdk-version',
           ...['--old', getCurrentVersionOfPackage(package)],
-          ...['--new', relativePath],
+          ...['--new', absolutePath],
           ...['--report-format', 'json'],
           ...['--report-file-path', reportPath],
         ],
