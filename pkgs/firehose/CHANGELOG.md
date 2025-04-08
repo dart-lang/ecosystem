@@ -1,5 +1,7 @@
 ## 1.0.0-wip
 
+- Fix dart_apitool invocation in pub workspaces.
+
 ## 0.10.2
 
 - Don't check licenses of generated files in PR health workflow.
