@@ -19,7 +19,6 @@
                 "--check",
                 "leaking"
             ],
-            // "cwd": "/Users/dacoharkes/src/dart-lang/native/pkgs/native_assets_cli"
         }
     ]
 }

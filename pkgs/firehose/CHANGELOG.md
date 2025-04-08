@@ -1,4 +1,4 @@
-## 1.0.0-wip
+## 0.10.3
 
 - Fix dart_apitool invocation in pub workspaces.
 
