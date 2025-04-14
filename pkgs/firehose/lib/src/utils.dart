@@ -10,7 +10,7 @@ import 'dart:io';
 ///
 /// This will also echo the command being run to stdout and indent the processes
 /// output slightly.
-Future<int> runCommand(
+Future<CommandResult> runCommand(
   String command, {
   List<String> args = const [],
   Directory? cwd,
@@ -23,12 +23,17 @@ Future<int> runCommand(
     workingDirectory: cwd?.path,
   );
 
+  final buffer = StringBuffer();
+
   process.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
-      .listen((line) => stdout
-        ..write('  ')
-        ..writeln(line));
+      .listen((line) {
+    buffer.writeln(line);
+    stdout
+      ..write('  ')
+      ..writeln(line);
+  });
   process.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -36,7 +41,19 @@ Future<int> runCommand(
         ..write('  ')
         ..writeln(line));
 
-  return process.exitCode;
+  final code = await process.exitCode;
+
+  return CommandResult(
+    code: code,
+    stdout: buffer.toString(),
+  );
+}
+
+class CommandResult {
+  final int code;
+  final String stdout;
+
+  CommandResult({required this.code, required this.stdout});
 }
 
 class Tag {

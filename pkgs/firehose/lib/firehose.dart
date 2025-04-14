@@ -149,12 +149,17 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         print(result);
         results.addResult(result);
       } else {
-        final code = await _runPublish(package, dryRun: true, force: false);
+        const preReleaseText =
+            'consider publishing the package as a pre-release instead';
 
-        final ignoreWarnings = github.prLabels.contains(_ignoreWarningsLabel);
+        final result = await _runPublish(package, dryRun: true, force: false);
 
-        if (code != 0 && !ignoreWarnings) {
-          exitCode = code;
+        final hasPreReleaseText = result.stdout.contains(preReleaseText);
+        final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
+        final ignoreWarnings = hasPreReleaseText || hasWarningsLabel;
+
+        if (result.code != 0 && !ignoreWarnings) {
+          exitCode = result.code;
           var message =
               'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
               'label to ignore';
@@ -262,13 +267,13 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     print('');
 
     var result = await _runPublish(package, dryRun: false, force: true);
-    if (result != 0) {
-      exitCode = result;
+    if (result.code != 0) {
+      exitCode = result.code;
     }
-    return result == 0;
+    return result.code == 0;
   }
 
-  Future<int> _runPublish(
+  Future<CommandResult> _runPublish(
     Package package, {
     required bool dryRun,
     required bool force,
