@@ -46,7 +46,7 @@ name: Publish
 #     with:
 #       write-comments: false
 
-# It is also possible to ignore certain packages in the repository 
+# It is also possible to ignore certain packages in the repository
 # via a glob.
 #
 # jobs:
@@ -60,10 +60,10 @@ on:
     inputs:
       environment:
         description: >-
-            If specified, publishes will be performed from this environment,
-            which will require additional approvals. See
-            https://dart.dev/tools/pub/automated-publishing for more
-            information.
+          If specified, publishes will be performed from this environment,
+          which will require additional approvals. See
+          https://dart.dev/tools/pub/automated-publishing for more
+          information.
         required: false
         type: string
       sdk:
@@ -94,7 +94,7 @@ on:
         type: boolean
       ignore-packages:
         description: Which packages to ignore.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       local_debug:
@@ -123,7 +123,6 @@ jobs:
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
-          
 
       - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
         if: ${{ !inputs.use-flutter }}
@@ -132,45 +131,59 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate firehose
-        if:  ${{ !inputs.local_debug }}
+        if: ${{ !inputs.local_debug }}
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
-        if:  ${{ inputs.local_debug }} 
-        
+        if: ${{ inputs.local_debug }}
+
+      - name: Fetch labels
+        id: fetch-labels
+        run: |
+          labels="$(gh api repos/$OWNER/$REPO_NAME/pulls/$PULL_REQUEST_NUMBER --jq '.labels.[].name')"
+          echo "Found labels: $labels"
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Validate packages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
-          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
+          PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
         run: |
-             dart pub global run firehose \
-               --validate \
-               ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-               --ignore-packages ${{ inputs.ignore-packages }}
+          dart pub global run firehose \
+            --validate \
+            ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
+            --ignore-packages ${{ inputs.ignore-packages }}
 
       - name: Get comment id
+        id: comment-id
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments }}
         run: |
           touch -a output/commentId
           COMMENT_ID=$(cat output/commentId)
-          echo "COMMENT_ID=$COMMENT_ID" >> $GITHUB_ENV
+          echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Create comment
         uses: peter-evans/create-or-update-comment@5a1e4b77bf9c12cc13806fc353ad08dc110f78ce
-        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID == '') }}
+        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
         continue-on-error: true
         with:
           issue-number: ${{ github.event.number }}
-          body-path: 'output/comment.md'
+          body-path: "output/comment.md"
           edit-mode: replace
 
       - name: Update comment
         uses: peter-evans/create-or-update-comment@5a1e4b77bf9c12cc13806fc353ad08dc110f78ce
-        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (env.COMMENT_ID != '') }}
+        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         with:
-          comment-id: ${{ env.COMMENT_ID }}
-          body-path: 'output/comment.md'
+          comment-id: ${{ steps.comment-id.outputs.comment }}
+          body-path: "output/comment.md"
           edit-mode: replace
 
       - name: Save PR number
@@ -184,7 +197,6 @@ jobs:
         with:
           name: output
           path: output/
-  
 
   publish:
     if: ${{ github.event_name == 'push' }}
