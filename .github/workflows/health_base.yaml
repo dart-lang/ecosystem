@@ -54,42 +54,42 @@ on:
         required: false
       flutter_packages:
         description: List of packages depending on Flutter.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_license:
         description: Which files to ignore for the license check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_changelog:
         description: Which files to ignore for the license check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_coverage:
         description: Which files to ignore for the coverage check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_breaking:
         description: Which files to ignore for the license check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_leaking:
         description: Which files to ignore for the license check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_donotsubmit:
         description: Which files to ignore for the license check.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       ignore_packages:
         description: Which packages to ignore.
-        default: "\"\""
+        default: '""'
         required: false
         type: string
       checkout_submodules:
@@ -99,7 +99,7 @@ on:
         type: boolean
       experiments:
         description: Which experiments should be enabled for Dart.
-        default: "\"\""
+        default: '""'
         type: string
         required: false
 
@@ -117,7 +117,7 @@ jobs:
         with:
           path: current_repo/
           submodules: ${{ inputs.checkout_submodules }}
-      
+
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ github.event.pull_request.base.ref }}
@@ -126,7 +126,7 @@ jobs:
         if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
-  
+
       - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
         with:
           sdk: ${{ inputs.sdk }}
@@ -148,19 +148,32 @@ jobs:
 
       - name: Install firehose
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
-        if:  ${{ !inputs.local_debug }}
+        if: ${{ !inputs.local_debug }}
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
-        if:  ${{ inputs.local_debug }} 
-        
+        if: ${{ inputs.local_debug }}
+
+      - name: Fetch labels
+        id: fetch-labels
+        run: |
+          labels="$(gh api repos/$OWNER/$REPO_NAME/pulls/$PULL_REQUEST_NUMBER --jq '.labels.[].name')"
+          echo "Found labels: $labels"
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Check PR health
         id: healthstep
         if: ${{ github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
-          PR_LABELS: "${{ join(github.event.pull_request.labels.*.name) }}"
+          PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
         run: |
           cd current_repo/
           dart pub global run firehose:health \
