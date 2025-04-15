@@ -1,3 +1,8 @@
+## 0.10.4
+
+- Don't fail publish validations from Pub's pre-release package warning (see
+  https://github.com/dart-lang/pub/issues/3807).
+
 ## 0.10.3
 
 - Fix dart_apitool invocation in pub workspaces.
