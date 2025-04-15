@@ -157,7 +157,7 @@ jobs:
       - name: Fetch labels
         id: fetch-labels
         run: |
-          labels="$(gh api repos/$OWNER/$REPO_NAME/pulls/$PULL_REQUEST_NUMBER --jq '.labels.[].name')"
+          labels=$(gh api repos/$OWNER/$REPO_NAME/pulls/$PULL_REQUEST_NUMBER --jq '.labels | map(.name) | join(",")')
           echo "Found labels: $labels"
           echo "labels=$labels" >> "$GITHUB_OUTPUT"
         shell: bash
