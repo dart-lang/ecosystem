@@ -77,8 +77,9 @@ Map<String, Directory>? _findPackageConfig(Directory dir) {
     return null;
   }
 
-  final configFile =
-      File(path.join(dir.path, '.dart_tool', 'package_config.json'));
+  final configFile = File(
+    path.join(dir.path, '.dart_tool', 'package_config.json'),
+  );
   if (configFile.existsSync()) {
     return _parseConfigFile(configFile);
   } else {
@@ -122,8 +123,9 @@ class Lints {
     final lints = (yaml['linter'] as YamlMap?)?['rules'] as YamlList;
 
     return Lints._(
-      parent:
-          localInclude == null ? null : Lints.readFrom(localInclude, packages),
+      parent: localInclude == null
+          ? null
+          : Lints.readFrom(localInclude, packages),
       include: include,
       lints: lints.cast<String>().toList(),
     );
@@ -133,11 +135,7 @@ class Lints {
   final String include;
   final List<String> lints;
 
-  Lints._({
-    this.parent,
-    required this.include,
-    required this.lints,
-  });
+  Lints._({this.parent, required this.include, required this.lints});
 
   Lints? containingInclude(String lint) {
     if (lints.contains(lint)) return this;

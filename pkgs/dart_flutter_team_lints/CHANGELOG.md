@@ -1,3 +1,8 @@
+## 3.5.2
+
+- Depend on the `6.0.0` release of `package:lints`.
+- Require Dart `3.8`
+
 ## 3.5.1
 
 - Removed `discarded_futures`; this produced more results than expected.
