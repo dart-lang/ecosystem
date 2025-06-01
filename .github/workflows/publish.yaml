@@ -119,7 +119,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
+      - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
@@ -170,7 +170,7 @@ jobs:
           echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@5a1e4b77bf9c12cc13806fc353ad08dc110f78ce
+        uses: peter-evans/create-or-update-comment@998d73b60e291c5ff04ef95d7a7021dede2b9878
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
         continue-on-error: true
         with:
@@ -179,7 +179,7 @@ jobs:
           edit-mode: replace
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@5a1e4b77bf9c12cc13806fc353ad08dc110f78ce
+        uses: peter-evans/create-or-update-comment@998d73b60e291c5ff04ef95d7a7021dede2b9878
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         with:
           comment-id: ${{ steps.comment-id.outputs.comment }}
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload folder with number and markdown
         if: ${{ !inputs.write-comments }}
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: output
           path: output/
@@ -214,7 +214,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
+      - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046
         if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
