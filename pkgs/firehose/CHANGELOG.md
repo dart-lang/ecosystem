@@ -1,3 +1,7 @@
+## 0.10.5
+
+- Bump dart_apitool to work with non-published dev dependencies.
+
 ## 0.10.4
 
 - Don't fail publish validations from Pub's pre-release package warning (see
