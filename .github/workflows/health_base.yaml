@@ -131,7 +131,7 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
 
-      - uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff
+      - uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046
         if: ${{ inputs.flutter_packages != '' }}
         with:
           channel: ${{ inputs.channel }}
@@ -205,7 +205,7 @@ jobs:
 
       - name: Upload markdown
         if: success() || failure()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: comment-${{ inputs.check }}
           path: current_repo/output/comment.md
