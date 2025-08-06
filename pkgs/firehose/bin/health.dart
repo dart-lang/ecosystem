@@ -43,6 +43,11 @@ void main(List<String> arguments) async {
       'flutter_packages',
       defaultsTo: [],
       help: 'The Flutter packages in this repo',
+    )
+    ..addOption(
+      'health_yaml_name',
+      help: 'The name of the workflow file containing the health checks, '
+          'to know to rerun all checks if that file is changed.',
     );
   for (var check in Check.values) {
     argParser.addMultiOption(
@@ -62,22 +67,17 @@ void main(List<String> arguments) async {
       .map((c) => MapEntry(c, _listNonEmpty(parsedArgs, 'ignore_${c.name}'))));
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
   final coverageWeb = parsedArgs.flag('coverage_web');
+  var healthYamlName = parsedArgs.option('health_yaml_name');
+  final healthYamlNames =
+      healthYamlName != null ? {healthYamlName} : {'health.yaml', 'health.yml'};
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
   }
-  await Health(
-    Directory.current,
-    check,
-    warnOn,
-    failOn,
-    coverageWeb,
-    ignorePackages,
-    ignoredFor,
-    experiments,
-    GithubApi(),
-    flutterPackages,
-  ).healthCheck();
+  await Health(Directory.current, check, warnOn, failOn, coverageWeb,
+          ignorePackages, ignoredFor, experiments, GithubApi(), flutterPackages,
+          healthYamlNames: healthYamlNames)
+      .healthCheck();
 }
 
 List<String> _listNonEmpty(ArgResults parsedArgs, String key) =>

@@ -170,7 +170,7 @@ class FakeHealth extends Health {
     super.base,
     super.comment,
     super.log,
-  });
+  }) : super(healthYamlNames: {});
 
   @override
   String getCurrentVersionOfPackage(Package package) =>

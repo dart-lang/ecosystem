@@ -53,6 +53,7 @@ class Health {
     Directory? base,
     String? comment,
     this.log = printLogger,
+    required this.healthYamlNames,
   })  : ignoredPackages = toGlobs(ignoredPackages),
         flutterPackageGlobs = toGlobs(flutterPackages),
         ignoredFor =
@@ -94,6 +95,7 @@ class Health {
   final Directory baseDirectory;
   final List<String> experiments;
   final Logger log;
+  final Set<String> healthYamlNames;
 
   late final String dartExecutable;
   late final String? flutterExecutable;
@@ -395,9 +397,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
   bool healthYamlChanged(List<GitFile> files) => files
       .where((file) =>
           [FileStatus.added, FileStatus.modified].contains(file.status))
-      .any((file) =>
-          file.filename.endsWith('health.yaml') ||
-          file.filename.endsWith('health.yml'));
+      .any((file) => healthYamlNames.contains(path.basename(file.filename)));
 
   Future<HealthCheckResult> changelogCheck() async {
     var filePaths = await packagesWithoutChangelog(

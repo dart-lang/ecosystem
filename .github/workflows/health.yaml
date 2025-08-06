@@ -141,6 +141,11 @@ on:
         default: "\"\""
         type: string
         required: false
+      health_yaml_name:
+        description: The name of the workflow file.
+        default: '""'
+        type: string
+        required: false
 
 jobs:
   changelog:
@@ -156,6 +161,7 @@ jobs:
       ignore_changelog: ${{ inputs.ignore_changelog }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -170,6 +176,7 @@ jobs:
       ignore_license: ${{ inputs.ignore_license }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -187,6 +194,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       experiments: ${{ inputs.experiments }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -201,6 +209,7 @@ jobs:
       ignore_breaking: ${{ inputs.ignore_breaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -215,6 +224,7 @@ jobs:
       ignore_donotsubmit: ${{ inputs.ignore_donotsubmit }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   leaking:
     if: ${{ contains(inputs.checks, 'leaking') }}
@@ -229,6 +239,7 @@ jobs:
       ignore_leaking: ${{ inputs.ignore_leaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
 
   comment:
     needs: [changelog, license, coverage, breaking, do-not-submit, leaking]

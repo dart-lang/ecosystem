@@ -102,6 +102,11 @@ on:
         default: '""'
         type: string
         required: false
+      health_yaml_name:
+        description: The name of the workflow file.
+        default: '""'
+        type: string
+        required: false
 
 jobs:
   health:
@@ -190,6 +195,7 @@ jobs:
             --ignore_leaking ${{ inputs.ignore_leaking }} \
             --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
             --experiments ${{ inputs.experiments }}
+            --health_yaml_name ${{ inputs.health_yaml_name }}
 
       - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
         if: ${{ '$action_state' == 1 }}
