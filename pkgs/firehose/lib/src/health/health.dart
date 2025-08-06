@@ -262,7 +262,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   Future<HealthCheckResult> leakingCheck() async {
     var filesInPR = await listFilesInPRorAll();
-    final leaksForPackage = <Package, List<String>>{};
+    final leaksInPackages = <(Package, Leak)>[];
 
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
@@ -310,7 +310,10 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         var leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
         if (leaks.isNotEmpty) {
-          leaksForPackage[package] = leaks.cast();
+          leaksInPackages.addAll(leaks.map(
+            (leakJson) =>
+                (package, Leak.fromJson(leakJson as Map<String, dynamic>)),
+          ));
 
           final desc = leaks.map((item) => '$item').join(', ');
           log('Leaked symbols found: $desc.');
@@ -334,15 +337,13 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     }
     return HealthCheckResult(
       Check.leaking,
-      leaksForPackage.values.any((leaks) => leaks.isNotEmpty)
-          ? Severity.warning
-          : Severity.success,
+      leaksInPackages.isNotEmpty ? Severity.warning : Severity.success,
       '''
 The following packages contain symbols visible in the public API, but not exported by the library. Export these symbols or remove them from your publicly visible API.
 
-| Package | Leaked API symbols |
-| :--- | :--- |
-${leaksForPackage.entries.map((e) => '|${e.key.name}|${e.value.join('<br>')}|').join('\n')}
+| Package | Leaked API symbol | Leaking sources |
+| :--- | :--- | :--- |
+${leaksInPackages.map((e) => '|${e.$1.name}|${e.$2.name}|${e.$2.usages.join('<br>')}|').join('\n')}
 ''',
     );
   }
@@ -545,6 +546,30 @@ ${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${r
         .where((package) => files.any((file) =>
             path.isWithin(package.directory.path, file.pathInRepository)))
         .toList();
+  }
+}
+
+class Leak {
+  /// The type of the leak, e.g., 'interface'.
+  final String type;
+
+  /// A list of strings representing where the leak is used.
+  final List<String> usages;
+
+  final String name;
+
+  Leak._({
+    required this.type,
+    required this.usages,
+    required this.name,
+  });
+
+  factory Leak.fromJson(Map<String, dynamic> json) {
+    return Leak._(
+      type: json['type'] as String,
+      usages: (json['usages'] as List<dynamic>).cast<String>(),
+      name: json['name'] as String,
+    );
   }
 }
 
