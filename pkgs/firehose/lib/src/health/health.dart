@@ -121,6 +121,7 @@ class Health {
     log(' ignoredFor: $ignoredFor');
     log(' baseDirectory: $baseDirectory');
     log(' experiments: $experiments');
+    log(' healthYamlNames: $healthYamlNames');
     log('Checking for $checkName');
     if (!github.prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
