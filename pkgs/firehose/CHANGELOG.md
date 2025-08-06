@@ -1,3 +1,7 @@
+## 0.10.6
+
+- Bump dart_apitool which can now report leak locations.
+
 ## 0.10.5
 
 - Bump dart_apitool to work with non-published dev dependencies.
