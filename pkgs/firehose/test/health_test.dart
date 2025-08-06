@@ -79,7 +79,7 @@ Future<void> main() async {
           check,
           fakeGithubApi([
             GitFile(
-              '.github/workflows/health.yaml',
+              '.github/workflows/my_health.yaml',
               FileStatus.added,
               directory,
             ),
@@ -170,7 +170,7 @@ class FakeHealth extends Health {
     super.base,
     super.comment,
     super.log,
-  }) : super(healthYamlNames: {});
+  }) : super(healthYamlNames: {'my_health.yaml'});
 
   @override
   String getCurrentVersionOfPackage(Package package) =>
