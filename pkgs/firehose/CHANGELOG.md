@@ -1,4 +1,4 @@
-## 0.10.6
+## 0.11.0
 
 - Bump dart_apitool which can now report leak locations.
 
