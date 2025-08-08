@@ -1,3 +1,7 @@
+## 0.12.0
+
+- Make the location of the health.yaml workflow configurable.
+
 ## 0.11.0
 
 - Bump dart_apitool which can now report leak locations.
