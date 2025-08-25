@@ -1,4 +1,4 @@
-<details open>
+<details>
 <summary>
 <strong>Breaking changes</strong> :warning:
 </summary>

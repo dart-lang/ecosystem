@@ -1,4 +1,4 @@
-<details open>
+<details>
 <summary>
 <strong>API leaks</strong> :warning:
 </summary>

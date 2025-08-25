@@ -507,8 +507,8 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
     if (result.markdown != null) {
       var markdown = result.markdown;
       var expand = switch (result.severity) {
-        Severity.success || Severity.info => false,
-        Severity.warning || Severity.error => true,
+        Severity.success || Severity.info || Severity.warning => false,
+        Severity.error => true,
       };
 
       markdownSummary = '''
