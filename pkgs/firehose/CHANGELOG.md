@@ -1,3 +1,7 @@
+## 0.12.1-wip
+
+- Make the PR health output less verbose by collapsing warnings by default.
+
 ## 0.12.0
 
 - Make the location of the health.yaml workflow configurable.
