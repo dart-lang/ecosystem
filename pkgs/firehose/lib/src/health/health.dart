@@ -506,17 +506,20 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
     final String markdownSummary;
     if (result.markdown != null) {
       var markdown = result.markdown;
-      var isWorseThanInfo = result.severity.index >= Severity.warning.index;
+      var expand = switch (result.severity) {
+        Severity.success || Severity.info => false,
+        Severity.warning || Severity.error => true,
+      };
 
       markdownSummary = '''
-<details${isWorseThanInfo ? ' open' : ''}>
+<details${expand ? ' open' : ''}>
 <summary>
 <strong>${check.tag}</strong> ${result.severity.emoji}
 </summary>
 
 $markdown
 
-${isWorseThanInfo ? 'This check can be disabled by tagging the PR with `skip-${result.check.displayName}-check`.' : ''}
+This check can be disabled by tagging the PR with `skip-${result.check.displayName}-check`.
 </details>
 
 ''';
