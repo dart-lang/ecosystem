@@ -1,4 +1,4 @@
-<details open>
+<details>
 <summary>
 <strong>Coverage</strong> :warning:
 </summary>
