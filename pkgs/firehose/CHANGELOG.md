@@ -1,6 +1,7 @@
 ## 0.12.1-wip
 
 - Make the PR health output less verbose by collapsing warnings by default.
+- Bump dart_apitool to fix errors with equal types being reported as different.
 
 ## 0.12.0
 

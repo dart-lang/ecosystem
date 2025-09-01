@@ -17,7 +17,7 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
-const apiToolHash = '4377249ec08f0fa508298077eae236f24f315e19';
+const apiToolHash = '8654b768219d5707cdade72fdd80cf915e9d46b8';
 
 enum Check {
   license('License Headers', 'license'),
