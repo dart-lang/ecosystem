@@ -252,14 +252,14 @@ jobs:
 
     steps:
       - name: Download All Artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
         with:
           path: single-comments
 
       - run: ls -R single-comments
 
       - name: Find Comment
-        uses: peter-evans/find-comment@5dea84b71a362dec775561631ac27a67d5f31687
+        uses: peter-evans/find-comment@048de657d50358ed23c7ac2297a319ada251f4f0
         id: fc
         with:
           issue-number: ${{ github.event.number }}
