@@ -70,8 +70,9 @@ class ApiUsage {
   }
 
   static ApiUsage fromFile(PackageInfo packageInfo, File file) {
-    var json = const JsonDecoder().convert(file.readAsStringSync())
-        as Map<String, dynamic>;
+    var json =
+        const JsonDecoder().convert(file.readAsStringSync())
+            as Map<String, dynamic>;
     return ApiUsage(
       packageInfo,
       References.fromJson(json['packages'] as Map<String, dynamic>),
@@ -106,7 +107,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
   References referringLibraries = References();
 
   ApiUseCollector(this.reportTarget, this.packageInfo, this.packageDir)
-      : packageEntity = PackageEntity(packageInfo.name);
+    : packageEntity = PackageEntity(packageInfo.name);
 
   String get targetName => reportTarget.name;
   String get targetType => reportTarget.type;
@@ -143,10 +144,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
 
       if (matches) {
         referringPackages.addLibraryReference(uri, packageEntity);
-        var relativeLibraryPath =
-            path.relative(currentFilePath, from: packageDir.path);
+        var relativeLibraryPath = path.relative(
+          currentFilePath,
+          from: packageDir.path,
+        );
         referringLibraries.addLibraryReference(
-            uri, LibraryEntity(packageName, relativeLibraryPath));
+          uri,
+          LibraryEntity(packageName, relativeLibraryPath),
+        );
       }
     }
 
@@ -164,7 +169,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     super.visitSimpleIdentifier(node);
 
-    var element = node.staticElement;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -174,26 +179,30 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
       return;
     }
 
-    var libraryUri = library.librarySource.uri;
+    var libraryUri = library.uri;
     if (libraryUri.scheme != targetType ||
         libraryUri.pathSegments.first != targetName) {
       return;
     }
 
-    var enclosingElement = element.enclosingElement3!;
+    var enclosingElement = element.enclosingElement!;
 
     if (enclosingElement.kind == ElementKind.CLASS) {
       final name = enclosingElement.name!;
       referringPackages.addClassReference(name, packageEntity);
       var relPath = path.relative(currentFilePath, from: packageDir.path);
       referringLibraries.addClassReference(
-          name, LibraryEntity(packageName, relPath));
+        name,
+        LibraryEntity(packageName, relPath),
+      );
     } else if (enclosingElement.kind == ElementKind.EXTENSION) {
       final name = enclosingElement.name!;
       referringPackages.addExtensionReference(name, packageEntity);
       var relPath = path.relative(currentFilePath, from: packageDir.path);
       referringLibraries.addExtensionReference(
-          name, LibraryEntity(packageName, relPath));
+        name,
+        LibraryEntity(packageName, relPath),
+      );
     }
 
     if (element.kind == ElementKind.GETTER) {
@@ -203,14 +212,18 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
         referringPackages.addTopLevelReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addTopLevelReference(
-            name, LibraryEntity(packageName, relPath));
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       } else if (enclosingElement.kind == ElementKind.EXTENSION) {
         // Record extensions.
         final name = enclosingElement.name!;
         referringPackages.addExtensionReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addExtensionReference(
-            name, LibraryEntity(packageName, relPath));
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       }
     } else if (element.kind == ElementKind.FUNCTION) {
       if (enclosingElement.kind == ElementKind.COMPILATION_UNIT) {
@@ -219,14 +232,18 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
         referringPackages.addTopLevelReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addTopLevelReference(
-            name, LibraryEntity(packageName, relPath));
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       } else if (enclosingElement.kind == ElementKind.EXTENSION) {
         // Record extensions.
         final name = enclosingElement.name!;
         referringPackages.addExtensionReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addExtensionReference(
-            name, LibraryEntity(packageName, relPath));
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       }
     }
   }
@@ -239,14 +256,16 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
         return;
       }
 
-      var libraryUri = library.librarySource.uri;
+      var libraryUri = library.uri;
       if (libraryUri.scheme == targetType &&
           libraryUri.pathSegments.first == targetName) {
         final name = element.name!;
         referringPackages.addClassReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addClassReference(
-            name, LibraryEntity(packageName, relPath));
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       }
     }
   }
@@ -322,8 +341,9 @@ class References {
 
     refs._libraryReferences.fromJson(json['library'] as Map<String, dynamic>);
     refs._classReferences.fromJson(json['class'] as Map<String, dynamic>);
-    refs._extensionReferences
-        .fromJson(json['extension'] as Map<String, dynamic>);
+    refs._extensionReferences.fromJson(
+      json['extension'] as Map<String, dynamic>,
+    );
     refs._topLevelReferences.fromJson(json['topLevel'] as Map<String, dynamic>);
 
     return refs;
@@ -446,7 +466,7 @@ class EntityReferences {
   Map<String, dynamic> toJson() {
     return {
       for (var entry in _references.entries)
-        entry.key: entry.value.map((entity) => entity.toJson()).toList()
+        entry.key: entry.value.map((entity) => entity.toJson()).toList(),
     };
   }
 }
