@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,7 +47,7 @@ jobs:
           echo ${{ github.event.number }} > output/issueNumber
 
       - name: Find Comment
-        uses: peter-evans/find-comment@5dea84b71a362dec775561631ac27a67d5f31687
+        uses: peter-evans/find-comment@048de657d50358ed23c7ac2297a319ada251f4f0
         id: fc
         with:
           issue-number: ${{ github.event.number }}
