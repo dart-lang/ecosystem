@@ -107,7 +107,7 @@ void main() {
 
       await surveyor.analyze();
 
-      // check for a top level function invokation
+      // check for a top level function invocation
       check(
         apiUsageCollector.referringPackages.sortedTopLevelReferences,
       ).containsKey('join');
@@ -200,7 +200,7 @@ void main() {
 
       await surveyor.analyze();
 
-      // check for a top level function invokation
+      // check for a top level function invocation
       check(
         apiUsageCollector.referringPackages.sortedTopLevelReferences,
       ).containsKey('jsonDecode');

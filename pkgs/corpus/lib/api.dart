@@ -203,6 +203,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
         name,
         LibraryEntity(packageName, relPath),
       );
+    } else if (enclosingElement.kind == ElementKind.LIBRARY) {
+      final name = enclosingElement.name!;
+      referringPackages.addLibraryReference(name, packageEntity);
+      var relPath = path.relative(currentFilePath, from: packageDir.path);
+      referringLibraries.addLibraryReference(
+        name,
+        LibraryEntity(packageName, relPath),
+      );
     }
 
     if (element.kind == ElementKind.GETTER) {
@@ -224,6 +232,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
           name,
           LibraryEntity(packageName, relPath),
         );
+      } else if (enclosingElement.kind == ElementKind.LIBRARY) {
+        final name = element.name!;
+        referringPackages.addTopLevelReference(name, packageEntity);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
+        referringLibraries.addTopLevelReference(
+          name,
+          LibraryEntity(packageName, relPath),
+        );
       }
     } else if (element.kind == ElementKind.FUNCTION) {
       if (enclosingElement.kind == ElementKind.COMPILATION_UNIT) {
@@ -241,6 +257,14 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
         referringPackages.addExtensionReference(name, packageEntity);
         var relPath = path.relative(currentFilePath, from: packageDir.path);
         referringLibraries.addExtensionReference(
+          name,
+          LibraryEntity(packageName, relPath),
+        );
+      } else if (enclosingElement.kind == ElementKind.LIBRARY) {
+        final name = element.name!;
+        referringPackages.addTopLevelReference(name, packageEntity);
+        var relPath = path.relative(currentFilePath, from: packageDir.path);
+        referringLibraries.addTopLevelReference(
           name,
           LibraryEntity(packageName, relPath),
         );
