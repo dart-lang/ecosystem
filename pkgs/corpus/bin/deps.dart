@@ -125,7 +125,9 @@ class PackageUsageInfo {
 }
 
 Future<PackageUsageInfo> getPackageUsageInfo(
-    Pub pub, PackageInfo package) async {
+  Pub pub,
+  PackageInfo package,
+) async {
   var packageOptions = await pub.getPackageOptions(package.name);
   var packageScore = await pub.getPackageScore(package.name);
 
@@ -146,13 +148,19 @@ File generateCsvReport(
       var score = usage.packageScore;
       return printDouble(score.grantedPoints * 100 / score.maxPoints);
     }),
-    Column('Popularity',
-        (usage) => printDouble(usage.packageScore.popularityScore * 100)),
+    Column(
+      'Popularity',
+      (usage) => printDouble(usage.packageScore.popularityScore * 100),
+    ),
     Column('Likes', (usage) => '${usage.packageScore.likeCount}'),
-    Column('Constraint',
-        (usage) => '${usage.packageInfo.constraintFor(targetPackage.name)}'),
-    Column('Dep Type',
-        (usage) => '${usage.packageInfo.constraintType(targetPackage.name)}'),
+    Column(
+      'Constraint',
+      (usage) => '${usage.packageInfo.constraintFor(targetPackage.name)}',
+    ),
+    Column(
+      'Dep Type',
+      (usage) => '${usage.packageInfo.constraintType(targetPackage.name)}',
+    ),
     Column('SDK', (usage) => '${usage.packageInfo.sdkConstraint}'),
     Column('Repo', (usage) => '${usage.packageInfo.repo}'),
   ];
