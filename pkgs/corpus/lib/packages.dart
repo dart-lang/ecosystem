@@ -39,8 +39,9 @@ class PackageManager {
       return true;
     }
 
-    var progress =
-        logger?.progress('downloading ${path.basename(archiveFile.path)}');
+    var progress = logger?.progress(
+      'downloading ${path.basename(archiveFile.path)}',
+    );
     try {
       var data = await _getPackageTarGzArchive(package);
       archiveFile.writeAsBytesSync(data);
@@ -74,14 +75,10 @@ class PackageManager {
 
     localPackage.directory.createSync(recursive: true);
 
-    var result = await runProcess(
-      'tar',
-      [
-        '-xf',
-        '../../archives/${path.basename(archiveFile.path)}',
-      ],
-      workingDirectory: localPackage.directory.path,
-    );
+    var result = await runProcess('tar', [
+      '-xf',
+      '../../archives/${path.basename(archiveFile.path)}',
+    ], workingDirectory: localPackage.directory.path);
     if (result.exitCode != 0) {
       print(result.stdout);
       print(result.stderr);
@@ -109,10 +106,7 @@ class LocalPackage {
 
   LocalPackage(this.packageInfo, this.directory);
 
-  Future<bool> pubGet({
-    bool checkUpToDate = false,
-    Logger? logger,
-  }) async {
+  Future<bool> pubGet({bool checkUpToDate = false, Logger? logger}) async {
     if (checkUpToDate) {
       var pubspec = File(path.join(directory.path, 'pubspec.yaml'));
       var lock = File(path.join(directory.path, 'pubspec.lock'));
@@ -138,10 +132,7 @@ class LocalPackage {
     final progress = logger?.progress('${path.basename(executable)} pub get');
     var result = await runProcess(
       executable,
-      [
-        'pub',
-        'get',
-      ],
+      ['pub', 'get'],
       workingDirectory: directory.path,
       logger: logger,
     );

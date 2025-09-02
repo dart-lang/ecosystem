@@ -26,10 +26,7 @@ class Pub {
   /// Return all the packages that depend on [packageName], sorted by package
   /// popularity.
   Stream<PackageInfo> popularDependenciesOf(String packageName) {
-    return _packagesForSearch(
-      query: 'dependency:$packageName',
-      sort: 'top',
-    );
+    return _packagesForSearch(query: 'dependency:$packageName', sort: 'top');
   }
 
   /// Return all the pub.dev hosted packages sorted by package popularity.
@@ -37,10 +34,7 @@ class Pub {
   /// Note that this will be tens of thousands of packages, so the caller should
   /// plan to limit the number of packages they iterate through.
   Stream<PackageInfo> allPubPackages() {
-    return _packagesForSearch(
-      query: '',
-      sort: 'top',
-    );
+    return _packagesForSearch(query: '', sort: 'top');
   }
 
   Future<PackageInfo> getPackageInfo(String pkgName) async {
@@ -51,13 +45,15 @@ class Pub {
 
   Future<PackageOptions> getPackageOptions(String packageName) async {
     final json = await _getJson(
-        Uri.https('pub.dev', 'api/packages/$packageName/options'));
+      Uri.https('pub.dev', 'api/packages/$packageName/options'),
+    );
     return PackageOptions.from(json);
   }
 
   Future<PackageScore> getPackageScore(String packageName) async {
-    final json =
-        await _getJson(Uri.https('pub.dev', 'api/packages/$packageName/score'));
+    final json = await _getJson(
+      Uri.https('pub.dev', 'api/packages/$packageName/score'),
+    );
     return PackageScore.from(json);
   }
 
@@ -69,17 +65,20 @@ class Pub {
     final uri = Uri.parse('https://pub.dev/api/search');
 
     for (;;) {
-      final targetUri = uri.replace(queryParameters: {
-        'q': query,
-        'page': page.toString(),
-        if (sort != null) 'sort': sort,
-      });
+      final targetUri = uri.replace(
+        queryParameters: {
+          'q': query,
+          'page': page.toString(),
+          if (sort != null) 'sort': sort,
+        },
+      );
 
       final map = await _getJson(targetUri);
 
-      for (var packageName in (map['packages'] as List)
-          .cast<Map<String, dynamic>>()
-          .map((e) => e['package'] as String?)) {
+      for (var packageName
+          in (map['packages'] as List).cast<Map<String, dynamic>>().map(
+            (e) => e['package'] as String?,
+          )) {
         var packageInfo = await getPackageInfo(packageName!);
 
         yield packageInfo;

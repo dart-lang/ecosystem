@@ -33,8 +33,10 @@ Future analyzeUsage({
   ReportTarget reportTarget;
   if (packageName.startsWith('dart:')) {
     var nameWithoutPrefix = packageName.substring('dart:'.length);
-    reportTarget =
-        DartLibraryTarget(name: nameWithoutPrefix, version: sdkVersion);
+    reportTarget = DartLibraryTarget(
+      name: nameWithoutPrefix,
+      version: sdkVersion,
+    );
   } else {
     var packageInfo = await pub.getPackageInfo(packageName);
     reportTarget = PackageTarget.fromPackage(packageInfo);
@@ -67,8 +69,9 @@ Future analyzeUsage({
       }
       if (!constraint.allows(Version.parse(targetPackage.version))) {
         log.stdout(
-            "skipping - version dep ($constraint) doesn't support the current "
-            'stable (${targetPackage.version})');
+          "skipping - version dep ($constraint) doesn't support the current "
+          'stable (${targetPackage.version})',
+        );
         continue;
       }
     } else {
@@ -76,15 +79,18 @@ Future analyzeUsage({
       if (sdkConstraint != null) {
         if (!sdkConstraint.allows(Version.parse(sdkVersion))) {
           log.stdout(
-              "skipping - sdk constraint ($sdkConstraint) doesn't support the "
-              'current sdk ($sdkVersion)');
+            "skipping - sdk constraint ($sdkConstraint) doesn't support the "
+            'current sdk ($sdkVersion)',
+          );
           continue;
         }
       }
     }
 
-    var downloadSuccess =
-        await packageManager.retrievePackageArchive(package, logger: log);
+    var downloadSuccess = await packageManager.retrievePackageArchive(
+      package,
+      logger: log,
+    );
     if (!downloadSuccess) {
       log.stdout('error downloading ${package.archiveUrl}');
       continue;
@@ -92,8 +98,10 @@ Future analyzeUsage({
 
     var localPackage = await packageManager.rehydratePackage(package);
 
-    var pubSuccess =
-        await localPackage.pubGet(checkUpToDate: true, logger: log);
+    var pubSuccess = await localPackage.pubGet(
+      checkUpToDate: true,
+      logger: log,
+    );
     if (!pubSuccess) {
       continue;
     }
@@ -127,10 +135,9 @@ Future analyzeUsage({
     }
   }
 
-  var file = Report(reportTarget).generateReport(
-    usageInfo,
-    showSrcReferences: showSrcReferences,
-  );
+  var file = Report(
+    reportTarget,
+  ).generateReport(usageInfo, showSrcReferences: showSrcReferences);
 
   log.stdout('');
   log.stdout('wrote ${file.path}.');
@@ -146,11 +153,13 @@ Future<ApiUsage> _analyzePackage(
   Directory usingPackageDir,
 ) async {
   var cache = Cache();
-  var file = File(path.join(
-    cache.usageDir.path,
-    '${reportTarget.type}-${reportTarget.name}-${reportTarget.version}',
-    '${analyzingPackage.name}-${analyzingPackage.version}.json',
-  ));
+  var file = File(
+    path.join(
+      cache.usageDir.path,
+      '${reportTarget.type}-${reportTarget.name}-${reportTarget.version}',
+      '${analyzingPackage.name}-${analyzingPackage.version}.json',
+    ),
+  );
 
   if (file.existsSync()) {
     var usage = ApiUsage.fromFile(analyzingPackage, file);

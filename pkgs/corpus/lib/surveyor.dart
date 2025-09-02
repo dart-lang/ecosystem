@@ -23,8 +23,8 @@ class Surveyor {
     required List<io.Directory> directories,
     this.excludedPaths = const [],
   }) : sourcePaths = directories
-            .map((directory) => path.normalize(directory.absolute.path))
-            .toList() {
+           .map((directory) => path.normalize(directory.absolute.path))
+           .toList() {
     assert(sourcePaths.isNotEmpty);
   }
 
@@ -53,8 +53,9 @@ class Surveyor {
         surveyorContext._updateCurrentFilePath(filePath);
 
         try {
-          var resolvedUnitResult = await analysisContext.currentSession
-              .getResolvedUnit(filePath) as ResolvedUnitResult;
+          var resolvedUnitResult =
+              await analysisContext.currentSession.getResolvedUnit(filePath)
+                  as ResolvedUnitResult;
           resolvedUnitResult.unit.accept(visitor);
         } catch (e) {
           if (!_silent) {

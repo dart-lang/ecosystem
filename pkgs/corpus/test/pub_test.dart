@@ -13,8 +13,9 @@ import 'package:test/test.dart';
 void main() {
   group('PackageInfo', () {
     test('parse pub.dev results', () {
-      var packageInfo =
-          PackageInfo.from(jsonDecode(_pubSampleData) as Map<String, dynamic>);
+      var packageInfo = PackageInfo.from(
+        jsonDecode(_pubSampleData) as Map<String, dynamic>,
+      );
 
       check(packageInfo.name).equals('usage');
       check(packageInfo.version).equals('4.0.2');
