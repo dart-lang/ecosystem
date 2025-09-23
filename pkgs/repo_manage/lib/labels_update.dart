@@ -60,6 +60,7 @@ final Set<String> allowList = {
   'cla: yes',
   'dependencies',
   'Epic',
+  'good first issue',
   'meta',
   'P4',
   'S0',

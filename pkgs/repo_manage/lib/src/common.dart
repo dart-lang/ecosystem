@@ -148,20 +148,30 @@ class RepoInfo {
 
 // These are monorepos, high-traffic repos, or otherwise noteable repos.
 final List<String> noteableRepos = [
-  'dart-lang/build',
+  // The SLO monorepos.
   'dart-lang/core',
+  'dart-lang/labs',
+  'dart-lang/tools',
+
+  // The topic monorepos.
+  'dart-lang/ai',
+  'dart-lang/build',
   'dart-lang/ecosystem',
-  'dart-lang/ffi',
   'dart-lang/http',
   'dart-lang/i18n',
-  'dart-lang/language',
   'dart-lang/native',
-  'dart-lang/pub',
-  'dart-lang/sdk',
   'dart-lang/shelf',
   'dart-lang/test',
-  'dart-lang/tools',
   'dart-lang/webdev',
+
+  // Other main dart-lang repos.
+  'dart-lang/dartdoc',
+  'dart-lang/language',
+  'dart-lang/pub',
+  'dart-lang/sdk',
+  'dart-lang/web',
+
+  // The main flutter repo.
   'flutter/flutter',
   'flutter/packages',
 ];
