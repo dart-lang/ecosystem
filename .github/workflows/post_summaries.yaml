@@ -25,7 +25,7 @@ jobs:
       # Download the output of the health workflow, consisting of the comment markdown and either
       # the issue number or an existing comment ID.
       - name: 'Download artifact'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -56,7 +56,7 @@ jobs:
       # Create the comment, or update the existing one, with the markdown
       # generated in the Health workflow.
       - name: 'Comment on PR'
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
