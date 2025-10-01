@@ -2,6 +2,7 @@
 
 - Make the PR health output less verbose by collapsing warnings by default.
 - Bump dart_apitool to fix errors with equal types being reported as different.
+- Give comment files in health work.
 
 ## 0.12.0
 
