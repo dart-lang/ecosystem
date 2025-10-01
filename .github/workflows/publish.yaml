@@ -170,7 +170,7 @@ jobs:
           echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@f7c845d742ddcc26436b9547b75f949bdcd3012a
+        uses: peter-evans/create-or-update-comment@fffe59ea229327e73edca9d31f0b578bf04152a9
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
         continue-on-error: true
         with:
@@ -179,7 +179,7 @@ jobs:
           edit-mode: replace
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@f7c845d742ddcc26436b9547b75f949bdcd3012a
+        uses: peter-evans/create-or-update-comment@fffe59ea229327e73edca9d31f0b578bf04152a9
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         with:
           comment-id: ${{ steps.comment-id.outputs.comment }}
