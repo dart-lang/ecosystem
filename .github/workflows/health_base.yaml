@@ -197,7 +197,7 @@ jobs:
             --experiments ${{ inputs.experiments }} \
             --health_yaml_name ${{ inputs.health_yaml_name }}
 
-      - run: test -f current_repo/output/comment.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment.md
+      - run: test -f current_repo/output/comment-${{ inputs.check }}.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${{ inputs.check }}.md
         if: ${{ '$action_state' == 1 }}
 
       - name: Upload coverage to Coveralls
@@ -214,4 +214,4 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: comment-${{ inputs.check }}
-          path: current_repo/output/comment.md
+          path: current_repo/output/comment-${{ inputs.check }}.md

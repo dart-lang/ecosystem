@@ -63,7 +63,7 @@ class Health {
             path.join(
               directory.path,
               'output',
-              'comment.md',
+              'comment-${check.displayName}.md',
             ) {
     flutterExecutable =
         (Process.runSync('which', ['-a', 'flutter']).stdout as String)
