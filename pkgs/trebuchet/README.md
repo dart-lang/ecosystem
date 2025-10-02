@@ -8,8 +8,8 @@ This is a tool to move existing packages into monorepos.
 dart run bin/trebuchet.dart \
   --input-name coverage \
   --input-branch-name main \
-  --target-branch-name main \
   --input-path ~/projects/coverage/ \
+  --target-branch-name main \
   --target tools \
   --target-path ~/projects/tools/ \
   --git-filter-repo ~/tools/git-filter-repo \

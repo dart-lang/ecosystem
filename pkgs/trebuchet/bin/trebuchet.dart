@@ -35,7 +35,7 @@ Future<void> main(List<String> arguments) async {
     )
     ..addOption(
       'target-branch-name',
-      help: 'The name of the main branch on the input repo',
+      help: 'The name of the main branch on the target repo',
       defaultsTo: 'main',
     )
     ..addOption(
