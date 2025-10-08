@@ -1,4 +1,7 @@
 name: workspace
+
+publish_to: none
+
 workspace:
   - pkg_1
   - pkg_2
