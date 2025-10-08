@@ -62,11 +62,8 @@ class Repository {
     if (pubspecFile.existsSync()) {
       var pubspec = yaml.loadYaml(pubspecFile.readAsStringSync()) as Map;
       var publishTo = pubspec['publish_to'] as String?;
-      if (publishTo != 'none' && !pubspec.containsKey('workspace')) {
+      if (publishTo != 'none') {
         packages.add(Package(directory, this));
-        // There is an assumption here that published, non-workspace packages do
-        // not contain nested published packages.
-        return;
       }
     }
     if (directory.existsSync()) {
