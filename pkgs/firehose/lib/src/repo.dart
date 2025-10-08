@@ -64,6 +64,9 @@ class Repository {
       var publishTo = pubspec['publish_to'] as String?;
       if (publishTo != 'none') {
         packages.add(Package(directory, this));
+        // There is an assumption here that published packages do not contain
+        // nested published packages.
+        return;
       }
     }
     if (directory.existsSync()) {
