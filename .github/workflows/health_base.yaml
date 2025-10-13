@@ -2,7 +2,8 @@
 
 name: Health:Base
 
-# The workflow doing the checks for `health.yaml`. Not meant to be used externally.
+# The workflow doing the checks for `health.yaml`. Not meant to be used
+# externally.
 
 on:
   workflow_call:

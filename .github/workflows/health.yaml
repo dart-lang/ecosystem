@@ -12,8 +12,7 @@ name: Health
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
-
-
+#
 # Or with options:
 #
 # jobs:
@@ -148,12 +147,11 @@ on:
         required: false
 
 jobs:
-  changelog:
-    if: ${{ contains(inputs.checks, 'changelog') }}
+  health_checks:
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
-      check: changelog
+      check: ${{ inputs.checks }}
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -163,86 +161,8 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
-  license:
-    if: ${{ contains(inputs.checks, 'license') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: license
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      local_debug: ${{ inputs.local_debug }}
-      flutter_packages: ${{ inputs.flutter_packages }}
-      ignore_license: ${{ inputs.ignore_license }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-      health_yaml_name: ${{ inputs.health_yaml_name }}
-
-  coverage:
-    if: ${{ contains(inputs.checks, 'coverage') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: coverage
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      upload_coverage: ${{ inputs.upload_coverage }}
-      coverage_web: ${{ inputs.coverage_web }}
-      local_debug: ${{ inputs.local_debug }}
-      flutter_packages: ${{ inputs.flutter_packages }}
-      ignore_coverage: ${{ inputs.ignore_coverage }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-      experiments: ${{ inputs.experiments }}
-      health_yaml_name: ${{ inputs.health_yaml_name }}
-
-  breaking:
-    if: ${{ contains(inputs.checks, 'breaking') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: breaking
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      local_debug: ${{ inputs.local_debug }}
-      flutter_packages: ${{ inputs.flutter_packages }}
-      ignore_breaking: ${{ inputs.ignore_breaking }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-      health_yaml_name: ${{ inputs.health_yaml_name }}
-
-  do-not-submit:
-    if: ${{ contains(inputs.checks, 'do-not-submit') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: do-not-submit
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      local_debug: ${{ inputs.local_debug }}
-      flutter_packages: ${{ inputs.flutter_packages }}
-      ignore_donotsubmit: ${{ inputs.ignore_donotsubmit }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-      health_yaml_name: ${{ inputs.health_yaml_name }}
-
-  leaking:
-    if: ${{ contains(inputs.checks, 'leaking') }}
-    uses: ./.github/workflows/health_base.yaml
-    with:
-      sdk: ${{ inputs.sdk }}
-      check: leaking
-      fail_on: ${{ inputs.fail_on }}
-      warn_on: ${{ inputs.warn_on }}
-      local_debug: ${{ inputs.local_debug }}
-      flutter_packages: ${{ inputs.flutter_packages }}
-      ignore_leaking: ${{ inputs.ignore_leaking }}
-      ignore_packages: ${{ inputs.ignore_packages }}
-      checkout_submodules: ${{ inputs.checkout_submodules }}
-      health_yaml_name: ${{ inputs.health_yaml_name }}
-
   comment:
-    needs: [changelog, license, coverage, breaking, do-not-submit, leaking]
+    needs: [health_checks]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:
