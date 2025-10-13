@@ -225,7 +225,12 @@ jobs:
           sdk: ${{ inputs.sdk }}
 
       - name: Install firehose
-        run: dart pub global activate firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        if: ${{ !inputs.local_debug }}
+
+      - name: Install local firehose
+        run: dart pub global activate --source path pkgs/firehose/
+        if: ${{ inputs.local_debug }}
 
       - name: Publish packages
         run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
