@@ -170,7 +170,7 @@ jobs:
           echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@fffe59ea229327e73edca9d31f0b578bf04152a9
+        uses: peter-evans/create-or-update-comment@d5e0dec389e2d24dd06f373d9e913879494b317c
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
         continue-on-error: true
         with:
@@ -179,7 +179,7 @@ jobs:
           edit-mode: replace
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@fffe59ea229327e73edca9d31f0b578bf04152a9
+        uses: peter-evans/create-or-update-comment@d5e0dec389e2d24dd06f373d9e913879494b317c
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         with:
           comment-id: ${{ steps.comment-id.outputs.comment }}
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload folder with number and markdown
         if: ${{ !inputs.write-comments }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
         with:
           name: output
           path: output/
