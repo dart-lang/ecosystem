@@ -270,7 +270,7 @@ jobs:
         run: |
          mkdir output
          echo $'## PR Health \n\n' >> output/comment.md
-         cat single-comments/*.md single-comments/*/*.md >> output/comment.md
+         find single-comments -maxdepth 1 -name '*.md' -exec cat {} + >> output/comment.md
          echo ${{ github.event.number }} > output/issueNumber
 
       - name: Write comment id to file
