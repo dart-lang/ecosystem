@@ -1,3 +1,7 @@
+## 3.6.0-wip
+
+- Add `remove_deprecations_in_breaking_versions`.
+
 ## 3.5.2
 
 - Depend on the `6.0.0` release of `package:lints`.

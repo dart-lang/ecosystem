@@ -31,6 +31,7 @@ linter:
     - prefer_const_constructors
     - prefer_relative_imports
     - prefer_single_quotes
+    - remove_deprecations_in_breaking_versions
     - sort_pub_dependencies
     - unnecessary_lambdas
     - unnecessary_library_directive
