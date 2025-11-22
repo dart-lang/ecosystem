@@ -5,7 +5,7 @@ repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/dart_flutter_t
 issue_tracker: https://github.com/dart-lang/ecosystem/issues?q=is%3Aissue+is%3Aopen+label%3Apackage%3Adart_flutter_team_lints
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.10.0
 
 dependencies:
   lints: ^6.0.0
