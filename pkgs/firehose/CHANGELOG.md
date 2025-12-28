@@ -4,6 +4,7 @@
 - Bump dart_apitool to fix errors with equal types being reported as different.
 - Give comment files in health work.
 - Don't ignore workspace pubspecs.
+- Fix bug to use default health.yaml names.
 
 ## 0.12.0
 
