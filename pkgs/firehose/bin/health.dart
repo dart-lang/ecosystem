@@ -68,8 +68,9 @@ void main(List<String> arguments) async {
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
   final coverageWeb = parsedArgs.flag('coverage_web');
   var healthYamlName = parsedArgs.option('health_yaml_name');
-  final healthYamlNames =
-      healthYamlName != null ? {healthYamlName} : {'health.yaml', 'health.yml'};
+  final healthYamlNames = healthYamlName != null && healthYamlName.isNotEmpty
+      ? {healthYamlName}
+      : {'health.yaml', 'health.yml'};
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
