@@ -310,7 +310,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     bool logStdout = true,
     Directory? workingDirectoryOverride,
   }) {
-    final workingDirectory = workingDirectoryOverride ?? package.directory;
+    final workingDirectory = workingDirectoryOverride ?? directory;
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${workingDirectory.path}');
     var runApiTool = Process.runSync(
