@@ -170,7 +170,12 @@ class Health {
       runDashProcess(
         flutterPackages,
         package,
-        ['pub', 'get', '-C', package.directory.path],
+        [
+          'pub',
+          'get',
+          '-C',
+          path.relative(package.directory.path, from: directory.path)
+        ],
         logStdout: false,
       );
 
@@ -196,7 +201,7 @@ class Health {
           'run',
           'dependency_validator',
           '-C',
-          package.directory.path
+          path.relative(package.directory.path, from: directory.path)
         ],
         logStdout: false,
       );
