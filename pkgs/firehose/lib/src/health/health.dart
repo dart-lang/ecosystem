@@ -432,6 +432,8 @@ ${unchangedFilesPaths.map((e) => '|$e|').join('\n')}
     var markdownResult = '''
 ```
 $license
+```
+
 | Files |
 | :--- |
 ${changedFilesPaths.isNotEmpty ? changedFilesPaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}
