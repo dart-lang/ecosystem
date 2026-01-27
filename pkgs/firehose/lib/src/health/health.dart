@@ -28,7 +28,7 @@ enum Check {
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
   donotsubmit('Do Not Submit', 'do-not-submit'),
-  unusedDependencies('Unused Dependencies', 'unused-dependencies');
+  unuseddependencies('Unused Dependencies', 'unused-dependencies');
 
   final String tag;
 
@@ -153,7 +153,7 @@ class Health {
         Check.breaking => breakingCheck,
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
-        Check.unusedDependencies => unusedDependenciesCheck,
+        Check.unuseddependencies => unusedDependenciesCheck,
       };
   Future<HealthCheckResult> unusedDependenciesCheck() async {
     final filesInPR = await listFilesInPRorAll();
@@ -204,7 +204,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
 ''';
 
     return HealthCheckResult(
-      Check.unusedDependencies,
+      Check.unuseddependencies,
       hasError ? Severity.error : Severity.success,
       markdownResult,
     );

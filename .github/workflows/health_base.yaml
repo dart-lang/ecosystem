@@ -87,7 +87,7 @@ on:
         default: '""'
         required: false
         type: string
-      ignore_unused-dependencies:
+      ignore_unuseddependencies:
         description: Which files to ignore for the unused dependencies check.
         default: '""'
         required: false
@@ -199,7 +199,7 @@ jobs:
             --ignore_breaking ${{ inputs.ignore_breaking }} \
             --ignore_leaking ${{ inputs.ignore_leaking }} \
             --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
-            --ignore_unused-dependencies ${{ inputs.ignore_unused-dependencies }} \
+            --ignore_unuseddependencies ${{ inputs.ignore_unuseddependencies }} \
             --experiments ${{ inputs.experiments }} \
             --health_yaml_name ${{ inputs.health_yaml_name }}
 

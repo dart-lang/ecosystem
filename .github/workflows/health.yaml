@@ -125,7 +125,7 @@ on:
         default: "\"\""
         required: false
         type: string
-      ignore_unused-dependencies:
+      ignore_unuseddependencies:
         description: Which files to ignore for the unused dependencies check.
         default: "\"\""
         required: false
