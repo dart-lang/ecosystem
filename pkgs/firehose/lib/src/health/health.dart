@@ -18,6 +18,8 @@ import 'coverage.dart';
 import 'license.dart';
 
 const apiToolHash = '8654b768219d5707cdade72fdd80cf915e9d46b8';
+// ignore: constant_identifier_names
+const dependency_validatorHash = 'f0a7e4ba6489d42f81a1352159c2f049c9741d4e';
 
 enum Check {
   license('License Headers', 'license'),
@@ -25,7 +27,8 @@ enum Check {
   coverage('Coverage', 'coverage'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
-  donotsubmit('Do Not Submit', 'do-not-submit');
+  donotsubmit('Do Not Submit', 'do-not-submit'),
+  unusedDependencies('Unused Dependencies', 'unused-dependencies');
 
   final String tag;
 
@@ -150,7 +153,62 @@ class Health {
         Check.breaking => breakingCheck,
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
+        Check.unusedDependencies => unusedDependenciesCheck,
       };
+
+  Future<HealthCheckResult> unusedDependenciesCheck() async {
+    final filesInPR = await listFilesInPRorAll();
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
+    final packages = packagesContaining(filesInPR, ignore: ignored);
+
+    final results = <String>[];
+    var hasError = false;
+
+    for (var package in packages) {
+      log('Checking dependencies for ${package.name}');
+
+      runDashProcess(
+        flutterPackages,
+        package,
+        [
+          'pub',
+          'global',
+          'activate',
+          ...['-sgit', 'https://github.com/Workiva/dependency_validator.git'],
+          ...['--git-ref', dependency_validatorHash],
+        ],
+        logStdout: false,
+      );
+
+      final result = runDashProcess(
+        flutterPackages,
+        package,
+        ['pub', 'global', 'run', 'dependency_validator'],
+        logStdout: false,
+      );
+
+      if (result.exitCode != 0) {
+        hasError = true;
+        final output = result.stdout as String;
+        results.add('| ${package.name} | ${output.replaceAll('\n', '<br>')} |');
+      }
+    }
+
+    final markdownResult = '''
+| Package | Issues |
+| :--- | :--- |
+${results.isEmpty ? '| _None_ | All dependencies are utilized correctly. |' : results.join('\n')}
+
+For details on how to fix these, see [dependency_validator](https://pub.dev/packages/dependency_validator).
+''';
+
+    return HealthCheckResult(
+      Check.unusedDependencies,
+      hasError ? Severity.error : Severity.success,
+      markdownResult,
+    );
+  }
 
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await listFilesInPRorAll();
@@ -376,8 +434,6 @@ ${unchangedFilesPaths.map((e) => '|$e|').join('\n')}
     var markdownResult = '''
 ```
 $license
-```
-
 | Files |
 | :--- |
 ${changedFilesPaths.isNotEmpty ? changedFilesPaths.map((e) => '|$e|').join('\n') : '| _no missing headers_  |'}

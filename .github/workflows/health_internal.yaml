@@ -15,9 +15,9 @@ jobs:
       local_debug: true
       coverage_web: false
       upload_coverage: false
-      checks: changelog,license,coverage,breaking,do-not-submit,leaking
+      checks: changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies
       fail_on: changelog,do-not-submit
-      warn_on: license,coverage,breaking,leaking
+      warn_on: license,coverage,breaking,leaking,unused-dependencies
       ignore_license: 'pkgs/firehose/test_data'
       ignore_coverage: 'pkgs/firehose/bin,pkgs/firehose/test_data'
       health_yaml_name: 'health_internal.yaml'

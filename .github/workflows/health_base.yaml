@@ -24,17 +24,17 @@ on:
         required: false
         type: string
       check:
-        description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         type: string
         required: true
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "license,coverage,breaking,leaking"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        default: "license,coverage,breaking,leaking,unused-dependencies"
         type: string
         required: false
       local_debug:
@@ -87,6 +87,11 @@ on:
         default: '""'
         required: false
         type: string
+      ignore_unused-dependencies:
+        description: Which files to ignore for the unused dependencies check.
+        default: '""'
+        required: false
+        type: string
       ignore_packages:
         description: Which packages to ignore.
         default: '""'
@@ -128,7 +133,7 @@ jobs:
           ref: ${{ github.event.pull_request.base.ref }}
           path: base_repo/
           submodules: ${{ inputs.checkout_submodules }}
-        if: ${{ inputs.check == 'coverage' }} || ${{ inputs.check == 'breaking' }}
+        if: ${{ inputs.check == 'coverage' || inputs.check == 'breaking' }}
 
       - run: mkdir -p current_repo/output/
 
@@ -194,6 +199,7 @@ jobs:
             --ignore_breaking ${{ inputs.ignore_breaking }} \
             --ignore_leaking ${{ inputs.ignore_leaking }} \
             --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
+            --ignore_unused-dependencies ${{ inputs.ignore_unused-dependencies }} \
             --experiments ${{ inputs.experiments }} \
             --health_yaml_name ${{ inputs.health_yaml_name }}
 
