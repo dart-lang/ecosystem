@@ -173,9 +173,8 @@ class Health {
         [
           'pub',
           'get',
-          '-C',
-          path.relative(package.directory.path, from: directory.path)
         ],
+        workingDirectoryOverride: package.directory,
         logStdout: false,
       );
 
@@ -200,9 +199,8 @@ class Health {
           'global',
           'run',
           'dependency_validator',
-          '-C',
-          path.relative(package.directory.path, from: directory.path)
         ],
+        workingDirectoryOverride: package.directory,
         logStdout: false,
       );
 
@@ -310,13 +308,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     Package package,
     List<String> arguments, {
     bool logStdout = true,
+    Directory? workingDirectoryOverride,
   }) {
+    final workingDirectory = workingDirectoryOverride ?? package.directory;
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
-    log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
+    log('Running `$exec ${arguments.join(' ')}` in ${workingDirectory.path}');
     var runApiTool = Process.runSync(
       exec,
       arguments,
-      workingDirectory: directory.path,
+      workingDirectory: workingDirectory.path,
     );
     final out = (runApiTool.stdout as String).trimRight();
     if (logStdout && out.isNotEmpty) {
