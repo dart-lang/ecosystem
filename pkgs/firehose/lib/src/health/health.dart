@@ -155,7 +155,6 @@ class Health {
         Check.leaking => leakingCheck,
         Check.unusedDependencies => unusedDependenciesCheck,
       };
-
   Future<HealthCheckResult> unusedDependenciesCheck() async {
     final filesInPR = await listFilesInPRorAll();
     final flutterPackages =
@@ -181,24 +180,25 @@ class Health {
         logStdout: false,
       );
 
-      final result = runDashProcess(
-        flutterPackages,
-        package,
-        ['pub', 'global', 'run', 'dependency_validator'],
-        logStdout: false,
-      );
+      final result = runDashProcess(flutterPackages, package,
+          ['pub', 'global', 'run', 'dependency_validator'],
+          logStdout: false, workingDirectoryOverride: package.directory.path);
 
       if (result.exitCode != 0) {
         hasError = true;
-        final output = result.stdout as String;
-        results.add('| ${package.name} | ${output.replaceAll('\n', '<br>')} |');
+        final output = (result.stderr as String).replaceAll('\n', '<br>');
+        results.add('''
+| ${package.name} | <details><summary>:exclamation: Show Issues</summary><pre>$output</pre></details> |''');
+      } else {
+        results.add('''
+| ${package.name} | :heavy_check_mark: All dependencies utilized correctly. |''');
       }
     }
 
     final markdownResult = '''
-| Package | Issues |
+| Package | Status |
 | :--- | :--- |
-${results.isEmpty ? '| _None_ | All dependencies are utilized correctly. |' : results.join('\n')}
+${results.isEmpty ? '| _None_ | No packages found to check. |' : results.join('\n')}
 
 For details on how to fix these, see [dependency_validator](https://pub.dev/packages/dependency_validator).
 ''';
@@ -284,17 +284,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
 
   ProcessResult runDashProcess(
-    List<Package> flutterPackages,
-    Package package,
-    List<String> arguments, {
-    bool logStdout = true,
-  }) {
+      List<Package> flutterPackages, Package package, List<String> arguments,
+      {bool logStdout = true, String? workingDirectoryOverride}) {
+    final workingDirectory = workingDirectoryOverride ?? directory.path;
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
-    log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
+    log('Running `$exec ${arguments.join(' ')}` in $workingDirectory');
     var runApiTool = Process.runSync(
       exec,
       arguments,
-      workingDirectory: directory.path,
+      workingDirectory: workingDirectory,
     );
     final out = (runApiTool.stdout as String).trimRight();
     if (logStdout && out.isNotEmpty) {
