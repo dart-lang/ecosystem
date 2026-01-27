@@ -170,6 +170,13 @@ class Health {
       runDashProcess(
         flutterPackages,
         package,
+        ['pub', 'get', '-C', package.directory.path],
+        logStdout: false,
+      );
+
+      runDashProcess(
+        flutterPackages,
+        package,
         [
           'pub',
           'global',
@@ -180,9 +187,19 @@ class Health {
         logStdout: false,
       );
 
-      final result = runDashProcess(flutterPackages, package,
-          ['pub', 'global', 'run', 'dependency_validator'],
-          logStdout: false, workingDirectoryOverride: package.directory.path);
+      final result = runDashProcess(
+        flutterPackages,
+        package,
+        [
+          'pub',
+          'global',
+          'run',
+          'dependency_validator',
+          '-C',
+          package.directory.path
+        ],
+        logStdout: false,
+      );
 
       if (result.exitCode != 0) {
         hasError = true;
@@ -284,15 +301,17 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
 
   ProcessResult runDashProcess(
-      List<Package> flutterPackages, Package package, List<String> arguments,
-      {bool logStdout = true, String? workingDirectoryOverride}) {
-    final workingDirectory = workingDirectoryOverride ?? directory.path;
+    List<Package> flutterPackages,
+    Package package,
+    List<String> arguments, {
+    bool logStdout = true,
+  }) {
     var exec = executable(flutterPackages.any((p) => p.name == package.name));
-    log('Running `$exec ${arguments.join(' ')}` in $workingDirectory');
+    log('Running `$exec ${arguments.join(' ')}` in ${directory.path}');
     var runApiTool = Process.runSync(
       exec,
       arguments,
-      workingDirectory: workingDirectory,
+      workingDirectory: directory.path,
     );
     final out = (runApiTool.stdout as String).trimRight();
     if (logStdout && out.isNotEmpty) {
