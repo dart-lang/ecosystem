@@ -4,4 +4,3 @@
 library;
 
 export 'src/package4_base.dart' show Awesome;
-
