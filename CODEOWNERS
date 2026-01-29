@@ -5,9 +5,9 @@
 
 /pkgs/blast_repo/              @kevmoo
 /pkgs/canary/                  @mosuem
-/pkgs/corpus/                  @devoncarew
-/pkgs/dart_flutter_team_lints/ @devoncarew @natebosch
-/pkgs/firehose/                @devoncarew @mosuem
-/pkgs/repo_manage/             @devoncarew @mosuem
-/pkgs/sdk_triage_bot/          @devoncarew
+/pkgs/corpus/                  @mosuem
+/pkgs/dart_flutter_team_lints/ @natebosch
+/pkgs/firehose/                @mosuem
+/pkgs/repo_manage/             @mosuem
+/pkgs/sdk_triage_bot/          @mosuem
 /pkgs/trebuchet/               @mosuem
