@@ -198,7 +198,8 @@ jobs:
 #     use-flutter: true
 #     ignore_license: "**.g.dart"
 #     ignore_coverage: "**.mock.dart,**.g.dart"
-#     ignore_packages: "pkgs/helper_package"
+#     ignore_breaking: "pkgs/helper_package/**"
+#     ignore_packages: "pkgs/helper_package2"
 #     checkout_submodules: false
 #     experiments: "native-assets"
     permissions:
@@ -248,7 +249,7 @@ jobs:
 | `upload_coverage`  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
 | `coverage_web`  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
 | `flutter_packages`  | List of strings  | List of packages depending on Flutter | `"pkgs/intl_flutter"` |
-| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, or `donotsubmit` | `"**.g.dart"` |
+| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, `donotsubmit`, or `unuseddependencies`. For the `breaking` and `unuseddependencies` checks, the glob should be all files of the package. | `"**.g.dart"` |
 | `ignore_packages`  | List of globs  | Which packages to ignore completely | `"pkgs/helper_package"` |
 | `checkout_submodules`  | boolean  | Whether to checkout submodules of git repositories | `false` |
 | `experiments`  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |
