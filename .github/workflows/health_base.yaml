@@ -8,107 +8,81 @@ on:
   workflow_call:
     inputs:
       sdk:
-        description: >-
-          The channel, or a specific version from a channel, to install
-          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
-          will give you the latest version published to that channel.
         default: "stable"
         required: false
         type: string
       channel:
-        description: >-
-          The channel, or a specific version from a channel, to install
-          ('2.19.0','stable', 'beta', 'dev'). Using one of the three named channels
-          will give you the latest version published to that channel.
         default: "stable"
         required: false
         type: string
       check:
-        description: What to check for in the PR health check - any of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         type: string
         required: true
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         default: "license,coverage,breaking,leaking,unused-dependencies"
         type: string
         required: false
       local_debug:
-        description: Whether to use a local copy of package:firehose - only for debug
         default: false
         type: boolean
         required: false
       upload_coverage:
-        description: Whether to upload the coverage to coveralls
         default: true
         type: boolean
         required: false
       coverage_web:
-        description: Whether to run `dart test -p chrome` for coverage
         default: false
         type: boolean
         required: false
       flutter_packages:
-        description: List of packages depending on Flutter.
         default: '""'
         required: false
         type: string
       ignore_license:
-        description: Which files to ignore for the license check.
         default: '""'
         required: false
         type: string
       ignore_changelog:
-        description: Which files to ignore for the license check.
         default: '""'
         required: false
         type: string
       ignore_coverage:
-        description: Which files to ignore for the coverage check.
         default: '""'
         required: false
         type: string
       ignore_breaking:
-        description: Which files to ignore for the license check.
         default: '""'
         required: false
         type: string
       ignore_leaking:
-        description: Which files to ignore for the license check.
         default: '""'
         required: false
         type: string
       ignore_donotsubmit:
-        description: Which files to ignore for the license check.
         default: '""'
         required: false
         type: string
       ignore_unuseddependencies:
-        description: Which files to ignore for the unused dependencies check.
         default: '""'
         required: false
         type: string
       ignore_packages:
-        description: Which packages to ignore.
         default: '""'
         required: false
         type: string
       checkout_submodules:
-        description: Whether to checkout submodules of git repositories.
         default: false
         required: false
         type: boolean
       experiments:
-        description: Which experiments should be enabled for Dart.
         default: '""'
         type: string
         required: false
       health_yaml_name:
-        description: The name of the workflow file.
         default: '""'
         type: string
         required: false

@@ -96,42 +96,42 @@ on:
         required: false
         type: string
       ignore_license:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the license check.
         default: "\"\""
         required: false
         type: string
       ignore_changelog:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the changelog check.
         default: "\"\""
         required: false
         type: string
       ignore_coverage:
-        description: Which files to ignore for the coverage check.
+        description: A glob describing which files to ignore for the coverage check.
         default: "\"\""
         required: false
         type: string
       ignore_breaking:
-        description: Which files to ignore for the license check.
+        description: A glob describing which packages to ignore for the breaking changes check.
         default: "\"\""
         required: false
         type: string
       ignore_leaking:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the leaking check.
         default: "\"\""
         required: false
         type: string
       ignore_donotsubmit:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the do-not-submit check.
         default: "\"\""
         required: false
         type: string
       ignore_unuseddependencies:
-        description: Which files to ignore for the unused dependencies check.
+        description: A glob describing which packages to ignore for the unused dependencies check.
         default: "\"\""
         required: false
         type: string
       ignore_packages:
-        description: Which packages to ignore.
+        description: A glob describing which packages to ignore for all checks.
         default: "\"\""
         required: false
         type: string
