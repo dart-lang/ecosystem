@@ -435,9 +435,8 @@ ${leaksInPackages.map((e) => '|${e.$1.name}|${e.$2.name}|${e.$2.usages.join('<br
     var files = await listFilesInPRorAll();
     var allFilePaths = await getFilesWithoutLicenses(directory, ignored);
 
-    var groupedPaths = allFilePaths.groupListsBy((filePath) {
-      return files.any((f) => f.filename == filePath);
-    });
+    var groupedPaths = allFilePaths
+        .groupListsBy((filePath) => files.any((f) => f.filename == filePath));
 
     var unchangedFilesPaths = groupedPaths[false] ?? [];
     var unchangedMarkdown = '''
@@ -612,7 +611,7 @@ This check can be disabled by tagging the PR with `skip-${result.check.displayNa
     var commentFile = File(commentPath);
     log('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
-    await commentFile.writeAsString(markdownSummary);
+    await commentFile.writeAsString(markdownSummary, mode: FileMode.append);
 
     if (result.severity == Severity.error && exitCode == 0) {
       exitCode = 1;

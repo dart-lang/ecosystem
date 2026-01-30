@@ -7,11 +7,13 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
+import 'package:firehose/src/local_github_api.dart';
+import 'package:path/path.dart' as p;
 
 void main(List<String> arguments) async {
   var checkTypes = Check.values.map((c) => c.displayName);
   var argParser = ArgParser()
-    ..addOption(
+    ..addMultiOption(
       'check',
       allowed: checkTypes,
       help: 'Check PR health.',
@@ -48,7 +50,12 @@ void main(List<String> arguments) async {
       'health_yaml_name',
       help: 'The name of the workflow file containing the health checks, '
           'to know to rerun all checks if that file is changed.',
-    );
+    )
+    ..addOption(
+      'comment',
+      help: 'The name of the file to write the resulting comment to.',
+    )
+    ..addFlag('local', help: 'Run locally', defaultsTo: true);
   for (var check in Check.values) {
     argParser.addMultiOption(
       'ignore_${check.name}',
@@ -57,8 +64,9 @@ void main(List<String> arguments) async {
     );
   }
   final parsedArgs = argParser.parse(arguments);
-  final checkStr = parsedArgs.option('check');
-  final check = Check.values.firstWhere((c) => c.displayName == checkStr);
+  final checkStrings = parsedArgs.multiOption('check');
+  final checks = checkStrings.map(
+      (checkStr) => Check.values.firstWhere((c) => c.displayName == checkStr));
   final warnOn = parsedArgs.multiOption('warn_on');
   final failOn = parsedArgs.multiOption('fail_on');
   final flutterPackages = _listNonEmpty(parsedArgs, 'flutter_packages');
@@ -67,7 +75,7 @@ void main(List<String> arguments) async {
       .map((c) => MapEntry(c, _listNonEmpty(parsedArgs, 'ignore_${c.name}'))));
   final experiments = _listNonEmpty(parsedArgs, 'experiments');
   final coverageWeb = parsedArgs.flag('coverage_web');
-  var healthYamlName = parsedArgs.option('health_yaml_name');
+  final healthYamlName = parsedArgs.option('health_yaml_name');
   final healthYamlNames = healthYamlName != null && healthYamlName.isNotEmpty
       ? {healthYamlName}
       : {'health.yaml', 'health.yml'};
@@ -75,10 +83,28 @@ void main(List<String> arguments) async {
     throw ArgumentError('The checks for which warnings are displayed and the '
         'checks which lead to failure must be disjoint.');
   }
-  await Health(Directory.current, check, warnOn, failOn, coverageWeb,
-          ignorePackages, ignoredFor, experiments, GithubApi(), flutterPackages,
-          healthYamlNames: healthYamlNames)
-      .healthCheck();
+  final isLocal = parsedArgs.flag('local');
+  final GithubApi githubApi;
+  if (isLocal) {
+    final files = Directory.current
+        .listSync(recursive: true)
+        .whereType<File>()
+        .map(
+          (e) => GitFile(p.relative(e.path, from: Directory.current.path),
+              FileStatus.added, Directory.current),
+        )
+        .toList();
+    githubApi = LocalGithubApi(prLabels: [], files: files);
+  } else {
+    githubApi = GithubApi();
+  }
+  for (var check in checks) {
+    await Health(Directory.current, check, warnOn, failOn, coverageWeb,
+            ignorePackages, ignoredFor, experiments, githubApi, flutterPackages,
+            healthYamlNames: healthYamlNames,
+            comment: isLocal ? parsedArgs.option('comment') : null)
+        .healthCheck();
+  }
 }
 
 List<String> _listNonEmpty(ArgResults parsedArgs, String key) =>
