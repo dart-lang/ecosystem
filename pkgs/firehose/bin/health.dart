@@ -109,7 +109,8 @@ void main(List<String> arguments) async {
   ).healthCheck();
 }
 
-String? nullIfEmpty(String? value) => value?.isNotEmpty == true ? value : null;
+String? nullIfEmpty(String? value) =>
+    value != null && value.isNotEmpty ? value : null;
 
 extension on ArgResults {
   List<String> listNonEmpty(String key) =>
