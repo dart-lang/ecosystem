@@ -198,7 +198,8 @@ jobs:
 #     use-flutter: true
 #     ignore_license: "**.g.dart"
 #     ignore_coverage: "**.mock.dart,**.g.dart"
-#     ignore_packages: "pkgs/helper_package"
+#     ignore_breaking: "pkgs/helper_package/**"
+#     ignore_packages: "pkgs/helper_package2"
 #     checkout_submodules: false
 #     experiments: "native-assets"
     permissions:
@@ -227,18 +228,28 @@ jobs:
       pull-requests: write
 ```
 
+### Checks
+| Check | Description |
+| :--- | :--- |
+| **`license`** | Scans all `.dart` files in the PR to ensure they contain the required license header (e.g., the BSD 3-Clause header used by Dart ecosystem packages). |
+| **`coverage`** | Runs tests and calculates code coverage. It compares the coverage of the PR branch against the base branch to report whether coverage has increased, decreased, or stayed the same. |
+| **`breaking`** | Analyzes public API changes using `package:dart_apitool`. If breaking changes are detected (e.g., removing a class or changing a method signature), it ensures the version bump reflects a major/breaking change. |
+| **`do-not-submit`** | Scans the file contents and the PR description for the string `DO_NOT_SUBMIT`. This prevents developers from accidentally merging debug code, "TODO" shortcuts, or sensitive local configurations. |
+| **`leaking`** | Checks for "leaked" symbols—types or classes that are visible in your public API (e.g., used as a return type in a public method) but are not actually exported in your package's main library entry point. |
+| **`unused-dependencies`** | Analyzes the imports in your source code against the dependencies listed in `pubspec.yaml` to identify packages that are declared but never actually used, using `package:dependency_validator`. |
+
 
 ### Options
 
 | Name | Type | Description | Example |
 | ------------- | ------------- | ------------- | ------------- |
-| `checks`  | List of strings  | What to check for in the PR health check | `"version,changelog,license,coverage,breaking,do-not-submit,leaking"` |
-| `fail_on`  | List of strings  | Which checks should lead to failure | `"version,changelog,do-not-submit"` |
+| `checks`  | List of strings  | What to check for in the PR health check | `"changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"` |
+| `fail_on`  | List of strings  | Which checks should lead to failure | `"changelog,do-not-submit"` |
 | `warn_on`  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
 | `upload_coverage`  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
 | `coverage_web`  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
 | `flutter_packages`  | List of strings  | List of packages depending on Flutter | `"pkgs/intl_flutter"` |
-| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, or `donotsubmit` | `"**.g.dart"` |
+| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, `donotsubmit`, or `unuseddependencies`. For the `breaking` and `unuseddependencies` checks, the glob should be all files of the package. | `"**.g.dart"` |
 | `ignore_packages`  | List of globs  | Which packages to ignore completely | `"pkgs/helper_package"` |
 | `checkout_submodules`  | boolean  | Whether to checkout submodules of git repositories | `false` |
 | `experiments`  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |

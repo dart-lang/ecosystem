@@ -36,6 +36,7 @@ name: Health
 #       ignore_packages: "pkgs/helper_package"
 #       checkout_submodules: false
 #       experiments: "native-assets"
+#       unused-dependencies: true
 
 on:
   workflow_call:
@@ -59,21 +60,19 @@ on:
         default: "stable"
         required: false
         type: string
-      # Restrict the checks to any subset of version, changelog, and license if
-      # needed.
       checks:
-        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         type: string
         required: false
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking"
-        default: "license,coverage,breaking,leaking"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        default: "license,coverage,breaking,leaking,unused-dependencies"
         type: string
         required: false
       local_debug:
@@ -97,37 +96,42 @@ on:
         required: false
         type: string
       ignore_license:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the license check.
         default: "\"\""
         required: false
         type: string
       ignore_changelog:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the changelog check.
         default: "\"\""
         required: false
         type: string
       ignore_coverage:
-        description: Which files to ignore for the coverage check.
+        description: A glob describing which files to ignore for the coverage check.
         default: "\"\""
         required: false
         type: string
       ignore_breaking:
-        description: Which files to ignore for the license check.
+        description: A glob describing which packages to ignore for the breaking changes check.
         default: "\"\""
         required: false
         type: string
       ignore_leaking:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the leaking check.
         default: "\"\""
         required: false
         type: string
       ignore_donotsubmit:
-        description: Which files to ignore for the license check.
+        description: A glob describing which files to ignore for the do-not-submit check.
+        default: "\"\""
+        required: false
+        type: string
+      ignore_unuseddependencies:
+        description: A glob describing which packages to ignore for the unused dependencies check.
         default: "\"\""
         required: false
         type: string
       ignore_packages:
-        description: Which packages to ignore.
+        description: A glob describing which packages to ignore for all checks.
         default: "\"\""
         required: false
         type: string
@@ -241,8 +245,22 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
+  unused-dependencies:
+    if: ${{ contains(inputs.checks, 'unused-dependencies') }}
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: unused-dependencies
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
+
   comment:
-    needs: [changelog, license, coverage, breaking, do-not-submit, leaking]
+    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:

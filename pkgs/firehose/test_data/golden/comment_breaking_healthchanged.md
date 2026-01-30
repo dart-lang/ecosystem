@@ -8,6 +8,7 @@
 |package1|None|1.0.0|1.0.0|1.0.0|:heavy_check_mark:|
 |package2|Non-Breaking|1.0.0|1.0.0|**1.1.0** <br> Got "1.0.0" expected >= "1.1.0" (non-breaking changes)|:warning:|
 |package3|None|1.0.0|1.0.0|1.0.0|:heavy_check_mark:|
+|package4|None|1.2.0|1.2.0|1.2.0|:heavy_check_mark:|
 |package5|Non-Breaking|1.0.0|1.2.0|1.1.0|:heavy_check_mark:|
 
 

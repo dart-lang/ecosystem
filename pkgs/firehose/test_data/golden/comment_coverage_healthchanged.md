@@ -12,6 +12,8 @@
 |pkgs/package2/lib/package2.dart| :green_heart: 100 % |
 |pkgs/package3/bin/package3.dart| :broken_heart: Not covered |
 |pkgs/package3/lib/package3.dart| :green_heart: 100 % |
+|pkgs/package4/lib/package4.dart| :broken_heart: Not covered |
+|pkgs/package4/lib/src/package4_base.dart| :broken_heart: Not covered |
 |pkgs/package5/lib/package5.dart| :broken_heart: Not covered |
 |pkgs/package5/lib/src/package5_base.dart| :broken_heart: Not covered |
 
