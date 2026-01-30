@@ -98,7 +98,7 @@ void main(List<String> arguments) async {
   } else {
     githubApi = GithubApi();
   }
-  for (var check in checks) {
+  for (var check in checks.isEmpty ? Check.values : checks) {
     await Health(Directory.current, check, warnOn, failOn, coverageWeb,
             ignorePackages, ignoredFor, experiments, githubApi, flutterPackages,
             healthYamlNames: healthYamlNames,
