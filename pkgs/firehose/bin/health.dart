@@ -55,7 +55,8 @@ void main(List<String> arguments) async {
       'comment',
       help: 'The name of the file to write the resulting comment to.',
     )
-    ..addFlag('local', help: 'Run locally', defaultsTo: true);
+    ..addFlag('local', help: 'Run locally', defaultsTo: true)
+    ..addOption(
       'license',
       help: 'The license string to insert if missing.'
           ' %YEAR% will be replaced with the current year',
@@ -114,13 +115,22 @@ void main(List<String> arguments) async {
     githubApi = GithubApi();
   }
   for (var check in checks.isEmpty ? Check.values : checks) {
-    await Health(Directory.current, check, warnOn, failOn, coverageWeb,
-            ignorePackages, ignoredFor, experiments, githubApi, flutterPackages,
-            healthYamlNames: healthYamlNames,
-            comment: isLocal ? parsedArgs.option('comment') : null,
-    license: license,
-    licenseTestString: licenseTestString,)
-        .healthCheck();
+    await Health(
+      Directory.current,
+      check,
+      warnOn,
+      failOn,
+      coverageWeb,
+      ignorePackages,
+      ignoredFor,
+      experiments,
+      githubApi,
+      flutterPackages,
+      healthYamlNames: healthYamlNames,
+      comment: isLocal ? parsedArgs.option('comment') : null,
+      license: license,
+      licenseTestString: licenseTestString,
+    ).healthCheck();
   }
 }
 
