@@ -21,7 +21,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "changelog,license,coverage,breaking,do-not-submit,leaking"
+#       checks: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
 #       fail_on: "changelog,do-not-submit"
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
@@ -36,7 +36,6 @@ name: Health
 #       ignore_packages: "pkgs/helper_package"
 #       checkout_submodules: false
 #       experiments: "native-assets"
-#       unused-dependencies: true
 #       license: "// Copyright %YEAR% ..."
 #       license_test_string: "// Copyright (c)"
 
