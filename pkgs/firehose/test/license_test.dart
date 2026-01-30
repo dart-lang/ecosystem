@@ -7,22 +7,25 @@ library;
 
 import 'dart:io';
 
+import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/health/license.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
-  var fileWithLicense = File('test/fileWithLicense.dart');
-  var fileWithoutLicense = File('test/fileWithoutLicense.dart');
+  final fileWithLicense = File('test/fileWithLicense.dart');
+  final fileWithoutLicense = File('test/fileWithoutLicense.dart');
+  final licenseOptions = LicenseOptions();
 
   setUp(() async {
-    await fileWithLicense.writeAsString(license);
+    await fileWithLicense.writeAsString(licenseOptions.license);
     await fileWithoutLicense.writeAsString('');
   });
 
   test('Check for licenses', () async {
     var directory = Directory('test/');
-    var filesWithoutLicenses = await getFilesWithoutLicenses(directory, []);
+    var filesWithoutLicenses = await getFilesWithoutLicenses(
+        directory, [], licenseOptions.licenseTestString);
     expect(filesWithoutLicenses,
         [path.relative(fileWithoutLicense.path, from: directory.path)]);
   });

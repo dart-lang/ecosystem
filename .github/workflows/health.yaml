@@ -37,6 +37,8 @@ name: Health
 #       checkout_submodules: false
 #       experiments: "native-assets"
 #       unused-dependencies: true
+#       license: "// Copyright %YEAR% ..."
+#       license_test_string: "// Copyright (c)"
 
 on:
   workflow_call:
@@ -150,6 +152,16 @@ on:
         default: '""'
         type: string
         required: false
+      license:
+        description: The license string to insert if missing.
+        default: '""'
+        required: false
+        type: string
+      license_test_string:
+        description: A specific string to verify if a file has a license.
+        default: '""'
+        required: false
+        type: string
 
 jobs:
   changelog:
@@ -181,6 +193,8 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      license: ${{ inputs.license }}
+      license_test_string: ${{ inputs.license_test_string }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
