@@ -253,6 +253,8 @@ jobs:
 | `ignore_packages`  | List of globs  | Which packages to ignore completely | `"pkgs/helper_package"` |
 | `checkout_submodules`  | boolean  | Whether to checkout submodules of git repositories | `false` |
 | `experiments`  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |
+| `license`  | String  | The license string to insert if missing. %YEAR% will be replaced with the current year | `"// Copyright %YEAR% ..."` |
+| `license_test_string`  | String  | A file containing this string will be considered having a license. | `"// Copyright (c)"` |
 
 ### Workflow docs
 

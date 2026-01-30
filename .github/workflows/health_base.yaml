@@ -86,6 +86,14 @@ on:
         default: '""'
         type: string
         required: false
+      license:
+        default: '""'
+        required: false
+        type: string
+      license_test_string:
+        default: '""'
+        required: false
+        type: string
 
 jobs:
   health:
@@ -175,7 +183,9 @@ jobs:
             --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
             --ignore_unuseddependencies ${{ inputs.ignore_unuseddependencies }} \
             --experiments ${{ inputs.experiments }} \
-            --health_yaml_name ${{ inputs.health_yaml_name }}
+            --health_yaml_name ${{ inputs.health_yaml_name }} \
+            --license ${{ inputs.license }} \
+            --license_test_string ${{ inputs.license_test_string }}
 
       - run: test -f current_repo/output/comment-${{ inputs.check }}.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${{ inputs.check }}.md
         if: ${{ '$action_state' == 1 }}

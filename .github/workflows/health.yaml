@@ -21,7 +21,7 @@ name: Health
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #     with:
 #       sdk: beta
-#       checks: "changelog,license,coverage,breaking,do-not-submit,leaking"
+#       checks: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
 #       fail_on: "changelog,do-not-submit"
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
@@ -36,7 +36,8 @@ name: Health
 #       ignore_packages: "pkgs/helper_package"
 #       checkout_submodules: false
 #       experiments: "native-assets"
-#       unused-dependencies: true
+#       license: "// Copyright %YEAR% ..."
+#       license_test_string: "// Copyright (c)"
 
 on:
   workflow_call:
@@ -150,6 +151,16 @@ on:
         default: '""'
         type: string
         required: false
+      license:
+        description: The license string to insert if missing. %YEAR% will be replaced with the current year
+        default: '""'
+        required: false
+        type: string
+      license_test_string:
+        description: A file containing this string will be considered having a license.
+        default: '""'
+        required: false
+        type: string
 
 jobs:
   changelog:
@@ -181,6 +192,8 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      license: ${{ inputs.license }}
+      license_test_string: ${{ inputs.license_test_string }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}

@@ -8,13 +8,11 @@ import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
-final license = '''
-// Copyright (c) ${DateTime.now().year}, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.''';
+Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir,
+    List<Glob> ignored, String licenseTestString) async {
+  bool fileContainsCopyright(String fileContents) =>
+      fileContents.contains(licenseTestString);
 
-Future<List<String>> getFilesWithoutLicenses(
-    Directory repositoryDir, List<Glob> ignored) async {
   var dartFiles = await repositoryDir
       .list(recursive: true)
       .where((file) => file.path.endsWith('.dart'))
@@ -36,8 +34,8 @@ Future<List<String>> getFilesWithoutLicenses(
       .whereType<String>()
       .sortedBy((fileName) => fileName)
       .toList();
-  print('''
-Done, found ${filesWithoutLicenses.length} files without license headers''');
+  print('Done, found ${filesWithoutLicenses.length}'
+      ' files without license headers');
   return filesWithoutLicenses;
 }
 
@@ -47,6 +45,3 @@ bool fileIsGenerated(String fileContents, String path) =>
         .split('\n')
         .takeWhile((line) => line.startsWith('//') || line.isEmpty)
         .any((line) => line.toLowerCase().contains('generate'));
-
-bool fileContainsCopyright(String fileContents) =>
-    fileContents.contains('// Copyright (c)');
