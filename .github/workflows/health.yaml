@@ -152,12 +152,12 @@ on:
         type: string
         required: false
       license:
-        description: The license string to insert if missing.
+        description: The license string to insert if missing. %YEAR% will be replaced with the current year
         default: '""'
         required: false
         type: string
       license_test_string:
-        description: A specific string to verify if a file has a license.
+        description: A file containing this string will be considered having a license.
         default: '""'
         required: false
         type: string

@@ -128,7 +128,7 @@ class Health {
     log(' coverageweb: $coverageweb');
     log(' flutterPackages: $flutterPackageGlobs');
     log(' ignoredPackages: $ignoredPackages');
-    log(' ignoredFor: $ignoredFor');
+    log(' ignoredFor: ${ignoredFor[check]}');
     log(' baseDirectory: $baseDirectory');
     log(' experiments: $experiments');
     log(' healthYamlNames: $healthYamlNames');

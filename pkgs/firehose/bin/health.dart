@@ -51,11 +51,13 @@ void main(List<String> arguments) async {
     )
     ..addOption(
       'license',
-      help: 'The license string to insert if missing.',
+      help: 'The license string to insert if missing.'
+          ' %YEAR% will be replaced with the current year',
     )
     ..addOption(
       'license_test_string',
-      help: 'A specific string to verify if a file has a license.',
+      help:
+          'A file containing this string will be considered having a license.',
     );
 
   for (var check in Check.values) {
