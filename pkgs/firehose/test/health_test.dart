@@ -54,7 +54,7 @@ Future<void> main() async {
       '-sgit',
       'https://github.com/bmw-tech/dart_apitool.git',
       '--git-ref',
-      apiToolHash,
+      dart_apitoolHash,
     ]);
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
   });
