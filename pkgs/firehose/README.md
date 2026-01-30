@@ -260,3 +260,16 @@ jobs:
 
 The description of the common workflow for repos using this tool can be found at
 https://github.com/dart-lang/ecosystem/wiki/Pull-Request-Health.
+
+### Running locally
+
+To run the health workflow locally, simply run
+```
+dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+dart pub global run firehose:health
+```
+
+or configure it further, for example
+```
+dart pub global run firehose:health --check unused-dependencies,license --comment test.md
+```

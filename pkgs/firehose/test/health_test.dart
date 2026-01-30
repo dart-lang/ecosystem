@@ -4,23 +4,21 @@
 
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
+import 'package:firehose/src/local_github_api.dart';
 import 'package:firehose/src/repo.dart';
-import 'package:github/src/common/model/repos.dart';
-import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 Future<void> main() async {
   late final Directory directory;
-  late final FakeGithubApi Function(List<GitFile> additional) fakeGithubApi;
+  late final LocalGithubApi Function(List<GitFile> additional) fakeGithubApi;
 
   setUpAll(() async {
     directory = Directory(p.join('test_data', 'test_repo'));
     fakeGithubApi =
-        (List<GitFile> additional) => FakeGithubApi(prLabels: [], files: [
+        (List<GitFile> additional) => LocalGithubApi(prLabels: [], files: [
               GitFile(
                 'pkgs/package1/bin/package1.dart',
                 FileStatus.modified,
@@ -56,7 +54,7 @@ Future<void> main() async {
       '-sgit',
       'https://github.com/bmw-tech/dart_apitool.git',
       '--git-ref',
-      apiToolHash,
+      dart_apitoolHash,
     ]);
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
   });
@@ -121,7 +119,7 @@ Future<void> main() async {
 
 Future<void> checkGolden(
   Check check,
-  FakeGithubApi fakeGithubApi,
+  LocalGithubApi fakeGithubApi,
   Directory directory, {
   String suffix = '',
   Map<Check, List<String>> ignoreFor = const {},
@@ -175,66 +173,4 @@ class FakeHealth extends Health {
   @override
   String getCurrentVersionOfPackage(Package package) =>
       p.join('../base_test_repo/pkgs', package.name);
-}
-
-class FakeGithubApi implements GithubApi {
-  final List<GitFile> files;
-
-  FakeGithubApi({
-    required this.prLabels,
-    required this.files,
-  });
-
-  @override
-  String? get actor => throw UnimplementedError();
-
-  @override
-  void appendStepSummary(String markdownSummary) {}
-
-  @override
-  String? get baseRef => throw UnimplementedError();
-
-  @override
-  void close() {}
-
-  @override
-  Future<int?> findCommentId({required String user, String? searchTerm}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  String? get githubAuthToken => throw UnimplementedError();
-
-  @override
-  bool get inGithubContext => throw UnimplementedError();
-
-  @override
-  int? get issueNumber => 1;
-
-  @override
-  Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
-    return files
-        .where((element) =>
-            ignoredFiles.none((p0) => p0.matches(element.filename)))
-        .toList();
-  }
-
-  @override
-  void notice({required String message}) {}
-
-  @override
-  final List<String> prLabels;
-
-  @override
-  Future<String> pullrequestBody() async => 'Test body';
-
-  @override
-  String? get refName => throw UnimplementedError();
-
-  @override
-  RepositorySlug? get repoSlug => RepositorySlug('test_owner', 'test_repo');
-
-  @override
-  String? get sha => 'test_sha';
 }
