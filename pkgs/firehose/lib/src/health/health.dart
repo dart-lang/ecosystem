@@ -58,6 +58,8 @@ class Health {
     String? comment,
     this.log = printLogger,
     required this.healthYamlNames,
+    String? licenseTestString,
+    String? license,
   })  : ignoredPackages = toGlobs(ignoredPackages),
         flutterPackageGlobs = toGlobs(flutterPackages),
         ignoredFor =
@@ -68,7 +70,11 @@ class Health {
               directory.path,
               'output',
               'comment-${check.displayName}.md',
-            ) {
+            ),
+        licenseOptions = LicenseOptions(
+          license: license,
+          licenseTestString: licenseTestString,
+        ) {
     flutterExecutable =
         (Process.runSync('which', ['-a', 'flutter']).stdout as String)
             .split('\n')
@@ -100,6 +106,7 @@ class Health {
   final List<String> experiments;
   final Logger log;
   final Set<String> healthYamlNames;
+  final LicenseOptions licenseOptions;
 
   late final String dartExecutable;
   late final String? flutterExecutable;
@@ -122,7 +129,7 @@ class Health {
     log(' coverageweb: $coverageweb');
     log(' flutterPackages: $flutterPackageGlobs');
     log(' ignoredPackages: $ignoredPackages');
-    log(' ignoredFor: $ignoredFor');
+    log(' ignoredFor: ${ignoredFor[check]}');
     log(' baseDirectory: $baseDirectory');
     log(' experiments: $experiments');
     log(' healthYamlNames: $healthYamlNames');
@@ -447,7 +454,8 @@ ${leaksInPackages.map((e) => '|${e.$1.name}|${e.$2.name}|${e.$2.usages.join('<br
 
   Future<HealthCheckResult> licenseCheck() async {
     var files = await listFilesInPRorAll();
-    var allFilePaths = await getFilesWithoutLicenses(directory, ignored);
+    var allFilePaths = await getFilesWithoutLicenses(
+        directory, ignored, licenseOptions.licenseTestString);
 
     var groupedPaths = allFilePaths
         .groupListsBy((filePath) => files.any((f) => f.filename == filePath));
@@ -468,7 +476,7 @@ ${unchangedFilesPaths.map((e) => '|$e|').join('\n')}
     var changedFilesPaths = groupedPaths[true] ?? [];
     var markdownResult = '''
 ```
-$license
+${licenseOptions.license}
 ```
 
 | Files |
@@ -644,6 +652,28 @@ This check can be disabled by tagging the PR with `skip-${result.check.displayNa
             path.isWithin(package.directory.path, file.pathInRepository)))
         .toList();
   }
+}
+
+class LicenseOptions {
+  static const _defaultLicenseTestString = '// Copyright (c)';
+
+  static const _defaultLicense = '''
+// Copyright (c) %YEAR%, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.''';
+
+  final String _license;
+
+  String get license =>
+      _license.replaceAll('%YEAR%', DateTime.now().year.toString());
+
+  final String licenseTestString;
+
+  LicenseOptions({
+    String? license,
+    String? licenseTestString,
+  })  : _license = license ?? _defaultLicense,
+        licenseTestString = licenseTestString ?? _defaultLicenseTestString;
 }
 
 class Leak {

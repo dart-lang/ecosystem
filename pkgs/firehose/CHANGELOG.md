@@ -6,6 +6,7 @@
 - Don't ignore workspace pubspecs.
 - Fix bug to use default health.yaml names.
 - Add check for unused dependencies.
+- Make license customizable.
 
 ## 0.12.0
 
