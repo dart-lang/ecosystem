@@ -102,6 +102,7 @@ void main(List<String> arguments) async {
   final isLocal = parsedArgs.flag('local');
   final GithubApi githubApi;
   if (isLocal) {
+    print('Using mock Github API, as this is run locally.');
     final files = Directory.current
         .listSync(recursive: true)
         .whereType<File>()
