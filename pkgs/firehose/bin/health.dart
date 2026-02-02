@@ -112,6 +112,7 @@ void main(List<String> arguments) async {
         .toList();
     githubApi = LocalGithubApi(prLabels: [], files: files);
   } else {
+    print('Using Github API, as this is executed on GitHub.');
     githubApi = GithubApi();
   }
   for (var check in checks.isEmpty ? Check.values : checks) {

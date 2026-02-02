@@ -134,7 +134,9 @@ class Health {
     log(' experiments: $experiments');
     log(' healthYamlNames: $healthYamlNames');
     log('Checking for $checkName');
-    if (!github.prLabels.contains('skip-$checkName-check')) {
+    var prLabels = github.prLabels;
+    print('PR Labels are $prLabels');
+    if (!prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
       if (warnOn.contains(check.displayName) &&
@@ -150,7 +152,7 @@ class Health {
       var severity = finalResult.severity.name.toUpperCase();
       log('\n\n$severity: $checkName done.\n\n');
     } else {
-      log('Skipping $checkName, as the skip tag is present.');
+      log('Skipping $checkName, as the skip tag is present in $prLabels.');
     }
   }
 
