@@ -17,7 +17,8 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
-const apiToolHash = '8654b768219d5707cdade72fdd80cf915e9d46b8';
+// ignore: constant_identifier_names
+const dart_apitoolHash = '906fa0f3dca24d81d1c26ee71c884ecbb6234ecf';
 // ignore: constant_identifier_names
 const dependency_validatorHash = 'f0a7e4ba6489d42f81a1352159c2f049c9741d4e';
 
@@ -133,7 +134,9 @@ class Health {
     log(' experiments: $experiments');
     log(' healthYamlNames: $healthYamlNames');
     log('Checking for $checkName');
-    if (!github.prLabels.contains('skip-$checkName-check')) {
+    var prLabels = github.prLabels;
+    print('PR Labels are $prLabels');
+    if (!prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
       final HealthCheckResult finalResult;
       if (warnOn.contains(check.displayName) &&
@@ -149,7 +152,7 @@ class Health {
       var severity = finalResult.severity.name.toUpperCase();
       log('\n\n$severity: $checkName done.\n\n');
     } else {
-      log('Skipping $checkName, as the skip tag is present.');
+      log('Skipping $checkName, as the skip tag is present in $prLabels.');
     }
   }
 
@@ -198,7 +201,7 @@ class Health {
         logStdout: false,
       );
 
-      final result = runDashProcess(
+      final (result, _, _) = runDashProcess(
         flutterPackages,
         package,
         [
@@ -258,12 +261,12 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
           'global',
           'activate',
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', apiToolHash],
+          ...['--git-ref', dart_apitoolHash],
         ],
         logStdout: false,
       );
 
-      runDashProcess(
+      var (_, _, err) = runDashProcess(
         flutterPackages,
         package,
         [
@@ -271,29 +274,42 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
           'dart_apitool:main',
           'diff',
           '--no-check-sdk-version',
+          '--no-ignore-prerelease',
           ...['--old', getCurrentVersionOfPackage(package)],
           ...['--new', absolutePath],
           ...['--report-format', 'json'],
           ...['--report-file-path', reportPath],
         ],
       );
+      var file = File(reportPath);
+      if (file.existsSync()) {
+        var fullReportString = file.readAsStringSync();
+        var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+        var report = decoded['report'] as Map<String, dynamic>;
+        var formattedChanges =
+            const JsonEncoder.withIndent('  ').convert(report);
+        log('Breaking change report:\n$formattedChanges');
 
-      var fullReportString = File(reportPath).readAsStringSync();
-      var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-      var report = decoded['report'] as Map<String, dynamic>;
-
-      var formattedChanges = const JsonEncoder.withIndent('  ').convert(report);
-      log('Breaking change report:\n$formattedChanges');
-
-      final versionMap = decoded['version'] as Map<String, dynamic>;
-      changeForPackage[package] = BreakingChange(
-        level: _breakingLevel(report),
-        oldVersion: Version.parse(versionMap['old'].toString()),
-        newVersion: Version.parse(versionMap['new'].toString()),
-        neededVersion: Version.parse(versionMap['needed'].toString()),
-        versionIsFine: versionMap['success'] as bool,
-        explanation: versionMap['explanation'].toString(),
-      );
+        final versionMap = decoded['version'] as Map<String, dynamic>;
+        changeForPackage[package] = BreakingChange(
+          level: _breakingLevel(report),
+          oldVersion: Version.parse(versionMap['old'].toString()),
+          newVersion: Version.parse(versionMap['new'].toString()),
+          neededVersion: Version.parse(versionMap['needed'].toString()),
+          versionIsFine: versionMap['success'] as bool,
+          explanation: versionMap['explanation'].toString(),
+        );
+      } else {
+        log('Report was not created for $package at $reportPath');
+        changeForPackage[package] = BreakingChange(
+          level: BreakingLevel.breaking,
+          oldVersion: Version(0, 0, 0),
+          newVersion: Version(0, 0, 0),
+          neededVersion: Version(0, 0, 0),
+          versionIsFine: false,
+          explanation: 'Report was not created for $package. Error: $err',
+        );
+      }
     }
     return HealthCheckResult(
       Check.breaking,
@@ -310,7 +326,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
 
-  ProcessResult runDashProcess(
+  (ProcessResult, String, String) runDashProcess(
     List<Package> flutterPackages,
     Package package,
     List<String> arguments, {
@@ -333,7 +349,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     if (err.isNotEmpty) {
       print(err);
     }
-    return runApiTool;
+    return (runApiTool, out, err);
   }
 
   BreakingLevel _breakingLevel(Map<String, dynamic> report) {
@@ -374,7 +390,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
           'global',
           'activate',
           ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', apiToolHash],
+          ...['--git-ref', dart_apitoolHash],
         ],
         logStdout: false,
       );
@@ -386,7 +402,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         ...['--input', absolutePath],
         ...['--output', reportPath],
       ];
-      var runApiTool = runDashProcess(
+      var (runApiTool, _, err) = runDashProcess(
         flutterPackages,
         package,
         arguments,
@@ -421,7 +437,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         throw ProcessException(
           executable(flutterPackages.contains(package)),
           arguments,
-          'Api tool finished with exit code ${runApiTool.exitCode}',
+          'Api tool finished with exit code ${runApiTool.exitCode}: $err',
         );
       }
     }
@@ -443,9 +459,8 @@ ${leaksInPackages.map((e) => '|${e.$1.name}|${e.$2.name}|${e.$2.usages.join('<br
     var allFilePaths = await getFilesWithoutLicenses(
         directory, ignored, licenseOptions.licenseTestString);
 
-    var groupedPaths = allFilePaths.groupListsBy((filePath) {
-      return files.any((f) => f.filename == filePath);
-    });
+    var groupedPaths = allFilePaths
+        .groupListsBy((filePath) => files.any((f) => f.filename == filePath));
 
     var unchangedFilesPaths = groupedPaths[false] ?? [];
     var unchangedMarkdown = '''
@@ -620,7 +635,7 @@ This check can be disabled by tagging the PR with `skip-${result.check.displayNa
     var commentFile = File(commentPath);
     log('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
-    await commentFile.writeAsString(markdownSummary);
+    await commentFile.writeAsString(markdownSummary, mode: FileMode.append);
 
     if (result.severity == Severity.error && exitCode == 0) {
       exitCode = 1;

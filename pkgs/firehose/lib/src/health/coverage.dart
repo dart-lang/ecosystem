@@ -99,6 +99,8 @@ class Coverage {
       if (hasTests) {
         print('''
 Get coverage for ${package.name} by running coverage in ${package.directory.path}''');
+        final coverageDir =
+            Directory.systemTemp.createTempSync('coverage-${package.name}');
         Process.runSync(
           dartExecutable,
           [
@@ -119,7 +121,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
               'test',
               '-p',
               'chrome',
-              '--coverage=coverage'
+              '--coverage=${coverageDir.path}}'
             ],
             workingDirectory: package.directory.path,
           );
@@ -136,7 +138,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             if (experiments.isNotEmpty)
               '--enable-experiment=${experiments.join(',')}',
             'test',
-            '--coverage=coverage'
+            '--coverage=${coverageDir.path}'
           ],
           workingDirectory: package.directory.path,
         );
@@ -146,6 +148,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         print('Dart test VM: ${resultVm.stdout}');
 
         print('Compute coverage from runs');
+        var lcovPath = path.join(coverageDir.path, 'lcov.info');
         var resultLcov = Process.runSync(
           dartExecutable,
           [
@@ -157,9 +160,9 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             '--check-ignore',
             '--report-on lib/',
             '-i',
-            'coverage/',
+            coverageDir.path,
             '-o',
-            'coverage/lcov.info'
+            lcovPath
           ],
           workingDirectory: package.directory.path,
         );
@@ -167,10 +170,12 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           print(resultLcov.stderr);
         }
         print('Dart coverage: ${resultLcov.stdout}');
-        return parseLCOV(
-          path.join(package.directory.path, 'coverage/lcov.info'),
+        var parsedLCOV = parseLCOV(
+          lcovPath,
           relativeTo: package.repository.baseDirectory.path,
         );
+        coverageDir.deleteSync(recursive: true);
+        return parsedLCOV;
       }
     }
     return {};

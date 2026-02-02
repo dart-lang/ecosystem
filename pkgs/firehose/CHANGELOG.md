@@ -1,4 +1,4 @@
-## 0.12.1-wip
+## 0.13.0
 
 - Make the PR health output less verbose by collapsing warnings by default.
 - Bump dart_apitool to fix errors with equal types being reported as different.
@@ -7,6 +7,7 @@
 - Fix bug to use default health.yaml names.
 - Add check for unused dependencies.
 - Make license customizable.
+- Allow health checks to be run locally.
 
 ## 0.12.0
 
