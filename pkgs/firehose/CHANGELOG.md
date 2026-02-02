@@ -7,6 +7,7 @@
 - Fix bug to use default health.yaml names.
 - Add check for unused dependencies.
 - Make license customizable.
+- Allow health checks to be run locally.
 
 ## 0.12.0
 
