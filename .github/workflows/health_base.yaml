@@ -184,7 +184,7 @@ jobs:
             --ignore_unuseddependencies ${{ inputs.ignore_unuseddependencies }} \
             --experiments ${{ inputs.experiments }} \
             --health_yaml_name ${{ inputs.health_yaml_name }} \
-            --local false \
+            --no-local \
             --license ${{ inputs.license }} \
             --license_test_string ${{ inputs.license_test_string }}
 
