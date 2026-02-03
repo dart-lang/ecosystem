@@ -61,10 +61,6 @@ void main(List<String> arguments) async {
       help: 'The license string to insert if missing.'
           ' %YEAR% will be replaced with the current year',
     )
-    ..addOption('main_branch_name',
-        defaultsTo: 'main',
-        help: 'The name of the git branch to diff against. '
-            'Only used when the local flag is set.')
     ..addOption(
       'license_test_string',
       help:
@@ -94,7 +90,12 @@ void main(List<String> arguments) async {
   final healthYamlNames = healthYamlName != null && healthYamlName.isNotEmpty
       ? {healthYamlName}
       : {'health.yaml', 'health.yml'};
-  final mainBranchName = parsedArgs.option('main_branch_name')!;
+
+  final gitStdOut =
+      Process.runSync('git', ['rev-parse', '--abbrev-ref', 'origin/HEAD'])
+          .stdout as String;
+  final mainBranchName =
+      const LineSplitter().convert(gitStdOut).first.substring('origin/'.length);
 
   final license = nullIfEmpty(parsedArgs.option('license'));
   final licenseTestString =
