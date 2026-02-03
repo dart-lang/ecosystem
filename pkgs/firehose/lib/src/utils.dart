@@ -17,7 +17,7 @@ Future<CommandResult> runCommand(
 }) async {
   print('$command ${args.join(' ')}');
 
-  var process = await Process.start(
+  final process = await Process.start(
     command,
     args,
     workingDirectory: cwd?.path,

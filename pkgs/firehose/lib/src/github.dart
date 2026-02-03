@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -37,12 +36,11 @@ class GithubApi {
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
   /// The owner and repository name. For example, `octocat/Hello-World`.
-  RepositorySlug? get repoSlug {
-    return _repoSlug ??
-        (_env['GITHUB_REPOSITORY'] != null
-            ? RepositorySlug.full(_env['GITHUB_REPOSITORY']!)
-            : null);
-  }
+  RepositorySlug? get repoSlug =>
+      _repoSlug ??
+      (_env['GITHUB_REPOSITORY'] != null
+          ? RepositorySlug.full(_env['GITHUB_REPOSITORY']!)
+          : null);
 
   /// The PR (or issue) number.
   int? get issueNumber =>
@@ -76,13 +74,13 @@ class GithubApi {
   /// See also:
   /// https://docs.github.com/en/actions/learn-github-actions/variables.
   void appendStepSummary(String markdownSummary) {
-    var summaryPath = _env['GITHUB_STEP_SUMMARY'];
+    final summaryPath = _env['GITHUB_STEP_SUMMARY'];
     if (summaryPath == null) {
       stderr.writeln("'GITHUB_STEP_SUMMARY' doesn't exist.");
       return;
     }
 
-    var file = File(summaryPath);
+    final file = File(summaryPath);
     file.writeAsStringSync('${markdownSummary.trimRight()}\n\n',
         mode: FileMode.append);
   }

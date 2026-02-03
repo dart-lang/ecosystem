@@ -11,8 +11,8 @@ import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
 
 void main(List<String> arguments) async {
-  var checkTypes = Check.values.map((c) => c.displayName);
-  var argParser = ArgParser()
+  final checkTypes = Check.values.map((c) => c.displayName);
+  final argParser = ArgParser()
     ..addMultiOption(
       'check',
       allowed: checkTypes,

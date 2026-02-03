@@ -9,7 +9,7 @@ Map<String, double> parseLCOV(
   String lcovPath, {
   required String relativeTo,
 }) {
-  var file = File(lcovPath);
+  final file = File(lcovPath);
   List<String> lines;
   if (file.existsSync()) {
     lines = file.readAsLinesSync();
@@ -17,7 +17,7 @@ Map<String, double> parseLCOV(
     print('LCOV file not found at $lcovPath.');
     return {};
   }
-  var coveragePerFile = <String, double>{};
+  final coveragePerFile = <String, double>{};
   String? fileName;
   int? numberLines;
   int? coveredLines;
@@ -30,7 +30,7 @@ Map<String, double> parseLCOV(
       coveredLines = int.parse(line.substring('LH:'.length));
     } else if (line.startsWith('end_of_record')) {
       if (numberLines != null) {
-        var change = (coveredLines ?? 0) / numberLines;
+        final change = (coveredLines ?? 0) / numberLines;
         coveragePerFile[path.relative(fileName!, from: relativeTo)] = change;
       }
     }

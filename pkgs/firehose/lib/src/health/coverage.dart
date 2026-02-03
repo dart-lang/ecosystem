@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -30,11 +29,11 @@ class Coverage {
   );
 
   CoverageResult compareCoveragesFor(List<GitFile> files, Directory base) {
-    var repository = Repository(directory);
-    var packages = repository.locatePackages(ignore: ignored);
+    final repository = Repository(directory);
+    final packages = repository.locatePackages(ignore: ignored);
     print('Found packages $packages at $directory');
 
-    var filesOfInterest = files
+    final filesOfInterest = files
         .where((file) => path.extension(file.filename) == '.dart')
         .where((file) => file.status != FileStatus.removed)
         .where((file) => isInSomePackage(packages, file.filename))
@@ -43,11 +42,11 @@ class Coverage {
         .toList();
     print('The files of interest are $filesOfInterest');
 
-    var baseRepository = Repository(base);
-    var basePackages = baseRepository.locatePackages(ignore: ignored);
+    final baseRepository = Repository(base);
+    final basePackages = baseRepository.locatePackages(ignore: ignored);
     print('Found packages $basePackages at $base');
 
-    var changedPackages = packages
+    final changedPackages = packages
         .where((package) =>
             filesOfInterest.any((file) => file.isInPackage(package)))
         .sortedBy((package) => package.name)
@@ -55,7 +54,7 @@ class Coverage {
 
     print('The packages of interest are $changedPackages');
 
-    var coverageResult = CoverageResult({});
+    final coverageResult = CoverageResult({});
     for (var package in changedPackages) {
       final newCoverages = getCoverage(package);
 
@@ -63,13 +62,13 @@ class Coverage {
           .where((element) => element.name == package.name)
           .firstOrNull;
       final oldCoverages = getCoverage(basePackage);
-      var filenames = filesOfInterest
+      final filenames = filesOfInterest
           .where((file) => file.isInPackage(package))
           .map((file) => file.filename)
           .sortedBy((filename) => filename);
       for (var filename in filenames) {
-        var oldCoverage = oldCoverages[filename];
-        var newCoverage = newCoverages[filename];
+        final oldCoverage = oldCoverages[filename];
+        final newCoverage = newCoverages[filename];
         print('Compage coverage for $filename: $oldCoverage vs $newCoverage');
         coverageResult[filename] = Change(
           oldCoverage: oldCoverage,
@@ -80,11 +79,10 @@ class Coverage {
     return coverageResult;
   }
 
-  bool isNotATest(List<Package> packages, String file) {
-    return packages.every((package) => !path.isWithin(
-        path.join(package.directory.path, 'test'),
-        path.join(directory.path, file)));
-  }
+  bool isNotATest(List<Package> packages, String file) =>
+      packages.every((package) => !path.isWithin(
+          path.join(package.directory.path, 'test'),
+          path.join(directory.path, file)));
 
   bool isInSomePackage(List<Package> packages, String file) =>
       packages.any((package) => path.isWithin(
@@ -94,7 +92,7 @@ class Coverage {
 
   Map<String, double> getCoverage(Package? package) {
     if (package != null) {
-      var hasTests =
+      final hasTests =
           Directory(path.join(package.directory.path, 'test')).existsSync();
       if (hasTests) {
         print('''
@@ -113,7 +111,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         );
         if (coverageWeb) {
           print('Run tests with coverage for web');
-          var resultChrome = Process.runSync(
+          final resultChrome = Process.runSync(
             dartExecutable,
             [
               if (experiments.isNotEmpty)
@@ -132,7 +130,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         }
 
         print('Run tests with coverage for vm');
-        var resultVm = Process.runSync(
+        final resultVm = Process.runSync(
           dartExecutable,
           [
             if (experiments.isNotEmpty)
@@ -148,8 +146,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
         print('Dart test VM: ${resultVm.stdout}');
 
         print('Compute coverage from runs');
-        var lcovPath = path.join(coverageDir.path, 'lcov.info');
-        var resultLcov = Process.runSync(
+        final lcovPath = path.join(coverageDir.path, 'lcov.info');
+        final resultLcov = Process.runSync(
           dartExecutable,
           [
             'pub',
@@ -170,7 +168,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
           print(resultLcov.stderr);
         }
         print('Dart coverage: ${resultLcov.stdout}');
-        var parsedLCOV = parseLCOV(
+        final parsedLCOV = parseLCOV(
           lcovPath,
           relativeTo: package.repository.baseDirectory.path,
         );
@@ -187,9 +185,8 @@ class CoverageResult {
 
   CoverageResult(this.coveragePerFile);
 
-  CoverageResult operator +(CoverageResult other) {
-    return CoverageResult({...coveragePerFile, ...other.coveragePerFile});
-  }
+  CoverageResult operator +(CoverageResult other) =>
+      CoverageResult({...coveragePerFile, ...other.coveragePerFile});
 
   Change? operator [](String s) => coveragePerFile[s];
   void operator []=(String s, Change d) => coveragePerFile[s] = d;
@@ -219,9 +216,9 @@ class Change {
     if (existedBefore || existsNow) {
       String format(double? value) =>
           '${((value ?? 0) * 100).abs().toStringAsFixed(0)} %';
-      var totalString = format(absoluteCoverage);
+      final totalString = format(absoluteCoverage);
       if (existedBefore && relativeChange != 0) {
-        var relativeString = '''
+        final relativeString = '''
 ${relativeChange! >= 0 ? ':arrow_up:' : ':arrow_down:'} ${format(relativeChange)}''';
         if (relativeChange! > 0) {
           return (

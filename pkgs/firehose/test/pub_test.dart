@@ -22,17 +22,17 @@ void main() {
     });
 
     test('version exists', () async {
-      var result = await pub.hasPublishedVersion('path', '1.8.0');
+      final result = await pub.hasPublishedVersion('path', '1.8.0');
       expect(result, true);
     });
 
     test('version doesn\'t exist', () async {
-      var result = await pub.hasPublishedVersion('path', '1.7.1');
+      final result = await pub.hasPublishedVersion('path', '1.7.1');
       expect(result, false);
     });
 
     test('package not published exists', () async {
-      var result = await pub.hasPublishedVersion(
+      final result = await pub.hasPublishedVersion(
           'foo_bar_not_published_package', '1.8.0');
       expect(result, false);
     });

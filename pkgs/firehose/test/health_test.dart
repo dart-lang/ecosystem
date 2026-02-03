@@ -143,8 +143,8 @@ Future<void> checkGolden(
     comment: commentPath,
     log: printOnFailure,
   ).healthCheck();
-  var comment = await File(commentPath).readAsString();
-  var goldenFile = File(
+  final comment = await File(commentPath).readAsString();
+  final goldenFile = File(
       p.join('test_data', 'golden', 'comment_${check.displayName}$suffix.md'));
   if (Platform.environment['RESET_GOLDEN'] == '1') {
     goldenFile.writeAsStringSync(comment);

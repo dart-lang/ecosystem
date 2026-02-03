@@ -30,17 +30,17 @@ void main() {
     });
 
     test('isSinglePackageRepo', () {
-      var result = packages.isSinglePackageRepo;
+      final result = packages.isSinglePackageRepo;
       expect(result, false);
     });
 
     test('locatePackages', () {
-      var result = packages.locatePackages();
+      final result = packages.locatePackages();
       expect(result, isNotEmpty);
     });
 
     test('validate sorted', () {
-      var result = packages.locatePackages();
+      final result = packages.locatePackages();
       var sorted = true;
       for (var i = 1; i < result.length; i++) {
         final a = result[i - 1];
@@ -74,7 +74,7 @@ void main() {
     });
 
     test('locatePackages', () {
-      var result = packages.locatePackages();
+      final result = packages.locatePackages();
       expect(
           result,
           equals([
@@ -91,7 +91,7 @@ void main() {
     });
 
     test('locatePackages', () {
-      var result = packages.locatePackages();
+      final result = packages.locatePackages();
       expect(
           result,
           equals([

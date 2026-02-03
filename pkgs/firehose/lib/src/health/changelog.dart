@@ -19,14 +19,15 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
 
-  var packagesWithoutChangedChangelog = collectPackagesWithoutChangelogChanges(
+  final packagesWithoutChangedChangelog =
+      collectPackagesWithoutChangelogChanges(
     packages,
     files,
     directory,
   );
 
   print('Collecting files without license headers in those packages:');
-  var packagesWithChanges = <Package, List<GitFile>>{};
+  final packagesWithChanges = <Package, List<GitFile>>{};
   for (final file in files) {
     for (final package in packagesWithoutChangedChangelog) {
       if (fileNeedsEntryInChangelog(package, file.filename, directory)) {
@@ -50,12 +51,12 @@ List<Package> collectPackagesWithoutChangelogChanges(
   Directory directory,
 ) {
   print('Collecting packages without changed changelogs:');
-  final packagesWithoutChangedChangelog =
-      packages.where((package) => package.changelog.exists).where((package) {
-    return !files
-        .map((e) => e.pathInRepository)
-        .contains(package.changelog.file.path);
-  }).toList();
+  final packagesWithoutChangedChangelog = packages
+      .where((package) => package.changelog.exists)
+      .where((package) => !files
+          .map((e) => e.pathInRepository)
+          .contains(package.changelog.file.path))
+      .toList();
   print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
   return packagesWithoutChangedChangelog;
 }

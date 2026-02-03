@@ -17,8 +17,11 @@ import 'changelog.dart';
 import 'coverage.dart';
 import 'license.dart';
 
+/// To allow easier searching for the package name
 // ignore: constant_identifier_names
 const dart_apitoolHash = '906fa0f3dca24d81d1c26ee71c884ecbb6234ecf';
+
+/// To allow easier searching for the package name
 // ignore: constant_identifier_names
 const dependency_validatorHash = 'f0a7e4ba6489d42f81a1352159c2f049c9741d4e';
 
@@ -81,7 +84,7 @@ class Health {
             .where((element) => element.isNotEmpty)
             .firstOrNull;
 
-    var dartExecutables =
+    final dartExecutables =
         (Process.runSync('which', ['-a', 'dart']).stdout as String)
             .split('\n')
             .where((element) => element.isNotEmpty);
@@ -122,7 +125,7 @@ class Health {
     if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
     if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
 
-    var checkName = check.displayName;
+    final checkName = check.displayName;
     log('Start health check for the check $checkName with');
     log(' warnOn: $warnOn');
     log(' failOn: $failOn');
@@ -134,7 +137,7 @@ class Health {
     log(' experiments: $experiments');
     log(' healthYamlNames: $healthYamlNames');
     log('Checking for $checkName');
-    var prLabels = github.prLabels;
+    final prLabels = github.prLabels;
     print('PR Labels are $prLabels');
     if (!prLabels.contains('skip-$checkName-check')) {
       final firstResult = await checkFor(check)();
@@ -149,7 +152,7 @@ class Health {
         finalResult = firstResult;
       }
       await writeInComment(github, finalResult);
-      var severity = finalResult.severity.name.toUpperCase();
+      final severity = finalResult.severity.name.toUpperCase();
       log('\n\n$severity: $checkName done.\n\n');
     } else {
       log('Skipping $checkName, as the skip tag is present in $prLabels.');
@@ -250,8 +253,8 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
     for (var package in packagesContaining(filesInPR, ignore: ignored)) {
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
-      var tempDirectory = Directory.systemTemp.createTempSync();
-      var reportPath = path.join(tempDirectory.path, 'report.json');
+      final tempDirectory = Directory.systemTemp.createTempSync();
+      final reportPath = path.join(tempDirectory.path, 'report.json');
 
       runDashProcess(
         flutterPackages,
@@ -266,7 +269,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         logStdout: false,
       );
 
-      var (_, _, err) = runDashProcess(
+      final (_, _, err) = runDashProcess(
         flutterPackages,
         package,
         [
@@ -281,17 +284,17 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
           ...['--report-file-path', reportPath],
         ],
       );
-      var file = File(reportPath);
+      final file = File(reportPath);
       if (file.existsSync()) {
-        var fullReportString = file.readAsStringSync();
-        var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-        var report = decoded['report'] as Map<String, dynamic>;
-        var formattedChanges =
+        final fullReportString = file.readAsStringSync();
+        final decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+        final report = decoded['report'] as Map<String, dynamic>;
+        final formattedChanges =
             const JsonEncoder.withIndent('  ').convert(decoded);
         log('Breaking change report:\n$formattedChanges');
 
         final versionMap = decoded['version'] as Map<String, dynamic>;
-        var neededVersion = versionMap['needed'] as String?;
+        final neededVersion = versionMap['needed'] as String?;
         changeForPackage[package] = BreakingChange(
           level: _breakingLevel(report),
           oldVersion: Version.parse(versionMap['old'] as String),
@@ -336,9 +339,9 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     Directory? workingDirectoryOverride,
   }) {
     final workingDirectory = workingDirectoryOverride ?? directory;
-    var exec = executable(flutterPackages.any((p) => p.name == package.name));
+    final exec = executable(flutterPackages.any((p) => p.name == package.name));
     log('Running `$exec ${arguments.join(' ')}` in ${workingDirectory.path}');
-    var runApiTool = Process.runSync(
+    final runApiTool = Process.runSync(
       exec,
       arguments,
       workingDirectory: workingDirectory.path,
@@ -369,7 +372,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   Future<HealthCheckResult> leakingCheck() async {
-    var filesInPR = await listFilesInPRorAll();
+    final filesInPR = await listFilesInPRorAll();
     final leaksInPackages = <(Package, Leak)>[];
 
     final flutterPackages =
@@ -381,8 +384,8 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       log('--- ${package.name} ---');
       log('Look for leaks in ${package.name}');
       final absolutePath = package.directory.absolute.path;
-      var tempDirectory = Directory.systemTemp.createTempSync();
-      var reportPath = path.join(tempDirectory.path, 'leaks.json');
+      final tempDirectory = Directory.systemTemp.createTempSync();
+      final reportPath = path.join(tempDirectory.path, 'leaks.json');
 
       runDashProcess(
         flutterPackages,
@@ -397,14 +400,14 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         logStdout: false,
       );
 
-      var arguments = [
+      final arguments = [
         ...['pub', 'global', 'run'],
         'dart_apitool:main',
         'extract',
         ...['--input', absolutePath],
         ...['--output', reportPath],
       ];
-      var (runApiTool, _, err) = runDashProcess(
+      final (runApiTool, _, err) = runDashProcess(
         flutterPackages,
         package,
         arguments,
@@ -413,9 +416,9 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       log('');
 
       if (runApiTool.exitCode == 0) {
-        var fullReportString = await File(reportPath).readAsString();
-        var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
-        var leaks = decoded['missingEntryPoints'] as List<dynamic>;
+        final fullReportString = await File(reportPath).readAsString();
+        final decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
+        final leaks = decoded['missingEntryPoints'] as List<dynamic>;
 
         if (leaks.isNotEmpty) {
           leaksInPackages.addAll(leaks.map(
@@ -457,15 +460,15 @@ ${leaksInPackages.map((e) => '|${e.$1.name}|${e.$2.name}|${e.$2.usages.join('<br
   }
 
   Future<HealthCheckResult> licenseCheck() async {
-    var files = await listFilesInPRorAll();
-    var allFilePaths = await getFilesWithoutLicenses(
+    final files = await listFilesInPRorAll();
+    final allFilePaths = await getFilesWithoutLicenses(
         directory, ignored, licenseOptions.licenseTestString);
 
-    var groupedPaths = allFilePaths
+    final groupedPaths = allFilePaths
         .groupListsBy((filePath) => files.any((f) => f.filename == filePath));
 
-    var unchangedFilesPaths = groupedPaths[false] ?? [];
-    var unchangedMarkdown = '''
+    final unchangedFilesPaths = groupedPaths[false] ?? [];
+    final unchangedMarkdown = '''
 <details>
 <summary>
 Unrelated files missing license headers
@@ -477,8 +480,8 @@ ${unchangedFilesPaths.map((e) => '|$e|').join('\n')}
 </details>
 ''';
 
-    var changedFilesPaths = groupedPaths[true] ?? [];
-    var markdownResult = '''
+    final changedFilesPaths = groupedPaths[true] ?? [];
+    final markdownResult = '''
 ```
 ${licenseOptions.license}
 ```
@@ -506,7 +509,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       .any((file) => healthYamlNames.contains(path.basename(file.filename)));
 
   Future<HealthCheckResult> changelogCheck() async {
-    var filePaths = await packagesWithoutChangelog(
+    final filePaths = await packagesWithoutChangelog(
       github,
       ignored,
       directory,
@@ -533,7 +536,7 @@ Changes to files need to be [accounted for](https://github.com/dart-lang/ecosyst
     const supportedExtensions = ['.dart', '.json', '.md', '.txt'];
 
     final body = await github.pullrequestBody();
-    var files = await listFilesInPRorAll();
+    final files = await listFilesInPRorAll();
     log('Checking for DO_NOT${'_'}SUBMIT strings: $files');
     final filesWithDNS = files
         .where((file) =>
@@ -578,7 +581,7 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       .toList();
 
   Future<HealthCheckResult> coverageCheck() async {
-    var coverage = Coverage(
+    final coverage = Coverage(
       coverageweb,
       ignored,
       directory,
@@ -586,10 +589,10 @@ ${filesWithDNS.map((e) => e.filename).map((e) => '|$e|').join('\n')}
       dartExecutable,
     );
 
-    var files = await listFilesInPRorAll();
-    var coverageResult = coverage.compareCoveragesFor(files, baseDirectory);
+    final files = await listFilesInPRorAll();
+    final coverageResult = coverage.compareCoveragesFor(files, baseDirectory);
 
-    var markdownResult = '''
+    final markdownResult = '''
 | File | Coverage |
 | :--- | :--- |
 ${coverageResult.coveragePerFile.entries.map((e) => '|${e.key}| ${e.value.toMarkdown()} |').join('\n')}
@@ -610,8 +613,8 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
       GithubApi github, HealthCheckResult result) async {
     final String markdownSummary;
     if (result.markdown != null) {
-      var markdown = result.markdown;
-      var expand = switch (result.severity) {
+      final markdown = result.markdown;
+      final expand = switch (result.severity) {
         Severity.success || Severity.info || Severity.warning => false,
         Severity.error => true,
       };
@@ -634,7 +637,7 @@ This check can be disabled by tagging the PR with `skip-${result.check.displayNa
 
     github.appendStepSummary(markdownSummary);
 
-    var commentFile = File(commentPath);
+    final commentFile = File(commentPath);
     log('Saving comment markdown to file ${commentFile.path}');
     await commentFile.create(recursive: true);
     await commentFile.writeAsString(markdownSummary, mode: FileMode.append);
@@ -649,7 +652,7 @@ This check can be disabled by tagging the PR with `skip-${result.check.displayNa
     List<Glob>? ignore,
     List<Glob>? only,
   }) {
-    var files = filesInPR.where((element) => element.status.isRelevant);
+    final files = filesInPR.where((element) => element.status.isRelevant);
     return Repository(directory)
         .locatePackages(ignore: ignore, only: only)
         .where((package) => files.any((file) =>
@@ -695,13 +698,11 @@ class Leak {
     required this.name,
   });
 
-  factory Leak.fromJson(Map<String, dynamic> json) {
-    return Leak._(
-      type: json['type'] as String,
-      usages: (json['usages'] as List<dynamic>).cast<String>(),
-      name: json['name'] as String,
-    );
-  }
+  factory Leak.fromJson(Map<String, dynamic> json) => Leak._(
+        type: json['type'] as String,
+        usages: (json['usages'] as List<dynamic>).cast<String>(),
+        name: json['name'] as String,
+      );
 }
 
 enum BreakingLevel {

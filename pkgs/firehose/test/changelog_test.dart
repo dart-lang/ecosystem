@@ -14,16 +14,16 @@ void main() {
   group('changelog', () {
     test('exists', () {
       withChangelog(_defaultContents, (file) {
-        var changelog = Changelog(file);
-        var exists = changelog.exists;
+        final changelog = Changelog(file);
+        final exists = changelog.exists;
         expect(exists, isTrue);
       });
     });
 
     test('latestHeading', () {
       withChangelog(_defaultContents, (file) {
-        var changelog = Changelog(file);
-        var heading = changelog.latestHeading;
+        final changelog = Changelog(file);
+        final heading = changelog.latestHeading;
         expect(heading, '0.3.7+1');
       });
     });
@@ -32,16 +32,16 @@ void main() {
       withChangelog('''
 ## 1.2.3+4 is the new version ## :) 
 ''', (file) {
-        var changelog = Changelog(file);
-        var heading = changelog.latestHeading;
+        final changelog = Changelog(file);
+        final heading = changelog.latestHeading;
         expect(heading, '1.2.3+4 is the new version ## :)');
       });
     });
 
     test('latestVersion', () {
       withChangelog(_defaultContents, (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '0.3.7+1');
       });
     });
@@ -50,8 +50,8 @@ void main() {
       withChangelog('''
 ## 1.2.3+4
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '1.2.3+4');
       });
     });
@@ -60,8 +60,8 @@ void main() {
       withChangelog('''
 ## 123.456.789+123456789
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '123.456.789+123456789');
       });
     });
@@ -70,8 +70,8 @@ void main() {
       withChangelog('''
 ## 123.456.789
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '123.456.789');
       });
     });
@@ -80,8 +80,8 @@ void main() {
       withChangelog('''
 ## 123.456.789-wip
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '123.456.789-wip');
       });
     });
@@ -90,8 +90,8 @@ void main() {
       withChangelog('''
 ## 123.456.789-beta.2
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '123.456.789-beta.2');
       });
     });
@@ -100,8 +100,8 @@ void main() {
       withChangelog('''
 ## [4.7.0](https://github.com/...) (2023-05-06)
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '4.7.0');
       });
     });
@@ -110,8 +110,8 @@ void main() {
       withChangelog('''
 ## [4.7.0](https://github.com/.../.../compare/v4.6.0...v4.7.0) (25.05.23)
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, '4.7.0');
       });
     });
@@ -122,14 +122,14 @@ void main() {
 - versions
 - mentioned here
 ''', (file) {
-        var changelog = Changelog(file);
-        var version = changelog.latestVersion;
+        final changelog = Changelog(file);
+        final version = changelog.latestVersion;
         expect(version, isNull);
       });
     });
 
     test('no changelog file', () {
-      var changelog = Changelog(File('missing_changelog.md'));
+      final changelog = Changelog(File('missing_changelog.md'));
       expect(changelog.exists, false);
       expect(changelog.latestVersion, isNull);
       expect(changelog.latestChangeEntries, isEmpty);
@@ -137,16 +137,16 @@ void main() {
 
     test('latestChangeEntries', () {
       withChangelog(_defaultContents, (file) {
-        var changelog = Changelog(file);
-        var entries = changelog.latestChangeEntries;
+        final changelog = Changelog(file);
+        final entries = changelog.latestChangeEntries;
         expect(entries, isNotEmpty);
       });
     });
 
     test('describeLatestChanges', () {
       withChangelog(_multiLineContents, (file) {
-        var changelog = Changelog(file);
-        var description = changelog.describeLatestChanges;
+        final changelog = Changelog(file);
+        final description = changelog.describeLatestChanges;
         expect(description, '''
 - Fix issue 1.
 - Fix issue 2.''');
@@ -162,8 +162,8 @@ void main() {
 - change 1
 - change 2
 ''', (file) {
-        var changelog = Changelog(file);
-        var entries = changelog.latestChangeEntries;
+        final changelog = Changelog(file);
+        final entries = changelog.latestChangeEntries;
         expect(entries, isEmpty);
       });
     });
@@ -171,8 +171,8 @@ void main() {
 }
 
 void withChangelog(String contents, void Function(File file) closure) {
-  var dir = Directory.systemTemp.createTempSync();
-  var file = File('${dir.path}/CHANGELOG.md');
+  final dir = Directory.systemTemp.createTempSync();
+  final file = File('${dir.path}/CHANGELOG.md');
   try {
     file.writeAsStringSync(contents);
     closure(file);

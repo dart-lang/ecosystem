@@ -22,12 +22,12 @@ class Repository {
   /// Returns true if this repository hosts only a single package, and that
   /// package lives at the top level of the repo.
   bool get isSinglePackageRepo {
-    var packages = locatePackages();
+    final packages = locatePackages();
     if (packages.length != 1) {
       return false;
     }
 
-    var dir = packages.single.directory;
+    final dir = packages.single.directory;
     return dir.absolute.path == baseDirectory.absolute.path;
   }
 
@@ -57,11 +57,11 @@ class Repository {
   }
 
   void _recurseAndGather(Directory directory, List<Package> packages) {
-    var pubspecFile = File(path.join(directory.path, 'pubspec.yaml'));
+    final pubspecFile = File(path.join(directory.path, 'pubspec.yaml'));
 
     if (pubspecFile.existsSync()) {
-      var pubspec = yaml.loadYaml(pubspecFile.readAsStringSync()) as Map;
-      var publishTo = pubspec['publish_to'] as String?;
+      final pubspec = yaml.loadYaml(pubspecFile.readAsStringSync()) as Map;
+      final publishTo = pubspec['publish_to'] as String?;
       if (publishTo != 'none') {
         print('Found published package at $directory');
         packages.add(Package(directory, this));
@@ -74,7 +74,7 @@ class Repository {
     }
     if (directory.existsSync()) {
       for (var child in directory.listSync().whereType<Directory>()) {
-        var name = path.basename(child.path);
+        final name = path.basename(child.path);
         if (!name.startsWith('.')) {
           _recurseAndGather(child, packages);
         }

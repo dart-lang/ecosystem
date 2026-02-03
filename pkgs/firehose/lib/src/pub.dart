@@ -13,13 +13,13 @@ class Pub {
   http.Client get httpClient => _httpClient ??= http.Client();
 
   Future<bool> hasPublishedVersion(String name, String version) async {
-    var uri = Uri.parse('https://pub.dev/api/packages/$name');
-    var response = await getCall(uri, retries: 3);
+    final uri = Uri.parse('https://pub.dev/api/packages/$name');
+    final response = await getCall(uri, retries: 3);
     if (response.statusCode != 200) {
       return false;
     }
 
-    var json = jsonDecode(response.body) as Map<String, dynamic>;
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
     return (json['versions'] as List)
         .map((versionObject) =>
             (versionObject as Map<String, dynamic>)['version'])
@@ -29,7 +29,7 @@ class Pub {
   Future<http.Response> getCall(Uri uri, {required int retries}) async {
     for (var i = 0; i < retries + 1; i++) {
       try {
-        var response = await httpClient.get(uri);
+        final response = await httpClient.get(uri);
         return response;
       } catch (e) {
         if (i >= retries) {
@@ -46,7 +46,6 @@ class Pub {
 }
 
 extension VersionExtension on Version {
-  bool get wip {
-    return isPreRelease && preRelease.length == 1 && preRelease.first == 'wip';
-  }
+  bool get wip =>
+      isPreRelease && preRelease.length == 1 && preRelease.first == 'wip';
 }
