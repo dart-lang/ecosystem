@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
-import 'package:path/path.dart' as p;
 
 void main(List<String> arguments) async {
-  var checkTypes = Check.values.map((c) => c.displayName);
-  var argParser = ArgParser()
+  final checkTypes = Check.values.map((c) => c.displayName);
+  final argParser = ArgParser()
     ..addMultiOption(
       'check',
       allowed: checkTypes,
@@ -67,7 +67,7 @@ void main(List<String> arguments) async {
           'A file containing this string will be considered having a license.',
     );
 
-  for (var check in Check.values) {
+  for (final check in Check.values) {
     argParser.addMultiOption(
       'ignore_${check.name}',
       defaultsTo: [],
@@ -91,6 +91,12 @@ void main(List<String> arguments) async {
       ? {healthYamlName}
       : {'health.yaml', 'health.yml'};
 
+  final gitStdOut =
+      Process.runSync('git', ['rev-parse', '--abbrev-ref', 'origin/HEAD'])
+          .stdout as String;
+  final mainBranchName =
+      const LineSplitter().convert(gitStdOut).first.substring('origin/'.length);
+
   final license = nullIfEmpty(parsedArgs.option('license'));
   final licenseTestString =
       nullIfEmpty(parsedArgs.option('license_test_string'));
@@ -103,20 +109,18 @@ void main(List<String> arguments) async {
   final GithubApi githubApi;
   if (isLocal) {
     print('Using mock Github API, as this is run locally.');
-    final files = Directory.current
-        .listSync(recursive: true)
-        .whereType<File>()
-        .map(
-          (e) => GitFile(p.relative(e.path, from: Directory.current.path),
-              FileStatus.added, Directory.current),
-        )
-        .toList();
+    print('Finding changed files from this branch to "$mainBranchName"');
+    final gitOutput = Process.runSync(
+            'git', ['diff', '--name-status', '$mainBranchName...HEAD']).stdout
+        as String;
+    final files = parseGitDiff(gitOutput, Directory.current);
+    print('Found files: ${files.isNotEmpty ? files.join('\n') : 'None'}');
     githubApi = LocalGithubApi(prLabels: [], files: files);
   } else {
     print('Using Github API, as this is executed on GitHub.');
     githubApi = GithubApi();
   }
-  for (var check in checks.isEmpty ? Check.values : checks) {
+  for (final check in checks.isEmpty ? Check.values : checks) {
     await Health(
       Directory.current,
       check,
@@ -143,3 +147,40 @@ extension on ArgResults {
   List<String> listNonEmpty(String key) =>
       (this[key] as List<String>).where((e) => e.isNotEmpty).toList();
 }
+
+FileStatus _mapGitCodeToStatus(String char) => switch (char) {
+      'A' => FileStatus.added,
+      'D' => FileStatus.removed,
+      'M' => FileStatus.modified,
+      'R' => FileStatus.renamed,
+      'C' => FileStatus.copied,
+      'T' => FileStatus.changed,
+      'U' => FileStatus.unchanged,
+      _ => FileStatus.changed,
+    };
+
+/// Parses raw stdout from `git diff --name-status`
+Iterable<GitFile> parseGitDiff(String gitOutput, Directory repoRoot) =>
+    const LineSplitter()
+        .convert(gitOutput)
+        .where(
+          (line) => line.isNotEmpty,
+        )
+        .map(
+      (line) {
+        // Line should be of the form
+        // M      pkgs/firehose/lib/src/health/health.dart
+        final parts = line.split(RegExp(r'\s+'));
+
+        if (parts.length < 2) {
+          throw ArgumentError('Could not construct GitFile from $line'
+              ' as output of `git diff --name-status`');
+        }
+
+        final status = _mapGitCodeToStatus(parts[0][0]);
+
+        // Handle Renames: Git outputs "R100 old_path new_path".
+        // We care only about the 'new_path'.
+        return GitFile(parts.last, status, repoRoot);
+      },
+    );

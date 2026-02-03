@@ -14,7 +14,7 @@ const publishFlag = 'publish';
 const useFlutterFlag = 'use-flutter';
 
 void main(List<String> arguments) async {
-  var argParser = _createArgs();
+  final argParser = _createArgs();
   try {
     final argResults = argParser.parse(arguments);
 
@@ -72,32 +72,30 @@ void _usage(ArgParser argParser, {String? error}) {
   print(argParser.usage);
 }
 
-ArgParser _createArgs() {
-  return ArgParser()
-    ..addFlag(
-      helpFlag,
-      abbr: 'h',
-      negatable: false,
-      help: 'Print tool help.',
-    )
-    ..addFlag(
-      validateFlag,
-      negatable: false,
-      help: 'Validate packages and indicate whether --publish would publish '
-          'anything.',
-    )
-    ..addFlag(
-      publishFlag,
-      negatable: false,
-      help: 'Publish any changed packages.',
-    )
-    ..addFlag(
-      useFlutterFlag,
-      negatable: true,
-      help: 'Whether this is a Flutter project.',
-    )
-    ..addMultiOption(
-      'ignore-packages',
-      help: 'Which packages to ignore.',
-    );
-}
+ArgParser _createArgs() => ArgParser()
+  ..addFlag(
+    helpFlag,
+    abbr: 'h',
+    negatable: false,
+    help: 'Print tool help.',
+  )
+  ..addFlag(
+    validateFlag,
+    negatable: false,
+    help: 'Validate packages and indicate whether --publish would publish '
+        'anything.',
+  )
+  ..addFlag(
+    publishFlag,
+    negatable: false,
+    help: 'Publish any changed packages.',
+  )
+  ..addFlag(
+    useFlutterFlag,
+    negatable: true,
+    help: 'Whether this is a Flutter project.',
+  )
+  ..addMultiOption(
+    'ignore-packages',
+    help: 'Which packages to ignore.',
+  );

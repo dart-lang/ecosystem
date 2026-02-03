@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
-
 import 'dart:io';
 import 'dart:math';
 
@@ -42,7 +40,7 @@ class Firehose {
   /// - provide feedback on the PR (via a PR comment) about packages which are
   ///   ready to publish
   Future<void> validate() async {
-    var github = GithubApi();
+    final github = GithubApi();
 
     // Do basic validation of our expected env var.
     if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
@@ -55,9 +53,9 @@ class Firehose {
       return;
     }
 
-    var results = await verify(github);
+    final results = await verify(github);
 
-    var markdownTable = '''
+    final markdownTable = '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown()}
@@ -66,7 +64,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 ''';
     github.appendStepSummary(markdownTable);
 
-    var existingCommentId = await allowFailure(
+    final existingCommentId = await allowFailure(
       github.findCommentId(
         user: _githubActionsUser,
         searchTerm: _publishBotTag,
@@ -75,17 +73,17 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
 
     if (results.hasSuccess) {
-      var commentText = '$_publishBotTag\n\n$markdownTable';
+      final commentText = '$_publishBotTag\n\n$markdownTable';
 
       if (existingCommentId != null) {
-        var idFile = File('./output/commentId');
+        final idFile = File('./output/commentId');
         print('''
 Saving existing comment id $existingCommentId to file ${idFile.path}''');
         await idFile.create(recursive: true);
         await idFile.writeAsString(existingCommentId.toString());
       }
 
-      var commentFile = File('./output/comment.md');
+      final commentFile = File('./output/comment.md');
       print('Saving comment markdown to file ${commentFile.path}');
       await commentFile.create(recursive: true);
       await commentFile.writeAsString(commentText);
@@ -99,23 +97,23 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   }
 
   Future<VerificationResults> verify(GithubApi github) async {
-    var repo = Repository(directory);
-    var packages = repo.locatePackages(ignore: ignoredPackages);
+    final repo = Repository(directory);
+    final packages = repo.locatePackages(ignore: ignoredPackages);
 
-    var pub = Pub();
+    final pub = Pub();
 
-    var results = VerificationResults();
+    final results = VerificationResults();
 
-    for (var package in packages) {
-      var repoTag = repo.calculateRepoTag(package);
+    for (final package in packages) {
+      final repoTag = repo.calculateRepoTag(package);
 
       print('');
       print('Validating $package:${package.name}');
 
       print('pubspec:');
-      var pubspecVersion = package.pubspec.version?.toString();
+      final pubspecVersion = package.pubspec.version?.toString();
       if (pubspecVersion == null) {
-        var result = Result.fail(
+        final result = Result.fail(
           package,
           "no version specified (perhaps you need a' publish_to: none' entry?)",
         );
@@ -125,12 +123,12 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       }
       print('  - version: $pubspecVersion');
 
-      var changelogVersion = package.changelog.latestVersion;
+      final changelogVersion = package.changelog.latestVersion;
       print('changelog:');
       print(package.changelog.describeLatestChanges.trimRight());
 
       if (pubspecVersion != changelogVersion) {
-        var result = Result.fail(
+        final result = Result.fail(
           package,
           'pubspec version ($pubspecVersion) and changelog ($changelogVersion) '
           "don't agree",
@@ -141,11 +139,11 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       }
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion)) {
-        var result = Result.info(package, 'already published at pub.dev');
+        final result = Result.info(package, 'already published at pub.dev');
         print(result);
         results.addResult(result);
       } else if (package.pubspec.version!.wip) {
-        var result = Result.info(package, 'WIP (no publish necessary)');
+        final result = Result.info(package, 'WIP (no publish necessary)');
         print(result);
         results.addResult(result);
       } else {
@@ -160,14 +158,14 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
         if (result.code != 0 && !ignoreWarnings) {
           exitCode = result.code;
-          var message =
+          final message =
               'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
               'label to ignore';
           github.notice(message: message);
           results.addResult(Result.fail(package, message));
         } else {
-          var result = Result.success(package, '**ready to publish**', repoTag,
-              repo.calculateReleaseUri(package, github));
+          final result = Result.success(package, '**ready to publish**',
+              repoTag, repo.calculateReleaseUri(package, github));
           print(result);
           results.addResult(result);
         }
@@ -188,19 +186,19 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   /// - validate changelog and pubspec versions
   /// - perform a publish
   Future publish() async {
-    var success = await _publish();
+    final success = await _publish();
     if (!success && exitCode == 0) {
       exitCode = 1;
     }
   }
 
   Future<bool> _publish() async {
-    var github = GithubApi();
+    final github = GithubApi();
 
     if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
 
     // Validate the git tag.
-    var tag = Tag(github.refName!);
+    final tag = Tag(github.refName!);
     if (!tag.valid) {
       stderr.writeln("Git tag not in expected format: '$tag'");
       return false;
@@ -209,11 +207,11 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     print("Publishing '$tag'");
     print('');
 
-    var repo = Repository();
-    var packages = repo.locatePackages();
+    final repo = Repository();
+    final packages = repo.locatePackages();
     print('');
     print('Repository packages:');
-    for (var package in packages) {
+    for (final package in packages) {
       print('  $package');
     }
     print('');
@@ -227,7 +225,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       }
       package = packages.first;
     } else {
-      var name = tag.package;
+      final name = tag.package;
       if (name == null) {
         stderr.writeln("Tag does not include package name ('$tag').");
         return false;
@@ -244,12 +242,12 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     print('');
 
     print('pubspec:');
-    var pubspecVersion = package.pubspec.version?.toString();
+    final pubspecVersion = package.pubspec.version?.toString();
     print('  version: $pubspecVersion');
 
     print('changelog:');
     print(package.changelog.describeLatestChanges);
-    var changelogVersion = package.changelog.latestVersion;
+    final changelogVersion = package.changelog.latestVersion;
 
     if (pubspecVersion != tag.version) {
       stderr.writeln(
@@ -266,7 +264,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
     print('');
 
-    var result = await _runPublish(package, dryRun: false, force: true);
+    final result = await _runPublish(package, dryRun: false, force: true);
     if (result.code != 0) {
       exitCode = result.code;
     }
@@ -309,23 +307,21 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String describeAsMarkdown({bool withTag = true}) {
-    return results.map((r) {
-      var sev = r.severity == Severity.error ? '(error) ' : '';
-      var tagColumn = '';
-      if (withTag) {
-        var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
-        var publishReleaseUri = r.publishReleaseUri;
-        if (publishReleaseUri != null) {
-          tag = '[$tag]($publishReleaseUri)';
-        }
+  String describeAsMarkdown({bool withTag = true}) => results.map((r) {
+        final sev = r.severity == Severity.error ? '(error) ' : '';
+        var tagColumn = '';
+        if (withTag) {
+          var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
+          final publishReleaseUri = r.publishReleaseUri;
+          if (publishReleaseUri != null) {
+            tag = '[$tag]($publishReleaseUri)';
+          }
 
-        tagColumn = ' | $tag';
-      }
-      return '| package:${r.package.name} | ${r.package.version} | '
-          '$sev${r.message}$tagColumn |';
-    }).join('\n');
-  }
+          tagColumn = ' | $tag';
+        }
+        return '| package:${r.package.name} | ${r.package.version} | '
+            '$sev${r.message}$tagColumn |';
+      }).join('\n');
 }
 
 class Result {

@@ -1,3 +1,8 @@
+## 0.13.1
+
+- Fix an issue with a nullable neededVersion
+- Use the git diff of the local branch when running locally.
+
 ## 0.13.0
 
 - Make the PR health output less verbose by collapsing warnings by default.

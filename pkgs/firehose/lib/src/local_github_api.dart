@@ -10,7 +10,7 @@ import 'package:glob/glob.dart';
 import '../firehose.dart';
 
 class LocalGithubApi implements GithubApi {
-  final List<GitFile> files;
+  final Iterable<GitFile> files;
 
   LocalGithubApi({
     required this.prLabels,
@@ -45,12 +45,11 @@ class LocalGithubApi implements GithubApi {
 
   @override
   Future<List<GitFile>> listFilesForPR(Directory directory,
-      [List<Glob> ignoredFiles = const []]) async {
-    return files
-        .where((element) =>
-            ignoredFiles.none((p0) => p0.matches(element.filename)))
-        .toList();
-  }
+          [List<Glob> ignoredFiles = const []]) async =>
+      files
+          .where((element) =>
+              ignoredFiles.none((p0) => p0.matches(element.filename)))
+          .toList();
 
   @override
   void notice({required String message}) {}

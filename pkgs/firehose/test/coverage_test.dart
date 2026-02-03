@@ -15,7 +15,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('LCOV parser', () {
-    var parsed =
+    final parsed =
         parseLCOV('test/lcov.info', relativeTo: Directory.current.path);
     expect(
       parsed.values,
@@ -32,7 +32,7 @@ void main() {
     );
   });
   test('Compare coverage', () async {
-    var coverages = FakeHealth().compareCoveragesFor(
+    final coverages = FakeHealth().compareCoveragesFor(
       [GitFile('testfile.dart', FileStatus.modified, Directory.current)],
       Directory('base_path_does_not_exist'),
     );

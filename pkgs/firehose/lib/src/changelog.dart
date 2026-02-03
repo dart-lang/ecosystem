@@ -16,8 +16,8 @@ class Changelog {
     if (!file.existsSync()) {
       return Changelog._(file, false, const <_Section>[]);
     }
-    var lines = file.readAsLinesSync();
-    var sections = _parseSections(lines);
+    final lines = file.readAsLinesSync();
+    final sections = _parseSections(lines);
     return Changelog._(file, true, sections);
   }
 
@@ -37,12 +37,12 @@ class Changelog {
   static final _versionRegex = RegExp(r'\d+\.\d+\.\d+(?:[+\-]\S*)?');
 
   String? get latestVersion {
-    var input = latestHeading;
+    final input = latestHeading;
 
     if (input != null) {
-      var match = _versionRegex.firstMatch(input);
+      final match = _versionRegex.firstMatch(input);
       if (match != null) {
-        var version = match[0];
+        final version = match[0];
         return version;
       }
     }
@@ -51,10 +51,10 @@ class Changelog {
   }
 
   String? get latestHeading {
-    var section = _sections.firstOrNull;
+    final section = _sections.firstOrNull;
     if (section == null) return null;
     // Remove the leading `_headerLinePrefix`, then trim left-over whitespace.
-    var title = section.title;
+    final title = section.title;
     assert(title.startsWith(_headerLinePrefix));
     return title.substring(_headerLinePrefix.length).trim();
   }
@@ -63,11 +63,11 @@ class Changelog {
       _sections.firstOrNull?.entries ?? const <String>[];
 
   static List<_Section> _parseSections(List<String> lines) {
-    var sections = <_Section>[];
+    final sections = <_Section>[];
 
     _Section? section;
 
-    for (var line in lines) {
+    for (final line in lines) {
       if (line.isEmpty) continue;
       if (line.startsWith(_headerLinePrefix)) {
         if (section != null) sections.add(section);

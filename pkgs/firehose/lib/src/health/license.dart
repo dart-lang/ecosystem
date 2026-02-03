@@ -13,17 +13,17 @@ Future<List<String>> getFilesWithoutLicenses(Directory repositoryDir,
   bool fileContainsCopyright(String fileContents) =>
       fileContents.contains(licenseTestString);
 
-  var dartFiles = await repositoryDir
+  final dartFiles = await repositoryDir
       .list(recursive: true)
       .where((file) => file.path.endsWith('.dart'))
       .toList();
   print('Collecting files without license headers:');
-  var filesWithoutLicenses = dartFiles
+  final filesWithoutLicenses = dartFiles
       .map((file) {
-        var relativePath = path.relative(file.path, from: repositoryDir.path);
+        final relativePath = path.relative(file.path, from: repositoryDir.path);
         if (ignored.none((glob) =>
             glob.matches(path.relative(file.path, from: repositoryDir.path)))) {
-          var fileContents = File(file.path).readAsStringSync();
+          final fileContents = File(file.path).readAsStringSync();
           if (!fileIsGenerated(fileContents, file.path) &&
               !fileContainsCopyright(fileContents)) {
             print(relativePath);
