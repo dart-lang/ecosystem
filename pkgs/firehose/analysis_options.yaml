@@ -11,3 +11,4 @@ linter:
     - prefer_expression_function_bodies
     - document_ignores
     - parameter_assignments
+    - prefer_final_in_for_each

@@ -67,7 +67,7 @@ class Changelog {
 
     _Section? section;
 
-    for (var line in lines) {
+    for (final line in lines) {
       if (line.isEmpty) continue;
       if (line.startsWith(_headerLinePrefix)) {
         if (section != null) sections.add(section);

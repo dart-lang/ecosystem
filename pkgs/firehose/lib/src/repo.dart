@@ -73,7 +73,7 @@ class Repository {
       }
     }
     if (directory.existsSync()) {
-      for (var child in directory.listSync().whereType<Directory>()) {
+      for (final child in directory.listSync().whereType<Directory>()) {
         final name = path.basename(child.path);
         if (!name.startsWith('.')) {
           _recurseAndGather(child, packages);

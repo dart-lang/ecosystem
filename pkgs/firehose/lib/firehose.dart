@@ -104,7 +104,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
     final results = VerificationResults();
 
-    for (var package in packages) {
+    for (final package in packages) {
       final repoTag = repo.calculateRepoTag(package);
 
       print('');
@@ -211,7 +211,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     final packages = repo.locatePackages();
     print('');
     print('Repository packages:');
-    for (var package in packages) {
+    for (final package in packages) {
       print('  $package');
     }
     print('');

@@ -21,7 +21,7 @@ Map<String, double> parseLCOV(
   String? fileName;
   int? numberLines;
   int? coveredLines;
-  for (var line in lines) {
+  for (final line in lines) {
     if (line.startsWith('SF:')) {
       fileName = line.substring('SF:'.length);
     } else if (line.startsWith('LF:')) {

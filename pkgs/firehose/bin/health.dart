@@ -67,7 +67,7 @@ void main(List<String> arguments) async {
           'A file containing this string will be considered having a license.',
     );
 
-  for (var check in Check.values) {
+  for (final check in Check.values) {
     argParser.addMultiOption(
       'ignore_${check.name}',
       defaultsTo: [],
@@ -120,7 +120,7 @@ void main(List<String> arguments) async {
     print('Using Github API, as this is executed on GitHub.');
     githubApi = GithubApi();
   }
-  for (var check in checks.isEmpty ? Check.values : checks) {
+  for (final check in checks.isEmpty ? Check.values : checks) {
     await Health(
       Directory.current,
       check,

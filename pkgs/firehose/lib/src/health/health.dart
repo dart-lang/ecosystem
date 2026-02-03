@@ -177,7 +177,7 @@ class Health {
     final results = <String>[];
     var hasError = false;
 
-    for (var package in packages) {
+    for (final package in packages) {
       log('Checking dependencies for ${package.name}');
 
       runDashProcess(
@@ -250,7 +250,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
-    for (var package in packagesContaining(filesInPR, ignore: ignored)) {
+    for (final package in packagesContaining(filesInPR, ignore: ignored)) {
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
       final tempDirectory = Directory.systemTemp.createTempSync();
@@ -379,7 +379,7 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
 
-    for (var package in packagesContaining(filesInPR)) {
+    for (final package in packagesContaining(filesInPR)) {
       log('');
       log('--- ${package.name} ---');
       log('Look for leaks in ${package.name}');

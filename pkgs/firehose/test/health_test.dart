@@ -59,7 +59,7 @@ Future<void> main() async {
     await Process.run('dart', ['pub', 'global', 'activate', 'coverage']);
   });
 
-  for (var check in Check.values) {
+  for (final check in Check.values) {
     test(
       'Check health workflow "${check.displayName}" against golden files',
       () async => await checkGolden(
@@ -103,7 +103,7 @@ Future<void> main() async {
   test(
     'Ignore packages test',
     () async {
-      for (var check in Check.values) {
+      for (final check in Check.values) {
         await checkGolden(
           check,
           fakeGithubApi([]),

@@ -55,7 +55,7 @@ class Coverage {
     print('The packages of interest are $changedPackages');
 
     final coverageResult = CoverageResult({});
-    for (var package in changedPackages) {
+    for (final package in changedPackages) {
       final newCoverages = getCoverage(package);
 
       final basePackage = basePackages
@@ -66,7 +66,7 @@ class Coverage {
           .where((file) => file.isInPackage(package))
           .map((file) => file.filename)
           .sortedBy((filename) => filename);
-      for (var filename in filenames) {
+      for (final filename in filenames) {
         final oldCoverage = oldCoverages[filename];
         final newCoverage = newCoverages[filename];
         print('Compage coverage for $filename: $oldCoverage vs $newCoverage');
