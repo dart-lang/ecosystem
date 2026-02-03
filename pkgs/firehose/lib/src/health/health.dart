@@ -291,7 +291,6 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         log('Breaking change report:\n$formattedChanges');
 
         final versionMap = decoded['version'] as Map<String, dynamic>;
-        print('Version map is $versionMap');
         var neededVersion = versionMap['needed'] as String?;
         changeForPackage[package] = BreakingChange(
           level: _breakingLevel(report),
