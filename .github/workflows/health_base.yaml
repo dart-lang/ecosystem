@@ -166,6 +166,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
+          INPUT_LICENSE: ${{ inputs.license }}
+          INPUT_LICENSE_TEST_STRING: ${{ inputs.license_test_string }}
         run: |
           cd current_repo/
           dart pub global run firehose:health \
@@ -185,8 +187,8 @@ jobs:
             --experiments ${{ inputs.experiments }} \
             --health_yaml_name ${{ inputs.health_yaml_name }} \
             --no-local \
-            --license ${{ inputs.license }} \
-            --license_test_string ${{ inputs.license_test_string }}
+            --license "$INPUT_LICENSE" \
+            --license_test_string "$INPUT_LICENSE_TEST_STRING"
 
       - run: test -f current_repo/output/comment-${{ inputs.check }}.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${{ inputs.check }}.md
         if: ${{ '$action_state' == 1 }}
