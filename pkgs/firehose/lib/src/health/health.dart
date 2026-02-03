@@ -287,15 +287,18 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         var decoded = jsonDecode(fullReportString) as Map<String, dynamic>;
         var report = decoded['report'] as Map<String, dynamic>;
         var formattedChanges =
-            const JsonEncoder.withIndent('  ').convert(report);
+            const JsonEncoder.withIndent('  ').convert(decoded);
         log('Breaking change report:\n$formattedChanges');
 
         final versionMap = decoded['version'] as Map<String, dynamic>;
+        print('Version map is $versionMap');
+        var neededVersion = versionMap['needed'] as String?;
         changeForPackage[package] = BreakingChange(
           level: _breakingLevel(report),
-          oldVersion: Version.parse(versionMap['old'].toString()),
-          newVersion: Version.parse(versionMap['new'].toString()),
-          neededVersion: Version.parse(versionMap['needed'].toString()),
+          oldVersion: Version.parse(versionMap['old'] as String),
+          newVersion: Version.parse(versionMap['new'] as String),
+          neededVersion:
+              neededVersion == null ? null : Version.parse(neededVersion),
           versionIsFine: versionMap['success'] as bool,
           explanation: versionMap['explanation'].toString(),
         );
@@ -730,7 +733,7 @@ class BreakingChange {
   final BreakingLevel level;
   final Version oldVersion;
   final Version newVersion;
-  final Version neededVersion;
+  final Version? neededVersion;
   final bool versionIsFine;
   final String explanation;
 
@@ -743,11 +746,23 @@ class BreakingChange {
     required this.explanation,
   });
 
-  String toMarkdownRow() => [
-        level.name,
-        oldVersion,
-        newVersion,
-        versionIsFine ? neededVersion : '**$neededVersion** <br> $explanation',
-        versionIsFine ? ':heavy_check_mark:' : ':warning:'
-      ].map((e) => e.toString()).join('|');
+  String toMarkdownRow() {
+    String needed;
+    if (versionIsFine) {
+      needed = neededVersion.toString();
+    } else {
+      if (neededVersion != null) {
+        needed = '**$neededVersion** <br> $explanation';
+      } else {
+        needed = explanation;
+      }
+    }
+    return [
+      level.name,
+      oldVersion.toString(),
+      newVersion.toString(),
+      needed,
+      versionIsFine ? ':heavy_check_mark:' : ':warning:'
+    ].map((e) => e.toString()).join('|');
+  }
 }
