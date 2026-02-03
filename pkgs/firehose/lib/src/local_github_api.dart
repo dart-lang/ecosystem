@@ -10,7 +10,7 @@ import 'package:glob/glob.dart';
 import '../firehose.dart';
 
 class LocalGithubApi implements GithubApi {
-  final List<GitFile> files;
+  final Iterable<GitFile> files;
 
   LocalGithubApi({
     required this.prLabels,

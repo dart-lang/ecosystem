@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
-import 'package:path/path.dart' as p;
 
 void main(List<String> arguments) async {
   var checkTypes = Check.values.map((c) => c.displayName);
@@ -61,6 +61,10 @@ void main(List<String> arguments) async {
       help: 'The license string to insert if missing.'
           ' %YEAR% will be replaced with the current year',
     )
+    ..addOption('main_branch_name',
+        defaultsTo: 'main',
+        help: 'The name of the git branch to diff against. '
+            'Only used when the local flag is set.')
     ..addOption(
       'license_test_string',
       help:
@@ -90,6 +94,7 @@ void main(List<String> arguments) async {
   final healthYamlNames = healthYamlName != null && healthYamlName.isNotEmpty
       ? {healthYamlName}
       : {'health.yaml', 'health.yml'};
+  final mainBranchName = parsedArgs.option('main_branch_name')!;
 
   final license = nullIfEmpty(parsedArgs.option('license'));
   final licenseTestString =
@@ -103,14 +108,12 @@ void main(List<String> arguments) async {
   final GithubApi githubApi;
   if (isLocal) {
     print('Using mock Github API, as this is run locally.');
-    final files = Directory.current
-        .listSync(recursive: true)
-        .whereType<File>()
-        .map(
-          (e) => GitFile(p.relative(e.path, from: Directory.current.path),
-              FileStatus.added, Directory.current),
-        )
-        .toList();
+    print('Finding changed files from this branch to "$mainBranchName"');
+    final gitOutput = Process.runSync(
+            'git', ['diff', '--name-status', '$mainBranchName...HEAD']).stdout
+        as String;
+    final files = parseGitDiff(gitOutput, Directory.current);
+    print('Found files: ${files.isNotEmpty ? files.join('\n') : 'None'}');
     githubApi = LocalGithubApi(prLabels: [], files: files);
   } else {
     print('Using Github API, as this is executed on GitHub.');
@@ -143,3 +146,40 @@ extension on ArgResults {
   List<String> listNonEmpty(String key) =>
       (this[key] as List<String>).where((e) => e.isNotEmpty).toList();
 }
+
+FileStatus _mapGitCodeToStatus(String char) => switch (char) {
+      'A' => FileStatus.added,
+      'D' => FileStatus.removed,
+      'M' => FileStatus.modified,
+      'R' => FileStatus.renamed,
+      'C' => FileStatus.copied,
+      'T' => FileStatus.changed,
+      'U' => FileStatus.unchanged,
+      _ => FileStatus.changed,
+    };
+
+/// Parses raw stdout from `git diff --name-status`
+Iterable<GitFile> parseGitDiff(String gitOutput, Directory repoRoot) =>
+    const LineSplitter()
+        .convert(gitOutput)
+        .where(
+          (line) => line.isNotEmpty,
+        )
+        .map(
+      (line) {
+        // Line should be of the form
+        // M      pkgs/firehose/lib/src/health/health.dart
+        final parts = line.split(RegExp(r'\s+'));
+
+        if (parts.length < 2) {
+          throw ArgumentError('Could not construct GitFile from $line'
+              ' as output of `git diff --name-status`');
+        }
+
+        final status = _mapGitCodeToStatus(parts[0][0]);
+
+        // Handle Renames: Git outputs "R100 old_path new_path".
+        // We care only about the 'new_path'.
+        return GitFile(parts.last, status, repoRoot);
+      },
+    );
