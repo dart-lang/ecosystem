@@ -219,7 +219,8 @@ class Health {
 
       if (result.exitCode != 0) {
         hasError = true;
-        final output = '$out\\n$err'.trim().replaceAll('\\n', '<br>');
+        final output = (err.trim().isNotEmpty ? err.trim() : out.trim())
+            .replaceAll('\n', '<br>');
         results.add('''
 | ${package.name} | <details><summary>:exclamation: Show Issues</summary><pre>$output</pre></details> |''');
       } else {
