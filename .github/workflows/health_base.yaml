@@ -39,7 +39,7 @@ on:
         type: boolean
         required: false
       flutter_packages:
-        default: '""'
+        default: ""
         required: false
         type: string
       ignore_license:
@@ -173,7 +173,7 @@ jobs:
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
             --fail_on ${{ inputs.fail_on }} \
             --warn_on ${{ inputs.warn_on }} \
-            --flutter_packages ${{ inputs.flutter_packages }} \
+            --flutter_packages "${{ inputs.flutter_packages }}" \
             --ignore_packages ${{ inputs.ignore_packages }} \
             --ignore_license ${{ inputs.ignore_license }} \
             --ignore_changelog ${{ inputs.ignore_changelog }} \

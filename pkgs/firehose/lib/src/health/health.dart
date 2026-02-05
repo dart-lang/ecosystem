@@ -204,7 +204,7 @@ class Health {
         logStdout: false,
       );
 
-      final (result, _, _) = runDashProcess(
+      final (result, out, err) = runDashProcess(
         flutterPackages,
         package,
         [
@@ -219,7 +219,7 @@ class Health {
 
       if (result.exitCode != 0) {
         hasError = true;
-        final output = (result.stderr as String).replaceAll('\n', '<br>');
+        final output = '$out\\n$err'.trim().replaceAll('\\n', '<br>');
         results.add('''
 | ${package.name} | <details><summary>:exclamation: Show Issues</summary><pre>$output</pre></details> |''');
       } else {
