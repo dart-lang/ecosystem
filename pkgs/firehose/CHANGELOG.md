@@ -1,3 +1,8 @@
+## 0.13.2-wip
+
+- Echo any error output from dependencies task on failure 
+  (avoids silent failures).
+
 ## 0.13.1
 
 - Fix an issue with a nullable neededVersion

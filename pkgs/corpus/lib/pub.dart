@@ -66,11 +66,7 @@ class Pub {
 
     for (;;) {
       final targetUri = uri.replace(
-        queryParameters: {
-          'q': query,
-          'page': page.toString(),
-          if (sort != null) 'sort': sort,
-        },
+        queryParameters: {'q': query, 'page': page.toString(), 'sort': ?sort},
       );
 
       final map = await _getJson(targetUri);
