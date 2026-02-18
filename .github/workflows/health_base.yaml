@@ -166,30 +166,48 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
+          INPUTS_CHECK: ${{ inputs.check }}
+          INPUTS_FAIL_ON: ${{ inputs.fail_on }}
+          INPUTS_WARN_ON: ${{ inputs.warn_on }}
+          INPUTS_FLUTTER_PACKAGES: ${{ inputs.flutter_packages }}
+          INPUTS_IGNORE_PACKAGES: ${{ inputs.ignore_packages }}
+          INPUTS_IGNORE_LICENSE: ${{ inputs.ignore_license }}
+          INPUTS_IGNORE_CHANGELOG: ${{ inputs.ignore_changelog }}
+          INPUTS_IGNORE_COVERAGE: ${{ inputs.ignore_coverage }}
+          INPUTS_IGNORE_BREAKING: ${{ inputs.ignore_breaking }}
+          INPUTS_IGNORE_LEAKING: ${{ inputs.ignore_leaking }}
+          INPUTS_IGNORE_DONOTSUBMIT: ${{ inputs.ignore_donotsubmit }}
+          INPUTS_IGNORE_UNUSEDDEPENDENCIES: ${{ inputs.ignore_unuseddependencies }}
+          INPUTS_EXPERIMENTS: ${{ inputs.experiments }}
+          INPUTS_HEALTH_YAML_NAME: ${{ inputs.health_yaml_name }}
+          INPUTS_LICENSE: ${{ inputs.license }}
+          INPUTS_LICENSE_TEST_STRING: ${{ inputs.license_test_string }}
         run: |
           cd current_repo/
           dart pub global run firehose:health \
-            --check ${{ inputs.check }} \
+            --check ${INPUTS_CHECK} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
-            --fail_on ${{ inputs.fail_on }} \
-            --warn_on ${{ inputs.warn_on }} \
-            --flutter_packages "${{ inputs.flutter_packages }}" \
-            --ignore_packages ${{ inputs.ignore_packages }} \
-            --ignore_license ${{ inputs.ignore_license }} \
-            --ignore_changelog ${{ inputs.ignore_changelog }} \
-            --ignore_coverage ${{ inputs.ignore_coverage }} \
-            --ignore_breaking ${{ inputs.ignore_breaking }} \
-            --ignore_leaking ${{ inputs.ignore_leaking }} \
-            --ignore_donotsubmit ${{ inputs.ignore_donotsubmit }} \
-            --ignore_unuseddependencies ${{ inputs.ignore_unuseddependencies }} \
-            --experiments ${{ inputs.experiments }} \
-            --health_yaml_name ${{ inputs.health_yaml_name }} \
+            --fail_on ${INPUTS_FAIL_ON} \
+            --warn_on ${INPUTS_WARN_ON} \
+            --flutter_packages "${INPUTS_FLUTTER_PACKAGES}" \
+            --ignore_packages ${INPUTS_IGNORE_PACKAGES} \
+            --ignore_license ${INPUTS_IGNORE_LICENSE} \
+            --ignore_changelog ${INPUTS_IGNORE_CHANGELOG} \
+            --ignore_coverage ${INPUTS_IGNORE_COVERAGE} \
+            --ignore_breaking ${INPUTS_IGNORE_BREAKING} \
+            --ignore_leaking ${INPUTS_IGNORE_LEAKING} \
+            --ignore_donotsubmit ${INPUTS_IGNORE_DONOTSUBMIT} \
+            --ignore_unuseddependencies ${INPUTS_IGNORE_UNUSEDDEPENDENCIES} \
+            --experiments ${INPUTS_EXPERIMENTS} \
+            --health_yaml_name ${INPUTS_HEALTH_YAML_NAME} \
             --no-local \
-            --license ${{ inputs.license }} \
-            --license_test_string ${{ inputs.license_test_string }}
+            --license ${INPUTS_LICENSE} \
+            --license_test_string ${INPUTS_LICENSE_TEST_STRING}
 
-      - run: test -f current_repo/output/comment-${{ inputs.check }}.md || echo $'The ${{ inputs.check }} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${{ inputs.check }}.md
+      - run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
         if: ${{ '$action_state' == 1 }}
+        env:
+          INPUTS_CHECK: ${{ inputs.check }}
 
       - name: Upload coverage to Coveralls
         if: ${{ inputs.upload_coverage && inputs.check == 'coverage' }}

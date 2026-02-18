@@ -306,7 +306,9 @@ jobs:
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
-        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+        run: echo ${STEPS_FC_OUTPUTS_COMMENT_ID} >> output/commentId
+        env:
+          STEPS_FC_OUTPUTS_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
  
       - name: Upload folder with number and markdown
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f

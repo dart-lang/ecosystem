@@ -37,9 +37,10 @@ jobs:
 
       - name: Update package and test
         run: |
-          dart pub global run canary ${{ inputs.repos_file }} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          dart pub global run canary ${INPUTS_REPOS_FILE} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUTS_REPOS_FILE: ${{ inputs.repos_file }}
 
       - name: Output issue number
         run: |
@@ -56,7 +57,9 @@ jobs:
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
-        run: echo ${{ steps.fc.outputs.comment-id }} >> output/commentId
+        run: echo ${STEPS_FC_OUTPUTS_COMMENT_ID} >> output/commentId
+        env:
+          STEPS_FC_OUTPUTS_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
 
       - name: Upload markdown
         if: success() || failure()

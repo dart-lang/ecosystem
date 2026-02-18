@@ -155,11 +155,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
+          INPUTS_IGNORE_PACKAGES: ${{ inputs.ignore-packages }}
         run: |
           dart pub global run firehose \
             --validate \
             ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-            --ignore-packages ${{ inputs.ignore-packages }}
+            --ignore-packages ${INPUTS_IGNORE_PACKAGES}
 
       - name: Get comment id
         id: comment-id
