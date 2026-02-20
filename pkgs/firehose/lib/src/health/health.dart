@@ -19,7 +19,7 @@ import 'license.dart';
 
 /// To allow easier searching for the package name
 // ignore: constant_identifier_names
-const dart_apitoolHash = '906fa0f3dca24d81d1c26ee71c884ecbb6234ecf';
+const dart_apitoolHash = '6d710709e5d51bab52ecd911c84a3264e5277a69';
 
 /// To allow easier searching for the package name
 // ignore: constant_identifier_names
