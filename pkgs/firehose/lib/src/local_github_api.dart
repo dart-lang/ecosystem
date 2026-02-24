@@ -38,7 +38,7 @@ class LocalGithubApi implements GithubApi {
   String? get githubAuthToken => throw UnimplementedError();
 
   @override
-  bool get inGithubContext => throw UnimplementedError();
+  bool get inGithubContext => false;
 
   @override
   int? get issueNumber => 1;
@@ -52,7 +52,13 @@ class LocalGithubApi implements GithubApi {
           .toList();
 
   @override
-  void notice({required String message}) {}
+  void notice({required String message, String? file, int? line, int? col}) {}
+
+  @override
+  void warning({required String message, String? file, int? line, int? col}) {}
+
+  @override
+  void error({required String message, String? file, int? line, int? col}) {}
 
   @override
   final List<String> prLabels;

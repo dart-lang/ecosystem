@@ -26,7 +26,8 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
     directory,
   );
 
-  print('Collecting files without license headers in those packages:');
+  print(
+      'Collecting modified files without changelog entries in those packages:');
   final packagesWithChanges = <Package, List<GitFile>>{};
   for (final file in files) {
     for (final package in packagesWithoutChangedChangelog) {
@@ -42,6 +43,24 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   }
   print('''
 Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
+
+  if (packagesWithChanges.isNotEmpty) {
+    print('Packages requiring a changelog update:');
+    for (final package in packagesWithChanges.keys) {
+      final changelogPath =
+          path.relative(package.changelog.file.path, from: directory.path);
+      if (github.inGithubContext) {
+        github.error(
+          message:
+              'The package ${package.name} needs a changelog update. Please update $changelogPath.',
+          file: changelogPath,
+        );
+      } else {
+        print('  - ${package.name} ($changelogPath)');
+      }
+    }
+  }
+
   return packagesWithChanges;
 }
 

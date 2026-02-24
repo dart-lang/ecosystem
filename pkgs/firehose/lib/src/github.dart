@@ -123,8 +123,34 @@ class GithubApi {
           .toList();
 
   /// Write a notice message to the github log.
-  void notice({required String message}) {
-    print('::notice ::$message');
+  void notice({required String message, String? file, int? line, int? col}) {
+    print(_formatMessage('notice', message, file, line, col));
+  }
+
+  /// Write a warning message to the github log.
+  void warning({required String message, String? file, int? line, int? col}) {
+    print(_formatMessage('warning', message, file, line, col));
+  }
+
+  /// Write an error message to the github log.
+  void error({required String message, String? file, int? line, int? col}) {
+    print(_formatMessage('error', message, file, line, col));
+  }
+
+  String _formatMessage(
+    String type,
+    String message,
+    String? file,
+    int? line,
+    int? col,
+  ) {
+    final params = <String>[];
+    if (file != null) params.add('file=$file');
+    if (line != null) params.add('line=$line');
+    if (col != null) params.add('col=$col');
+
+    final paramsString = params.isNotEmpty ? ' ${params.join(',')}' : '';
+    return '::$type$paramsString::$message';
   }
 
   Future<String> pullrequestBody() async {
