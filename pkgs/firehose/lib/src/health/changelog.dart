@@ -51,8 +51,8 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
           path.relative(package.changelog.file.path, from: directory.path);
       if (github.inGithubContext) {
         github.error(
-          message:
-              'The package ${package.name} needs a changelog update. Please update $changelogPath.',
+          message: 'The package ${package.name} needs a changelog update. '
+              'Please update $changelogPath.',
           file: changelogPath,
         );
       } else {
