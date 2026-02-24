@@ -4,7 +4,6 @@
   (avoids silent failures).
 - Give clear output when packages need a changelog update.
 
-
 ## 0.13.1
 
 - Fix an issue with a nullable neededVersion
