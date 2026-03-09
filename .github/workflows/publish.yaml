@@ -2,16 +2,252 @@
 
 name: Publish
 
+# Callers of this workflow should use it as follows:
+#
+# name: Publish
+# on:
+#   pull_request:
+#     branches: [ main ]
+#     types: [opened, synchronize, reopened, labeled, unlabeled]
+#   push:
+#     tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+
+# Callers may optionally specify the version of the SDK to use when publishing a
+# package. This can be useful if your package has a very recent minimum SDK
+# constraint. This is done via the `sdk` input parameter. Note that this
+# parameter is not required; it defaults to `stable` - using the most recent
+# stable release of the Dart SDK. To pass this value:
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       sdk: beta
+
+# When using this package to publish Flutter packages, the `use-flutter`
+# parameter should be set. The `sdk` parameter is then used to specify
+# the Flutter SDK.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       use-flutter: true
+
+# When using a post_summaries.yaml workflow to post the comments, set
+# the write-comments parameter to false.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       write-comments: false
+
+# It is also possible to ignore certain packages in the repository
+# via a glob.
+#
+# jobs:
+#   publish:
+#     uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+#     with:
+#       ignore-packages: pkgs/non-published-package
+
 on:
-  pull_request:
-    branches: [ main ]
-  push:
-    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]
+  workflow_call:
+    inputs:
+      environment:
+        description: >-
+          If specified, publishes will be performed from this environment,
+          which will require additional approvals. See
+          https://dart.dev/tools/pub/automated-publishing for more
+          information.
+        required: false
+        type: string
+      sdk:
+        description: >-
+          The channel, or a specific version from a channel, to install
+          ('2.19.0','stable', 'beta', 'dev'). Using one of the three channels
+          will give you the latest version published to that channel.
+        default: "stable"
+        required: false
+        type: string
+      use-flutter:
+        description: >-
+          Whether to setup Flutter in this workflow.
+        default: false
+        required: false
+        type: boolean
+      write-comments:
+        description: >-
+          Whether to write a comment in this workflow.
+        default: true
+        required: false
+        type: boolean
+      checkout_submodules:
+        description: >-
+          Whether to checkout submodules of git repositories.
+        default: false
+        required: false
+        type: boolean
+      ignore-packages:
+        description: Which packages to ignore.
+        default: '""'
+        required: false
+        type: string
+      local_debug:
+        description: Whether to use a local copy of package:firehose - only for debug
+        default: false
+        type: boolean
+        required: false
 
 jobs:
-  publish:
-    if: ${{ github.repository_owner == 'dart-lang' }}
-    uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+  # Note that this job does not require the specified environment.
+  validate:
+    if: ${{ github.event_name == 'pull_request' }}
+
+    # These permissions are required for authentication using OIDC and to enable
+    # us to create comments on PRs.
     permissions:
-      id-token: write # Required for authentication using OIDC
-      pull-requests: write # Required for writing the pull request note
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: ${{ inputs.checkout_submodules }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+          cache: true
+
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        if: ${{ !inputs.local_debug }}
+
+      - name: Install local firehose
+        run: dart pub global activate --source path pkgs/firehose/
+        if: ${{ inputs.local_debug }}
+
+      - name: Fetch labels
+        id: fetch-labels
+        run: |
+          labels=$(gh api repos/$OWNER/$REPO_NAME/pulls/$PULL_REQUEST_NUMBER --jq '.labels | map(.name) | join(",")')
+          echo "Found labels: $labels"
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+
+      - name: Validate packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
+          PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
+          INPUTS_IGNORE_PACKAGES: ${{ inputs.ignore-packages }}
+        run: |
+          dart pub global run firehose \
+            --validate \
+            ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
+            --ignore-packages ${INPUTS_IGNORE_PACKAGES}
+
+      - name: Get comment id
+        id: comment-id
+        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments }}
+        run: |
+          touch -a output/commentId
+          COMMENT_ID=$(cat output/commentId)
+          echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
+        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
+        continue-on-error: true
+        with:
+          issue-number: ${{ github.event.number }}
+          body-path: "output/comment.md"
+          edit-mode: replace
+
+      - name: Update comment
+        uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
+        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
+        with:
+          comment-id: ${{ steps.comment-id.outputs.comment }}
+          body-path: "output/comment.md"
+          edit-mode: replace
+
+      - name: Save PR number
+        if: ${{ !inputs.write-comments }}
+        run: |
+          mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
+
+      - name: Upload folder with number and markdown
+        if: ${{ !inputs.write-comments }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: output
+          path: output/
+
+  publish:
+    if: ${{ github.event_name == 'push' }}
+
+    # Require the github deployment environment if supplied.
+    environment: ${{ inputs.environment }}
+
+    # This permission is required for authentication using OIDC.
+    permissions:
+      id-token: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: ${{ inputs.checkout_submodules }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+          cache: true
+
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install firehose
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        if: ${{ !inputs.local_debug }}
+
+      - name: Install local firehose
+        run: dart pub global activate --source path pkgs/firehose/
+        if: ${{ inputs.local_debug }}
+
+      - name: Publish packages
+        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
