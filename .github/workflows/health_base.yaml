@@ -209,8 +209,8 @@ jobs:
             --experiments ${INPUTS_EXPERIMENTS} \
             --health_yaml_name ${INPUTS_HEALTH_YAML_NAME} \
             --no-local \
-            --license ${INPUTS_LICENSE} \
-            --license_test_string ${INPUTS_LICENSE_TEST_STRING}
+            --license "${INPUTS_LICENSE}" \
+            --license_test_string "${INPUTS_LICENSE_TEST_STRING}"
 
       - run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
         if: ${{ '$action_state' == 1 }}

@@ -49,6 +49,4 @@ bool fileIsGenerated(String fileContents, String path) =>
     fileContents
         .split('\n')
         .takeWhile((line) => line.startsWith('//') || line.isEmpty)
-        .any((line) =>
-            line.toLowerCase().contains('generate') ||
-            line.toLowerCase().contains('generated'));
+        .any((line) => line.toLowerCase().contains('generate'));
