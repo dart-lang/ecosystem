@@ -3,6 +3,10 @@
 - Echo any error output from dependencies task on failure 
   (avoids silent failures).
 - Give clear output when packages need a changelog update.
+- Support `%YEAR%` wildcard in the license check string.
+- Explicitly ignore `.dart_tool` directory in the license check.
+- Improve detection of generated files in the license check.
+- Fix the default value for `license_test_string` in the health workflow.
 
 ## 0.13.1
 
