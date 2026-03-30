@@ -158,7 +158,7 @@ on:
         type: string
       license_test_string:
         description: A file containing this string will be considered having a license.
-        default: '""'
+        default: ''
         required: false
         type: string
 
