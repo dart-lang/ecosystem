@@ -168,7 +168,7 @@ jobs:
           dart pub global run firehose \
             --validate \
             ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-            --ignore-packages ${INPUTS_IGNORE_PACKAGES}
+            --ignore-packages "${INPUTS_IGNORE_PACKAGES}"
 
       - name: Get comment id
         id: comment-id
