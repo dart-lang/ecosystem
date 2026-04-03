@@ -119,7 +119,7 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
               'test',
               '-p',
               'chrome',
-              '--coverage=${coverageDir.path}}'
+              '--coverage=${coverageDir.path}'
             ],
             workingDirectory: package.directory.path,
           );
@@ -156,7 +156,8 @@ Get coverage for ${package.name} by running coverage in ${package.directory.path
             'coverage:format_coverage',
             '--lcov',
             '--check-ignore',
-            '--report-on lib/',
+            '--report-on',
+            'lib/',
             '-i',
             coverageDir.path,
             '-o',

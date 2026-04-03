@@ -7,6 +7,7 @@
 - Explicitly ignore `.dart_tool` directory in the license check.
 - Improve detection of generated files in the license check.
 - Fix the default value for `license_test_string` in the health workflow.
+- Fix web coverage reporting and coverage aggregation.
 
 ## 0.13.1
 
