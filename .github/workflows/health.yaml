@@ -98,42 +98,42 @@ on:
         type: string
       ignore_license:
         description: A glob describing which files to ignore for the license check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_changelog:
         description: A glob describing which files to ignore for the changelog check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_coverage:
         description: A glob describing which files to ignore for the coverage check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_breaking:
         description: A glob describing which packages to ignore for the breaking changes check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_leaking:
         description: A glob describing which files to ignore for the leaking check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_donotsubmit:
         description: A glob describing which files to ignore for the do-not-submit check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_unuseddependencies:
         description: A glob describing which packages to ignore for the unused dependencies check.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       ignore_packages:
         description: A glob describing which packages to ignore for all checks.
-        default: "\"\""
+        default: ''
         required: false
         type: string
       checkout_submodules:
@@ -143,17 +143,17 @@ on:
         type: boolean
       experiments:
         description: Which experiments should be enabled for Dart.
-        default: "\"\""
+        default: ''
         type: string
         required: false
       health_yaml_name:
         description: The name of the workflow file.
-        default: '""'
+        default: ''
         type: string
         required: false
       license:
         description: The license string to insert if missing. %YEAR% will be replaced with the current year
-        default: '""'
+        default: ''
         required: false
         type: string
       license_test_string:

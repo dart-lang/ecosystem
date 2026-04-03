@@ -94,7 +94,7 @@ on:
         type: boolean
       ignore-packages:
         description: Which packages to ignore.
-        default: '""'
+        default: ''
         required: false
         type: string
       local_debug:
