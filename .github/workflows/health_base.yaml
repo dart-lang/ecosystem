@@ -43,35 +43,35 @@ on:
         required: false
         type: string
       ignore_license:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_changelog:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_coverage:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_breaking:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_leaking:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_donotsubmit:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_unuseddependencies:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_packages:
-        default: '""'
+        default: ''
         required: false
         type: string
       checkout_submodules:
@@ -79,19 +79,19 @@ on:
         required: false
         type: boolean
       experiments:
-        default: '""'
+        default: ''
         type: string
         required: false
       health_yaml_name:
-        default: '""'
+        default: ''
         type: string
         required: false
       license:
-        default: '""'
+        default: ''
         required: false
         type: string
       license_test_string:
-        default: '""'
+        default: ''
         required: false
         type: string
 
