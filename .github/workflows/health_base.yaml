@@ -43,35 +43,35 @@ on:
         required: false
         type: string
       ignore_license:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_changelog:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_coverage:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_breaking:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_leaking:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_donotsubmit:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_unuseddependencies:
-        default: '""'
+        default: ''
         required: false
         type: string
       ignore_packages:
-        default: '""'
+        default: ''
         required: false
         type: string
       checkout_submodules:
@@ -79,19 +79,19 @@ on:
         required: false
         type: boolean
       experiments:
-        default: '""'
+        default: ''
         type: string
         required: false
       health_yaml_name:
-        default: '""'
+        default: ''
         type: string
         required: false
       license:
-        default: '""'
+        default: ''
         required: false
         type: string
       license_test_string:
-        default: '""'
+        default: ''
         required: false
         type: string
 
@@ -195,19 +195,19 @@ jobs:
           dart pub global run firehose:health \
             --check ${INPUTS_CHECK} \
             ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
-            --fail_on ${INPUTS_FAIL_ON} \
-            --warn_on ${INPUTS_WARN_ON} \
+            --fail_on "${INPUTS_FAIL_ON}" \
+            --warn_on "${INPUTS_WARN_ON}" \
             --flutter_packages "${INPUTS_FLUTTER_PACKAGES}" \
-            --ignore_packages ${INPUTS_IGNORE_PACKAGES} \
-            --ignore_license ${INPUTS_IGNORE_LICENSE} \
-            --ignore_changelog ${INPUTS_IGNORE_CHANGELOG} \
-            --ignore_coverage ${INPUTS_IGNORE_COVERAGE} \
-            --ignore_breaking ${INPUTS_IGNORE_BREAKING} \
-            --ignore_leaking ${INPUTS_IGNORE_LEAKING} \
-            --ignore_donotsubmit ${INPUTS_IGNORE_DONOTSUBMIT} \
-            --ignore_unuseddependencies ${INPUTS_IGNORE_UNUSEDDEPENDENCIES} \
-            --experiments ${INPUTS_EXPERIMENTS} \
-            --health_yaml_name ${INPUTS_HEALTH_YAML_NAME} \
+            --ignore_packages "${INPUTS_IGNORE_PACKAGES}" \
+            --ignore_license "${INPUTS_IGNORE_LICENSE}" \
+            --ignore_changelog "${INPUTS_IGNORE_CHANGELOG}" \
+            --ignore_coverage "${INPUTS_IGNORE_COVERAGE}" \
+            --ignore_breaking "${INPUTS_IGNORE_BREAKING}" \
+            --ignore_leaking "${INPUTS_IGNORE_LEAKING}" \
+            --ignore_donotsubmit "${INPUTS_IGNORE_DONOTSUBMIT}" \
+            --ignore_unuseddependencies "${INPUTS_IGNORE_UNUSEDDEPENDENCIES}" \
+            --experiments "${INPUTS_EXPERIMENTS}" \
+            --health_yaml_name "${INPUTS_HEALTH_YAML_NAME}" \
             --no-local \
             --license "${INPUTS_LICENSE}" \
             --license_test_string "${INPUTS_LICENSE_TEST_STRING}"
