@@ -212,7 +212,8 @@ jobs:
             --license "${INPUTS_LICENSE}" \
             --license_test_string "${INPUTS_LICENSE_TEST_STRING}"
 
-      - run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
+      - name: Ensure comment file exists
+        run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
         if: ${{ '$action_state' == 1 }}
         env:
           INPUTS_CHECK: ${{ inputs.check }}
