@@ -83,6 +83,7 @@ jobs:
                   issue_number: issue_number,
                 });
                 
+                // Fallback: Search for an existing comment with the same header.
                 const existingComment = comments.data.find(c => 
                   c.user.login === 'github-actions[bot]' && 
                   c.body.startsWith(firstLine)
