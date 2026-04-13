@@ -63,6 +63,8 @@ jobs:
             var fs = require('fs');
             if (fs.existsSync('./comment.md')) {
               var markdown = fs.readFileSync('./comment.md', 'utf8');
+              var firstLine = markdown.split('\n')[0];
+              
               if (fs.existsSync('./commentId')) {
                 var comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
             
@@ -74,13 +76,33 @@ jobs:
                 });
               } else {
                 var issue_number = Number(fs.readFileSync('./issueNumber', 'utf8'));
-            
-                await github.rest.issues.createComment({
+                
+                const comments = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: issue_number,
-                  body: markdown
                 });
+                
+                const existingComment = comments.data.find(c => 
+                  c.user.login === 'github-actions[bot]' && 
+                  c.body.startsWith(firstLine)
+                );
+                
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: existingComment.id,
+                    body: markdown
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue_number,
+                    body: markdown
+                  });
+                }
               }
             } else if (fs.existsSync('./commentId')) {
               var comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
