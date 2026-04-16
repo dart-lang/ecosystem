@@ -146,9 +146,13 @@ jobs:
         run: dart pub global activate coverage
         if: ${{ inputs.check == 'coverage' }}
 
-      - name: Install firehose
+      - name: Install firehose (internal)
+        if: ${{ !inputs.local_debug && github.repository == 'dart-lang/ecosystem' }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+
+      - name: Install firehose (external)
+        if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
-        if: ${{ !inputs.local_debug }}
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/

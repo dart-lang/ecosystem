@@ -35,16 +35,33 @@ class GithubApi {
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
+  late final RepositorySlug? _resolvedSlug = _repoSlug ??
+      (switch (_env['GITHUB_REPOSITORY']) {
+        final s? => RepositorySlug.full(s),
+        _ => null,
+      });
+
   /// The owner and repository name. For example, `octocat/Hello-World`.
-  RepositorySlug? get repoSlug =>
-      _repoSlug ??
-      (_env['GITHUB_REPOSITORY'] != null
-          ? RepositorySlug.full(_env['GITHUB_REPOSITORY']!)
-          : null);
+  RepositorySlug? get repoSlug => _resolvedSlug;
+
+  RepositorySlug get _slug =>
+      _resolvedSlug ??
+      (throw StateError(
+        'GITHUB_REPOSITORY environment variable is not set.',
+      ));
+
+  late final int? _resolvedIssueNumber = _issueNumber ??
+      (switch (_env['ISSUE_NUMBER']) {
+        final s? => int.tryParse(s),
+        _ => null,
+      });
 
   /// The PR (or issue) number.
-  int? get issueNumber =>
-      _issueNumber ?? int.tryParse(_env['ISSUE_NUMBER'] ?? '');
+  int? get issueNumber => _resolvedIssueNumber;
+
+  int get _issue =>
+      _resolvedIssueNumber ??
+      (throw StateError('ISSUE_NUMBER environment variable is not set.'));
 
   /// Any labels applied to this PR.
   List<String> get prLabels =>
@@ -93,7 +110,7 @@ class GithubApi {
     String? searchTerm,
   }) async {
     final matchingComment = await _github.issues
-        .listCommentsByIssue(repoSlug!, issueNumber!)
+        .listCommentsByIssue(_slug, _issue)
         .map<IssueComment?>((comment) => comment)
         .firstWhere(
       (comment) {
@@ -107,12 +124,20 @@ class GithubApi {
     return matchingComment?.id;
   }
 
+  Future<void> createComment(int issueNumber, String body) async {
+    await _github.issues.createComment(_slug, issueNumber, body);
+  }
+
+  Future<void> updateComment(int commentId, String body) async {
+    await _github.issues.updateComment(_slug, commentId, body);
+  }
+
   Future<List<GitFile>> listFilesForPR(
     Directory directory, [
     List<Glob> ignoredFiles = const [],
   ]) async =>
       await _github.pullRequests
-          .listFiles(repoSlug!, issueNumber!)
+          .listFiles(_slug, _issue)
           .map((prFile) => GitFile(
                 prFile.filename!,
                 FileStatus.fromString(prFile.status!),
@@ -154,7 +179,7 @@ class GithubApi {
   }
 
   Future<String> pullrequestBody() async {
-    final pullRequest = await _github.pullRequests.get(repoSlug!, issueNumber!);
+    final pullRequest = await _github.pullRequests.get(_slug, _issue);
     return pullRequest.body ?? '';
   }
 
