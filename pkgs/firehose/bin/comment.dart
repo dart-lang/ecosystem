@@ -102,8 +102,8 @@ Future<void> _createOrUpdateComment(ArgResults results) async {
     }
   }
 
-  if (body == null) {
-    stderr.writeln('Missing body or body-path');
+  if (body == null || body.trim().isEmpty) {
+    stderr.writeln('Comment body cannot be empty');
     exitCode = 64;
     return;
   }

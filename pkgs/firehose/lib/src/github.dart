@@ -35,12 +35,20 @@ class GithubApi {
 
   String? get githubAuthToken => _env['GITHUB_TOKEN'];
 
+  late final RepositorySlug? _resolvedSlug = _repoSlug ??
+      (switch (_env['GITHUB_REPOSITORY']) {
+        final s? => RepositorySlug.full(s),
+        _ => null,
+      });
+
   /// The owner and repository name. For example, `octocat/Hello-World`.
-  RepositorySlug? get repoSlug =>
-      _repoSlug ??
-      (_env['GITHUB_REPOSITORY'] != null
-          ? RepositorySlug.full(_env['GITHUB_REPOSITORY']!)
-          : null);
+  RepositorySlug? get repoSlug => _resolvedSlug;
+
+  RepositorySlug get _slug =>
+      _resolvedSlug ??
+      (throw StateError(
+        'GITHUB_REPOSITORY environment variable is not set.',
+      ));
 
   /// The PR (or issue) number.
   int? get issueNumber =>
@@ -93,7 +101,7 @@ class GithubApi {
     String? searchTerm,
   }) async {
     final matchingComment = await _github.issues
-        .listCommentsByIssue(repoSlug!, issueNumber!)
+        .listCommentsByIssue(_slug, issueNumber!)
         .map<IssueComment?>((comment) => comment)
         .firstWhere(
       (comment) {
@@ -108,11 +116,11 @@ class GithubApi {
   }
 
   Future<void> createComment(int issueNumber, String body) async {
-    await _github.issues.createComment(repoSlug!, issueNumber, body);
+    await _github.issues.createComment(_slug, issueNumber, body);
   }
 
   Future<void> updateComment(int commentId, String body) async {
-    await _github.issues.updateComment(repoSlug!, commentId, body);
+    await _github.issues.updateComment(_slug, commentId, body);
   }
 
   Future<List<GitFile>> listFilesForPR(
@@ -120,7 +128,7 @@ class GithubApi {
     List<Glob> ignoredFiles = const [],
   ]) async =>
       await _github.pullRequests
-          .listFiles(repoSlug!, issueNumber!)
+          .listFiles(_slug, issueNumber!)
           .map((prFile) => GitFile(
                 prFile.filename!,
                 FileStatus.fromString(prFile.status!),
@@ -162,7 +170,7 @@ class GithubApi {
   }
 
   Future<String> pullrequestBody() async {
-    final pullRequest = await _github.pullRequests.get(repoSlug!, issueNumber!);
+    final pullRequest = await _github.pullRequests.get(_slug, issueNumber!);
     return pullRequest.body ?? '';
   }
 
