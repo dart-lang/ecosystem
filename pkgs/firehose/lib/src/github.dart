@@ -50,9 +50,18 @@ class GithubApi {
         'GITHUB_REPOSITORY environment variable is not set.',
       ));
 
+  late final int? _resolvedIssueNumber = _issueNumber ??
+      (switch (_env['ISSUE_NUMBER']) {
+        final s? => int.tryParse(s),
+        _ => null,
+      });
+
   /// The PR (or issue) number.
-  int? get issueNumber =>
-      _issueNumber ?? int.tryParse(_env['ISSUE_NUMBER'] ?? '');
+  int? get issueNumber => _resolvedIssueNumber;
+
+  int get _issue =>
+      _resolvedIssueNumber ??
+      (throw StateError('ISSUE_NUMBER environment variable is not set.'));
 
   /// Any labels applied to this PR.
   List<String> get prLabels =>
@@ -101,7 +110,7 @@ class GithubApi {
     String? searchTerm,
   }) async {
     final matchingComment = await _github.issues
-        .listCommentsByIssue(_slug, issueNumber!)
+        .listCommentsByIssue(_slug, _issue)
         .map<IssueComment?>((comment) => comment)
         .firstWhere(
       (comment) {
@@ -128,7 +137,7 @@ class GithubApi {
     List<Glob> ignoredFiles = const [],
   ]) async =>
       await _github.pullRequests
-          .listFiles(_slug, issueNumber!)
+          .listFiles(_slug, _issue)
           .map((prFile) => GitFile(
                 prFile.filename!,
                 FileStatus.fromString(prFile.status!),
@@ -170,7 +179,7 @@ class GithubApi {
   }
 
   Future<String> pullrequestBody() async {
-    final pullRequest = await _github.pullRequests.get(_slug, issueNumber!);
+    final pullRequest = await _github.pullRequests.get(_slug, _issue);
     return pullRequest.body ?? '';
   }
 
