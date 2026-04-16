@@ -70,16 +70,19 @@ Future<void> _findComment(ArgResults results) async {
   }
 
   final github = GithubApi(issueNumber: issueNumber);
+  try {
+    final commentId = await github.findCommentId(
+      user: author,
+      searchTerm: bodyIncludes,
+    );
 
-  final commentId = await github.findCommentId(
-    user: author,
-    searchTerm: bodyIncludes,
-  );
-
-  if (commentId != null) {
-    print(commentId);
-  } else {
-    print('0');
+    if (commentId != null) {
+      print(commentId);
+    } else {
+      print('0');
+    }
+  } finally {
+    github.close();
   }
 }
 
@@ -105,26 +108,38 @@ Future<void> _createOrUpdateComment(ArgResults results) async {
     return;
   }
 
-  final issueNumber = issue != null ? int.tryParse(issue) : null;
+  int? issueNumber;
+  if (issue != null) {
+    issueNumber = int.tryParse(issue);
+    if (issueNumber == null) {
+      stderr.writeln('Invalid issue number: $issue');
+      exitCode = 64;
+      return;
+    }
+  }
   final github = GithubApi(issueNumber: issueNumber);
 
-  if (commentId != null && commentId != '0' && commentId.isNotEmpty) {
-    final id = int.tryParse(commentId);
-    if (id == null) {
-      stderr.writeln('Invalid comment ID: $commentId');
-      exitCode = 64;
-      return;
+  try {
+    if (commentId != null && commentId != '0' && commentId.isNotEmpty) {
+      final id = int.tryParse(commentId);
+      if (id == null) {
+        stderr.writeln('Invalid comment ID: $commentId');
+        exitCode = 64;
+        return;
+      }
+      await github.updateComment(id, body);
+      print('Updated comment $id');
+    } else {
+      final resolvedIssueNumber = github.issueNumber;
+      if (resolvedIssueNumber == null) {
+        stderr.writeln('Missing issue number for create');
+        exitCode = 64;
+        return;
+      }
+      await github.createComment(resolvedIssueNumber, body);
+      print('Created comment');
     }
-    await github.updateComment(id, body);
-    print('Updated comment $id');
-  } else {
-    final resolvedIssueNumber = github.issueNumber;
-    if (resolvedIssueNumber == null) {
-      stderr.writeln('Missing issue number for create');
-      exitCode = 64;
-      return;
-    }
-    await github.createComment(resolvedIssueNumber, body);
-    print('Created comment');
+  } finally {
+    github.close();
   }
 }
