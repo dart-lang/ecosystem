@@ -55,7 +55,12 @@ jobs:
           mkdir -p output
           echo ${{ github.event.number }} > output/issueNumber
 
-      - name: Install firehose
+      - name: Install firehose (internal)
+        if: github.repository == 'dart-lang/ecosystem'
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+
+      - name: Install firehose (external)
+        if: github.repository != 'dart-lang/ecosystem'
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
 
       - name: Find Comment

@@ -171,8 +171,12 @@ jobs:
     # we only run this when the PR is in the current repo.
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: dart-lang/setup-dart@65eb853c3ba17dde3be364c3d2858773e7144260
-      - name: Install firehose
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - name: Install firehose (internal)
+        if: github.repository == 'dart-lang/ecosystem'
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+      - name: Install firehose (external)
+        if: github.repository != 'dart-lang/ecosystem'
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
       - name: Find Comment
         id: fc
@@ -312,8 +316,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dart-lang/setup-dart@65eb853c3ba17dde3be364c3d2858773e7144260
-      - name: Install firehose
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - name: Install firehose (internal)
+        if: github.repository == 'dart-lang/ecosystem'
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+      - name: Install firehose (external)
+        if: github.repository != 'dart-lang/ecosystem'
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
       - name: Download All Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
