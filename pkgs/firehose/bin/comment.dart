@@ -58,9 +58,9 @@ ArgParser _createArgParser() {
 }
 
 Future<void> _findComment(ArgResults results) async {
-  final issue = results['issue'] as String;
-  final author = results['author'] as String;
-  final bodyIncludes = results['body-includes'] as String?;
+  final issue = results.option('issue') as String;
+  final author = results.option('author') as String;
+  final bodyIncludes = results.option('body-includes');
 
   final issueNumber = int.tryParse(issue);
   if (issueNumber == null) {
@@ -84,10 +84,10 @@ Future<void> _findComment(ArgResults results) async {
 }
 
 Future<void> _createOrUpdateComment(ArgResults results) async {
-  final issue = results['issue'] as String?;
-  final commentId = results['comment-id'] as String?;
-  var body = results['body'] as String?;
-  final bodyPath = results['body-path'] as String?;
+  final issue = results.option('issue');
+  final commentId = results.option('comment-id');
+  var body = results.option('body');
+  final bodyPath = results.option('body-path');
 
   if (bodyPath != null) {
     try {
