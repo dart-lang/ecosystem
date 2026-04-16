@@ -107,6 +107,14 @@ class GithubApi {
     return matchingComment?.id;
   }
 
+  Future<void> createComment(int issueNumber, String body) async {
+    await _github.issues.createComment(repoSlug!, issueNumber, body);
+  }
+
+  Future<void> updateComment(int commentId, String body) async {
+    await _github.issues.updateComment(repoSlug!, commentId, body);
+  }
+
   Future<List<GitFile>> listFilesForPR(
     Directory directory, [
     List<Glob> ignoredFiles = const [],

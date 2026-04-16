@@ -179,21 +179,13 @@ jobs:
           echo "comment=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment == '') }}
         continue-on-error: true
-        with:
-          issue-number: ${{ github.event.number }}
-          body-path: "output/comment.md"
-          edit-mode: replace
+        run: dart pub global run firehose:comment create-or-update --issue ${{ github.event.number }} --body-path output/comment.md
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
-        with:
-          comment-id: ${{ steps.comment-id.outputs.comment }}
-          body-path: "output/comment.md"
-          edit-mode: replace
+        run: dart pub global run firehose:comment create-or-update --comment-id ${{ steps.comment-id.outputs.comment }} --body-path output/comment.md
 
       - name: Save PR number
         if: ${{ !inputs.write-comments }}
