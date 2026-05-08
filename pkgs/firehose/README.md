@@ -127,12 +127,12 @@ The `publish` workflow supports the following input parameters under the `with` 
 
 | Name | Type | Description | Default / Example |
 | ------------- | ------------- | ------------- | ------------- |
-| `sdk` | String | The channel, or a specific version from a channel, of the Dart SDK to install. | `"stable"` / `"beta"`, `"3.0.0"` |
-| `environment` | String | If specified, publishes will be performed from this GitHub environment, which can require additional approvals. | `""` / `"pub.dev"` |
+| `sdk` | string | The channel, or a specific version from a channel, of the Dart SDK to install. | `"stable"` / `"beta"`, `"3.0.0"` |
+| `environment` | string | If specified, publishes will be performed from this GitHub environment, which can require additional approvals. | `""` / `"pub.dev"` |
 | `use-flutter` | boolean | Whether to setup Flutter in this workflow. Required if any packages in the repository depend on Flutter. | `false` / `true` |
 | `write-comments` | boolean | Whether to write validation comments on PRs. Set to `false` if enabling PR comments from forks via `post_summaries.yaml`. | `true` / `false` |
 | `checkout_submodules` | boolean | Whether to checkout git submodules. | `false` / `true` |
-| `ignore-packages` | String | A comma-separated list of package paths or glob patterns to ignore. | `""` / `"pkgs/helper_package,pkgs/non-published-package*"` |
+| `ignore-packages` | string | A comma-separated list of package paths or glob patterns to ignore. | `""` / `"pkgs/helper_package,pkgs/non-published-package*"` |
 
 ### Workflow docs
 
