@@ -1,10 +1,21 @@
 [![pub package](https://img.shields.io/pub/v/firehose.svg)](https://pub.dev/packages/firehose)
 [![package publisher](https://img.shields.io/pub/publisher/firehose.svg)](https://pub.dev/packages/firehose/publisher)
 
-## firehose
+# package:firehose
+
+`package:firehose` is a collection of tools and GitHub Actions workflows designed to automate package publishing and check PR health in Dart and Flutter repositories.
+
+The package provides two primary workflows:
+1. **[Publishing (`publish`)](#publishing)**: Validates and automates publishing packages to pub.dev.
+2. **[PR Health (`health`)](#pr-health)**: Runs health and quality checks on pull requests.
+
+---
+
+## Publishing
+
 ### What's this?
 
-This is a tool to automate publishing of pub packages from GitHub actions.
+This is a tool and GitHub Actions workflow (`publish.yaml`) to automate publishing of pub packages from GitHub Actions.
 
 ### Conventions and setup
 
@@ -110,41 +121,18 @@ jobs:
       pull-requests: write
 ```
 
-### Publishing from a specific version of the SDK
+### Options
 
-Callers may optionally specify the version of the SDK to use when publishing a
-package. This can be useful if your package has a very recent minimum SDK
-constraint. This is done via the `sdk` input parameter. Note that this parameter
-is not required; it defaults to `stable` - using the most recent stable release
-of the Dart SDK. To pass this value:
+The `publish` workflow supports the following input parameters under the `with` key:
 
-```yaml
-jobs:
-  publish:
-    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
-    with:
-      sdk: beta
-```
-
-### Publishing from a protected Github environment
-
-Callers may optionally specify the name of a github environment for the publish
-job to use. This is useful if you want to require approvals for the publish job
-to run. To pass this value:
-
-```yaml
-jobs:
-  publish:
-    uses: dart-lang/ecosystem/.github/workflows/publish.yml@main
-    with:
-      environment: pub.dev # Can be any name, this is the convention though.
-```
-
-Make sure to also require this environment to be present in your package admin
-settings. See the [pub.dev documentation][github_environments] on this.
-
-
-[github_environments]: https://dart.dev/tools/pub/automated-publishing#hardening-security-with-github-deployment-environments
+| Name | Type | Description | Default / Example |
+| ------------- | ------------- | ------------- | ------------- |
+| `sdk` | string | The channel, or a specific version from a channel, of the Dart SDK to install. | `"stable"` / `"beta"`, `"3.0.0"` |
+| `environment` | string | If specified, publishes will be performed from this GitHub environment, which can require additional approvals. | `""` / `"pub.dev"` |
+| `use-flutter` | boolean | Whether to setup Flutter in this workflow. Required if any packages in the repository depend on Flutter. | `false` / `true` |
+| `write-comments` | boolean | Whether to write validation comments on PRs. Set to `false` if enabling PR comments from forks via `post_summaries.yaml`. | `true` / `false` |
+| `checkout_submodules` | boolean | Whether to checkout git submodules. | `false` / `true` |
+| `ignore-packages` | string | A comma-separated list of package paths or glob patterns to ignore. | `""` / `"pkgs/helper_package,pkgs/non-published-package*"` |
 
 ### Workflow docs
 
@@ -153,7 +141,7 @@ https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
 
 <br/>
 
-## health
+## PR Health
 
 ### What's this?
 
@@ -163,7 +151,7 @@ This is a Github workflow to check PR health.
 
 When run from a PR, this tool will check a configurable subset of the following
 
-* The package versioning is correct and consistent, see `firehose` description above.
+* The package versioning is correct and consistent, see [Publishing](#publishing) description above.
 * A changelog entry has been added.
 * All `.dart` files have a license header.
 * How the test coverage is affected by the PR.
