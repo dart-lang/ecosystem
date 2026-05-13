@@ -35,6 +35,16 @@ class LocalGithubApi implements GithubApi {
   }
 
   @override
+  Future<void> createComment(int issueNumber, String body) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateComment(int commentId, String body) async {
+    throw UnimplementedError();
+  }
+
+  @override
   String? get githubAuthToken => throw UnimplementedError();
 
   @override

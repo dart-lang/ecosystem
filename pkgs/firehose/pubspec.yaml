@@ -9,6 +9,7 @@ environment:
 executables:
   firehose: firehose
   health: health
+  comment: comment
 
 dependencies:
   args: ^2.3.0
