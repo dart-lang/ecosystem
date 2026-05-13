@@ -93,7 +93,8 @@ on:
         required: false
         type: boolean
       ignore-packages:
-        description: Which packages to ignore.
+        description: >-
+          A comma-separated list of package paths or glob patterns to ignore.
         default: ''
         required: false
         type: string
@@ -119,7 +120,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: ~/.pub-cache
           key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
@@ -198,7 +199,7 @@ jobs:
 
       - name: Upload folder with number and markdown
         if: ${{ !inputs.write-comments }}
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: output
           path: output/
@@ -219,7 +220,7 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         with:
           path: ~/.pub-cache
           key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}

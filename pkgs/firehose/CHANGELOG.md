@@ -1,7 +1,7 @@
 ## 0.13.2-wip
 
 - Inlined GitHub comment management into `firehose` as a first-class executable.
-- Echo any error output from dependencies task on failure 
+- Echo any error output from dependencies task on failure
   (avoids silent failures).
 - Give clear output when packages need a changelog update.
 - Support `%YEAR%` wildcard in the license check string.
@@ -9,6 +9,7 @@
 - Improve detection of generated files in the license check.
 - Fix the default value for `license_test_string` in the health workflow.
 - Fix web coverage reporting and coverage aggregation.
+- Improve and clarify readme documentation.
 
 ## 0.13.1
 
