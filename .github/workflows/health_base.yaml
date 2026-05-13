@@ -30,6 +30,20 @@ on:
         default: false
         type: boolean
         required: false
+      firehose-ref:
+        description: >-
+          The ref of package:firehose to use.
+          Defaults to the ref of the workflow if not specified.
+        default: ""
+        type: string
+        required: false
+      firehose-repository:
+        description: >-
+          The URL of the git repository to install firehose from.
+          Defaults to https://github.com/ + inferred repo if not specified.
+        default: ""
+        type: string
+        required: false
       upload_coverage:
         default: true
         type: boolean
@@ -146,9 +160,41 @@ jobs:
         run: dart pub global activate coverage
         if: ${{ inputs.check == 'coverage' }}
 
-      - name: Install firehose
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+      - id: derive-firehose
+        name: Derive firehose ref and repo
         if: ${{ !inputs.local_debug }}
+        run: |
+          echo "WORKFLOW_REF: ${{ github.workflow_ref }}"
+          echo "GITHUB_REPOSITORY: ${{ github.repository }}"
+          
+          # Handle Repository
+          INPUT_REPO="${{ inputs.firehose-repository }}"
+          if [ -z "$INPUT_REPO" ]; then
+            REPO="dart-lang/ecosystem"
+          else
+            REPO=$(echo "$INPUT_REPO" | sed -e 's|https://github.com/||' -e 's|\.git$||')
+          fi
+          echo "REPO: $REPO"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          
+          # Handle Ref
+          INPUT_REF="${{ inputs.firehose-ref }}"
+          if [ -z "$INPUT_REF" ]; then
+            if [ "${{ github.repository }}" = "dart-lang/ecosystem" ]; then
+              REF="${{ github.ref_name }}"
+            else
+              REF="main"
+            fi
+          else
+            REF="$INPUT_REF"
+          fi
+          echo "REF: $REF"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+
+      - name: Install firehose
+        if: ${{ !inputs.local_debug }}
+        run: |
+          dart pub global activate --source git "https://github.com/${{ steps.derive-firehose.outputs.repo }}" --git-path "pkgs/firehose" --git-ref "${{ steps.derive-firehose.outputs.ref }}"
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
