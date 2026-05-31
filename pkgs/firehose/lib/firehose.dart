@@ -23,7 +23,9 @@ const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
 const String _publishBotDescription =
-    'If you have publishing permissions, you can use these links to publish the changes after merging this PR.';
+    'If you have publishing permissions, '
+    'you can use the links below to publish the changes after merging this PR.';
+
 
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
@@ -75,7 +77,10 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
 
     if (results.hasSuccess) {
-      final commentText = '$_publishBotTag\n\n$_publishBotDescription\n\n$markdownTable';
+      final commentText =
+          '$_publishBotTag\n\n'
+          '$_publishBotDescription\n\n'
+          '$markdownTable';
 
       if (existingCommentId != null) {
         final idFile = File('./output/commentId');
