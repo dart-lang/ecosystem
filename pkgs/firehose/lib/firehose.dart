@@ -26,7 +26,6 @@ const String _publishBotDescription =
     'If you have publishing permissions, '
     'you can use the links below to publish the changes after merging this PR.';
 
-
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
@@ -59,7 +58,8 @@ class Firehose {
 
     final results = await verify(github);
 
-    final markdownTable = '''
+    final markdownTable =
+        '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown()}
@@ -171,8 +171,12 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
           github.notice(message: message);
           results.addResult(Result.fail(package, message));
         } else {
-          final result = Result.success(package, '**ready to publish**',
-              repoTag, repo.calculateReleaseUri(package, github));
+          final result = Result.success(
+            package,
+            '**ready to publish**',
+            repoTag,
+            repo.calculateReleaseUri(package, github),
+          );
           print(result);
           results.addResult(result);
         }
@@ -258,13 +262,16 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
     if (pubspecVersion != tag.version) {
       stderr.writeln(
-          "Pubspec version ($pubspecVersion) and git tag ($tag) don't agree.");
+        "Pubspec version ($pubspecVersion) and git tag ($tag) don't agree.",
+      );
       return false;
     }
 
     if (pubspecVersion != changelogVersion) {
-      stderr.writeln('Pubspec version ($pubspecVersion) and changelog version '
-          "($changelogVersion) don't agree.");
+      stderr.writeln(
+        'Pubspec version ($pubspecVersion) and changelog version '
+        "($changelogVersion) don't agree.",
+      );
       return false;
     }
 
@@ -291,12 +298,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     }
     return await runCommand(
       command,
-      args: [
-        'pub',
-        'publish',
-        if (dryRun) '--dry-run',
-        if (force) '--force',
-      ],
+      args: ['pub', 'publish', if (dryRun) '--dry-run', if (force) '--force'],
       cwd: package.directory,
     );
   }
@@ -314,7 +316,8 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String describeAsMarkdown({bool withTag = true}) => results.map((r) {
+  String describeAsMarkdown({bool withTag = true}) => results
+      .map((r) {
         final sev = r.severity == Severity.error ? '(error) ' : '';
         var tagColumn = '';
         if (withTag) {
@@ -328,7 +331,8 @@ class VerificationResults {
         }
         return '| package:${r.package.name} | ${r.package.version} | '
             '$sev${r.message}$tagColumn |';
-      }).join('\n');
+      })
+      .join('\n');
 }
 
 class Result {
@@ -338,8 +342,13 @@ class Result {
   final String? gitTag;
   final Uri? publishReleaseUri;
 
-  Result(this.severity, this.package, this.message,
-      [this.gitTag, this.publishReleaseUri]);
+  Result(
+    this.severity,
+    this.package,
+    this.message, [
+    this.gitTag,
+    this.publishReleaseUri,
+  ]);
 
   factory Result.fail(Package package, String message) =>
       Result(Severity.error, package, message);
@@ -347,9 +356,12 @@ class Result {
   factory Result.info(Package package, String message) =>
       Result(Severity.info, package, message);
 
-  factory Result.success(Package package, String message,
-          [String? gitTag, Uri? publishReleaseUri]) =>
-      Result(Severity.success, package, message, gitTag, publishReleaseUri);
+  factory Result.success(
+    Package package,
+    String message, [
+    String? gitTag,
+    Uri? publishReleaseUri,
+  ]) => Result(Severity.success, package, message, gitTag, publishReleaseUri);
 
   @override
   String toString() {
