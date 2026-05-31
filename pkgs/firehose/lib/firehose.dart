@@ -23,7 +23,7 @@ const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
 const String _publishBotDescription =
-    'If you have publishing permissions, you can use this links to publish the changes after merging this PR.';
+    'If you have publishing permissions, you can use these links to publish the changes after merging this PR.';
 
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
