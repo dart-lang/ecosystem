@@ -36,6 +36,16 @@ void main() {
           'foo_bar_not_published_package', '1.8.0');
       expect(result, false);
     });
+
+    test('package is published', () async {
+      final result = await pub.isPublished('path');
+      expect(result, true);
+    });
+
+    test('package is not published', () async {
+      final result = await pub.isPublished('foo_bar_not_published_package');
+      expect(result, false);
+    });
   });
 
   group('VersionExtension', () {

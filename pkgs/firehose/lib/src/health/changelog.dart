@@ -7,21 +7,43 @@ import 'dart:io';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:pool/pool.dart';
+
 import '../github.dart';
 import '../repo.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   GithubApi github,
   List<Glob> ignored,
-  Directory directory,
-) async {
+  Directory directory, {
+  required Future<bool> Function(Package) isPublished,
+}) async {
   final repo = Repository(directory);
   final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
 
+  final pool = Pool(10);
+  final publishedResults = await pool.forEach<Package, (Package, bool)>(
+    packages,
+    (package) async {
+      final published = await isPublished(package);
+      return (package, published);
+    },
+  ).toList();
+
+  final publishedPackages = <Package>[];
+  for (final (package, published) in publishedResults) {
+    if (published) {
+      publishedPackages.add(package);
+    } else {
+      print('Package ${package.name} is not published yet. '
+          'Skipping changelog check.');
+    }
+  }
+
   final packagesWithoutChangedChangelog =
       collectPackagesWithoutChangelogChanges(
-    packages,
+    publishedPackages,
     files,
     directory,
   );

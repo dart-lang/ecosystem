@@ -1,6 +1,7 @@
 ## 0.13.2-wip
 
 - Inlined GitHub comment management into `firehose` as a first-class executable.
+- Skip changelog and breaking changes checks for unpublished packages.
 - Echo any error output from dependencies task on failure
   (avoids silent failures).
 - Give clear output when packages need a changelog update.
