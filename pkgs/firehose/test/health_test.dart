@@ -173,4 +173,7 @@ class FakeHealth extends Health {
   @override
   String getCurrentVersionOfPackage(Package package) =>
       p.join('../base_test_repo/pkgs', package.name);
+
+  @override
+  Future<bool> isPublished(Package package) async => true;
 }

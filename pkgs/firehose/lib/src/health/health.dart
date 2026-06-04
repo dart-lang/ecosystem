@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
+import '../pub.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
@@ -252,6 +253,11 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
     for (final package in packagesContaining(filesInPR, ignore: ignored)) {
+      if (!await isPublished(package)) {
+        log('Package ${package.name} is not published yet. '
+            'Skipping breaking changes check.');
+        continue;
+      }
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
       final tempDirectory = Directory.systemTemp.createTempSync();
@@ -331,6 +337,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
+
+  Future<bool> isPublished(Package package) async {
+    final pub = Pub();
+    try {
+      return await pub.isPublished(package.name);
+    } finally {
+      pub.close();
+    }
+  }
 
   (ProcessResult, String, String) runDashProcess(
     List<Package> flutterPackages,
@@ -514,6 +529,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       github,
       ignored,
       directory,
+      isPublished: isPublished,
     );
 
     final markdownResult = '''

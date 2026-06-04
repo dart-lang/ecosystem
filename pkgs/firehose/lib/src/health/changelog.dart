@@ -13,15 +13,26 @@ import '../repo.dart';
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   GithubApi github,
   List<Glob> ignored,
-  Directory directory,
-) async {
+  Directory directory, {
+  required Future<bool> Function(Package) isPublished,
+}) async {
   final repo = Repository(directory);
   final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
 
+  final publishedPackages = <Package>[];
+  for (final package in packages) {
+    if (await isPublished(package)) {
+      publishedPackages.add(package);
+    } else {
+      print('Package ${package.name} is not published yet. '
+          'Skipping changelog check.');
+    }
+  }
+
   final packagesWithoutChangedChangelog =
       collectPackagesWithoutChangelogChanges(
-    packages,
+    publishedPackages,
     files,
     directory,
   );

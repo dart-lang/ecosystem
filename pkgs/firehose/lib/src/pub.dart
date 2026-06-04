@@ -26,6 +26,12 @@ class Pub {
         .contains(version);
   }
 
+  Future<bool> isPublished(String name) async {
+    final uri = Uri.parse('https://pub.dev/api/packages/$name');
+    final response = await getCall(uri, retries: 3);
+    return response.statusCode == 200;
+  }
+
   Future<http.Response> getCall(Uri uri, {required int retries}) async {
     for (var i = 0; i < retries + 1; i++) {
       try {
