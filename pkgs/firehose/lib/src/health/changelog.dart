@@ -23,12 +23,13 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   final files = await github.listFilesForPR(directory, ignored);
 
   final pool = Pool(10);
-  final publishedResults = await Future.wait(
-    packages.map((package) => pool.withResource(() async {
-          final published = await isPublished(package);
-          return (package, published);
-        })),
-  );
+  final publishedResults = await pool.forEach<Package, (Package, bool)>(
+    packages,
+    (package) async {
+      final published = await isPublished(package);
+      return (package, published);
+    },
+  ).toList();
 
   final publishedPackages = <Package>[];
   for (final (package, published) in publishedResults) {

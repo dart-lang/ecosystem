@@ -255,14 +255,16 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
     log('This list of Flutter packages is $flutterPackages');
 
     final pool = Pool(10);
-    final packagesToCheck = <Package>[];
     final packages = packagesContaining(filesInPR, ignore: ignored);
-    final publishedStatuses = await Future.wait(
-      packages.map((package) => pool.withResource(() async {
-            final published = await isPublished(package);
-            return (package, published);
-          })),
-    );
+    final publishedStatuses = await pool.forEach<Package, (Package, bool)>(
+      packages,
+      (package) async {
+        final published = await isPublished(package);
+        return (package, published);
+      },
+    ).toList();
+
+    final packagesToCheck = <Package>[];
     for (final (package, published) in publishedStatuses) {
       if (published) {
         packagesToCheck.add(package);
