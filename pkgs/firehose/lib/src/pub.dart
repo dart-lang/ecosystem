@@ -13,7 +13,7 @@ class Pub {
   http.Client get httpClient => _httpClient ??= http.Client();
 
   Future<bool> hasPublishedVersion(String name, String version) async {
-    final uri = Uri.parse('https://pub.dev/api/packages/$name');
+    final uri = Uri.https('pub.dev', 'api/packages/$name');
     final response = await getCall(uri, retries: 3);
     if (response.statusCode != 200) {
       return false;
@@ -27,7 +27,7 @@ class Pub {
   }
 
   Future<bool> isPublished(String name) async {
-    final uri = Uri.parse('https://pub.dev/api/packages/$name');
+    final uri = Uri.https('pub.dev', 'api/packages/$name');
     final response = await getCall(uri, retries: 3);
     return response.statusCode == 200;
   }

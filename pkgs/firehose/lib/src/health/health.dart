@@ -9,6 +9,7 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
+import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
@@ -252,12 +253,26 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
-    for (final package in packagesContaining(filesInPR, ignore: ignored)) {
-      if (!await isPublished(package)) {
+
+    final pool = Pool(10);
+    final packagesToCheck = <Package>[];
+    final packages = packagesContaining(filesInPR, ignore: ignored);
+    final publishedStatuses = await Future.wait(
+      packages.map((package) => pool.withResource(() async {
+            final published = await isPublished(package);
+            return (package, published);
+          })),
+    );
+    for (final (package, published) in publishedStatuses) {
+      if (published) {
+        packagesToCheck.add(package);
+      } else {
         log('Package ${package.name} is not published yet. '
             'Skipping breaking changes check.');
-        continue;
       }
+    }
+
+    for (final package in packagesToCheck) {
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
       final tempDirectory = Directory.systemTemp.createTempSync();

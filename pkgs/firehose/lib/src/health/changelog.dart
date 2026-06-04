@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:pool/pool.dart';
+
 import '../github.dart';
 import '../repo.dart';
 
@@ -20,9 +22,17 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
 
+  final pool = Pool(10);
+  final publishedResults = await Future.wait(
+    packages.map((package) => pool.withResource(() async {
+          final published = await isPublished(package);
+          return (package, published);
+        })),
+  );
+
   final publishedPackages = <Package>[];
-  for (final package in packages) {
-    if (await isPublished(package)) {
+  for (final (package, published) in publishedResults) {
+    if (published) {
       publishedPackages.add(package);
     } else {
       print('Package ${package.name} is not published yet. '
