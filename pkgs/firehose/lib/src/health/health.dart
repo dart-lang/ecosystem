@@ -9,9 +9,11 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
+import 'package:pool/pool.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../firehose.dart';
+import '../pub.dart';
 import '../utils.dart';
 import 'changelog.dart';
 import 'coverage.dart';
@@ -251,7 +253,28 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
     final flutterPackages =
         packagesContaining(filesInPR, only: flutterPackageGlobs);
     log('This list of Flutter packages is $flutterPackages');
-    for (final package in packagesContaining(filesInPR, ignore: ignored)) {
+
+    final pool = Pool(10);
+    final packages = packagesContaining(filesInPR, ignore: ignored);
+    final publishedStatuses = await pool.forEach<Package, (Package, bool)>(
+      packages,
+      (package) async {
+        final published = await isPublished(package);
+        return (package, published);
+      },
+    ).toList();
+
+    final packagesToCheck = <Package>[];
+    for (final (package, published) in publishedStatuses) {
+      if (published) {
+        packagesToCheck.add(package);
+      } else {
+        log('Package ${package.name} is not published yet. '
+            'Skipping breaking changes check.');
+      }
+    }
+
+    for (final package in packagesToCheck) {
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
       final tempDirectory = Directory.systemTemp.createTempSync();
@@ -331,6 +354,15 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
   }
 
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
+
+  Future<bool> isPublished(Package package) async {
+    final pub = Pub();
+    try {
+      return await pub.isPublished(package.name);
+    } finally {
+      pub.close();
+    }
+  }
 
   (ProcessResult, String, String) runDashProcess(
     List<Package> flutterPackages,
@@ -514,6 +546,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       github,
       ignored,
       directory,
+      isPublished: isPublished,
     );
 
     final markdownResult = '''
