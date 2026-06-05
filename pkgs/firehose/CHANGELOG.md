@@ -1,5 +1,6 @@
 ## 0.13.2-wip
 
+- Skip changelog and breaking changes checks for unpublished packages.
 - Echo any error output from dependencies task on failure
   (avoids silent failures).
 - Give clear output when packages need a changelog update.
