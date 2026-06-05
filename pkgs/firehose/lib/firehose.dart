@@ -22,8 +22,7 @@ const String _botSuffix = '[bot]';
 const String _githubActionsUser = 'github-actions[bot]';
 
 const String _publishBotTag = '## Package publishing';
-const String _publishBotDescription =
-    'If you have publishing permissions, '
+const String _publishBotDescription = 'If you have publishing permissions, '
     'you can use the links below to publish the changes after merging this PR.';
 
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
@@ -58,8 +57,7 @@ class Firehose {
 
     final results = await verify(github);
 
-    final markdownTable =
-        '''
+    final markdownTable = '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown()}
@@ -77,8 +75,7 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
     );
 
     if (results.hasSuccess) {
-      final commentText =
-          '$_publishBotTag\n\n'
+      final commentText = '$_publishBotTag\n\n'
           '$_publishBotDescription\n\n'
           '$markdownTable';
 
@@ -316,8 +313,7 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String describeAsMarkdown({bool withTag = true}) => results
-      .map((r) {
+  String describeAsMarkdown({bool withTag = true}) => results.map((r) {
         final sev = r.severity == Severity.error ? '(error) ' : '';
         var tagColumn = '';
         if (withTag) {
@@ -331,8 +327,7 @@ class VerificationResults {
         }
         return '| package:${r.package.name} | ${r.package.version} | '
             '$sev${r.message}$tagColumn |';
-      })
-      .join('\n');
+      }).join('\n');
 }
 
 class Result {
@@ -361,7 +356,8 @@ class Result {
     String message, [
     String? gitTag,
     Uri? publishReleaseUri,
-  ]) => Result(Severity.success, package, message, gitTag, publishReleaseUri);
+  ]) =>
+      Result(Severity.success, package, message, gitTag, publishReleaseUri);
 
   @override
   String toString() {
