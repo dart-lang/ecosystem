@@ -81,6 +81,20 @@ on:
         default: false
         type: boolean
         required: false
+      firehose-ref:
+        description: >-
+          The ref of package:firehose to use.
+          Defaults to the ref of the workflow if not specified.
+        default: ""
+        type: string
+        required: false
+      firehose-repository:
+        description: >-
+          The URL of the git repository to install firehose from.
+          Defaults to https://github.com/ + inferred repo if not specified.
+        default: ""
+        type: string
+        required: false
       upload_coverage:
         description: Whether to upload the coverage to coveralls
         default: true
@@ -201,6 +215,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_changelog: ${{ inputs.ignore_changelog }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -216,6 +232,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_license: ${{ inputs.ignore_license }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -235,6 +253,8 @@ jobs:
       upload_coverage: ${{ inputs.upload_coverage }}
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_coverage: ${{ inputs.ignore_coverage }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -251,6 +271,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_breaking: ${{ inputs.ignore_breaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -266,6 +288,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_donotsubmit: ${{ inputs.ignore_donotsubmit }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -281,6 +305,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_leaking: ${{ inputs.ignore_leaking }}
       ignore_packages: ${{ inputs.ignore_packages }}
@@ -296,6 +322,8 @@ jobs:
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
+      firehose-ref: ${{ inputs.firehose-ref }}
+      firehose-repository: ${{ inputs.firehose-repository }}
       flutter_packages: ${{ inputs.flutter_packages }}
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
