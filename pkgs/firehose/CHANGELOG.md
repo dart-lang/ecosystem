@@ -11,6 +11,7 @@
 - Fix the default value for `license_test_string` in the health workflow.
 - Fix web coverage reporting and coverage aggregation.
 - Improve and clarify readme documentation.
+- Add description for the table 'Package publishing'.
 
 ## 0.13.1
 
