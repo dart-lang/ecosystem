@@ -36,6 +36,14 @@ void main() {
         message: 'Add new feature',
       );
     });
+
+    test('handles complex timezone formatting with WIP suffix', () {
+      expectGolden(
+        inputPath: 'test/data/changelog_complex_timezone_wip.md',
+        goldenPath: 'test/data/golden/changelog_complex_timezone_wip.golden',
+        message: 'Add new feature',
+      );
+    });
   });
 }
 

@@ -10,6 +10,7 @@ import 'src/common.dart';
 String updateChangelogContent(String changelog, String message) {
   final lines = LineSplitter.split(changelog).toList();
   var currentVersion = '0.0.1';
+  var currentVersionLine = 0;
 
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i].trim();
@@ -18,47 +19,71 @@ String updateChangelogContent(String changelog, String message) {
       final version = content.split(' ').first;
       if (version.startsWith(RegExp(r'\d'))) {
         currentVersion = version;
+        currentVersionLine = i;
         break;
       }
     }
   }
 
-  final output = <String>[];
-
   final isWip = currentVersion.endsWith('-wip');
 
+  final output = <String>[];
   if (isWip) {
+    var sectionEnd = lines.indexWhere(
+            (line) => line.startsWith('## '), currentVersionLine + 1) -
+        1;
+    if (sectionEnd < 0) {
+      sectionEnd = lines.length;
+    }
+
+    output.addAll(lines.take(sectionEnd));
     output.add('- $message');
-    output.addAll(lines);
+    output.addAll(lines.skip(sectionEnd));
   } else {
-    final newVersion = '$currentVersion-wip';
-    output.add('## $newVersion');
-    output.add('- $message');
-    output.add('');
-    output.addAll(lines);
+    output.addAll([
+      '## $currentVersion-wip',
+      '',
+      '- $message',
+      '',
+      ...lines,
+    ]);
   }
 
   return '${output.join('\n')}\n';
 }
 
+File resolveChangelogFile(String? path) {
+  return File(path?.trim() ?? 'CHANGELOG.md');
+}
+
 class ChangelogUpdaterCommand extends ReportCommand {
   ChangelogUpdaterCommand()
-      : super('changelog', 'Update a changelog with a new entry.');
+      : super('changelog', 'Update a changelog with a new entry.') {
+    argParser.addOption(
+      'changelog',
+      abbr: 'c',
+      help: 'Path to the changelog file to update. Defaults to CHANGELOG.md.',
+    );
+  }
 
   @override
   Future<int> run() async {
     final args = argResults?.rest ?? const <String>[];
     if (args.isEmpty) {
-      stderr.writeln(
-          'Usage: dart run pkgs/repo_manage/bin/report.dart changelog "Your changelog message"');
+      stderr.writeln('''
+Usage: dart run report.dart changelog [--changelog <path>] "Your changelog message"''');
+      stderr
+          .writeln('If no --changelog path is provided, CHANGELOG.md is used.');
       return 1;
     }
 
     final message = args.join(' ');
-    final changelogFile = File('CHANGELOG.md');
+    final changelogFile = resolveChangelogFile(
+      argResults?['changelog'] as String?,
+    );
 
     if (!changelogFile.existsSync()) {
-      stderr.writeln('Error: CHANGELOG.md not found.');
+      stderr.writeln('Error: ${changelogFile.path} not found.');
       return 1;
     }
 
