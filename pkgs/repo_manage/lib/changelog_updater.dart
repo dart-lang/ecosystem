@@ -52,10 +52,6 @@ String updateChangelogContent(String changelog, String message) {
   return '${output.join('\n')}\n';
 }
 
-File resolveChangelogFile(String? path) {
-  return File(path?.trim() ?? 'CHANGELOG.md');
-}
-
 class ChangelogUpdaterCommand extends ReportCommand {
   ChangelogUpdaterCommand()
       : super('changelog', 'Update a changelog with a new entry.') {
@@ -78,9 +74,8 @@ Usage: dart run report.dart changelog [--changelog <path>] "Your changelog messa
     }
 
     final message = args.join(' ');
-    final changelogFile = resolveChangelogFile(
-      argResults?['changelog'] as String?,
-    );
+    final changelogFile =
+        File(argResults?['changelog'] as String? ?? 'CHANGELOG.md');
 
     if (!changelogFile.existsSync()) {
       stderr.writeln('Error: ${changelogFile.path} not found.');
