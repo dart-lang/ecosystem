@@ -3,6 +3,10 @@ description: Miscellaneous issue, repo, and PR query tools.
 
 publish_to: none
 
+executables:
+  report:
+
+
 environment:
   sdk: ^3.3.0
 
