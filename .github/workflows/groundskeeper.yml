@@ -1,5 +1,5 @@
-name: Reusable Tidy
-description: Reusable workflow to run dart format and dart fix across packages, and create a PR if there are changes.
+name: Groundskeeper
+description: Reusable workflow to run dart format and dart fix across packages using groundskeeper, and create a PR if there are changes.
 
 on:
   workflow_call:
@@ -91,7 +91,7 @@ jobs:
 
       - name: Run Tidy Script
         run: |
-          dart .github/ecosystem-helper/pkgs/firehose/bin/tidy.dart \
+          dart .github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
             --directory=${{ inputs.directory }} \
             --format=${{ inputs.run-format }} \
             --fix=${{ inputs.run-fix }} \

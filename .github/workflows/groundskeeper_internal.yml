@@ -1,4 +1,4 @@
-name: Tidy Codebase
+name: Groundskeeper Internal
 
 on:
   schedule:
@@ -10,5 +10,5 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: ./.github/workflows/reusable_tidy.yml
+    uses: ./.github/workflows/groundskeeper.yml
     secrets: inherit
