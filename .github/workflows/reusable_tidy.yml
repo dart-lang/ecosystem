@@ -8,7 +8,22 @@ on:
         description: 'Dart SDK version'
         required: false
         type: string
-        default: 'stable'
+        default: 'dev'
+      directory:
+        description: 'The directory to tidy'
+        required: false
+        type: string
+        default: '.'
+      update-changelog:
+        description: 'Whether to update the changelog'
+        required: false
+        type: boolean
+        default: false
+      changelog-message:
+        description: 'The changelog message'
+        required: false
+        type: string
+        default: ''
       run-format:
         description: 'Run dart format'
         required: false
@@ -70,15 +85,27 @@ jobs:
         with:
           sdk: ${{ inputs.sdk }}
 
+      - name: Resolve dependencies for firehose
+        working-directory: .github/ecosystem-helper/pkgs/firehose
+        run: dart pub get
+
       - name: Run Tidy Script
         run: |
-          dart .github/ecosystem-helper/tool/tidy.dart \
+          dart .github/ecosystem-helper/pkgs/firehose/bin/tidy.dart \
+            --directory=${{ inputs.directory }} \
             --format=${{ inputs.run-format }} \
             --fix=${{ inputs.run-fix }} \
             --exclude="${{ inputs.exclude }}"
 
       - name: Clean up helper
         run: rm -rf .github/ecosystem-helper
+
+      - name: Update changelog
+        if: ${{ inputs.update-changelog }}
+        working-directory: ${{ inputs.directory }}
+        run: |
+          dart install --git-path pkgs/repo_manage --git-ref addChangelogUpdater https://github.com/dart-lang/ecosystem.git
+          report changelog "${{ inputs.changelog-message }}"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31

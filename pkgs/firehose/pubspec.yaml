@@ -10,6 +10,7 @@ executables:
   firehose: firehose
   health: health
   comment: comment
+  tidy: tidy
 
 dependencies:
   args: ^2.3.0
