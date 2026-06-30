@@ -54,48 +54,39 @@ jobs:
           app-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
 
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Checkout caller repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Checkout ecosystem (for tidy script)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: dart-lang/ecosystem
+          ref: add-reusable-tidy # Temporarily use the branch for testing
+          path: .github/ecosystem-helper
 
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
         with:
           sdk: ${{ inputs.sdk }}
 
-      - name: Run dart format
-        if: ${{ inputs.run-format }}
-        run: dart format .
-
-      - name: Run dart fix
-        if: ${{ inputs.run-fix }}
+      - name: Run Tidy Script
         run: |
-          # Build the find command dynamically to support exclusions
-          find_cmd="find . -name .dart_tool -prune -o -name .git -prune"
-          
+          args=""
+          if [ "${{ inputs.run-format }}" = "false" ]; then
+            args="$args --no-format"
+          fi
+          if [ "${{ inputs.run-fix }}" = "false" ]; then
+            args="$args --no-fix"
+          fi
           if [ -n "${{ inputs.exclude }}" ]; then
-            IFS=',' read -r -a exclude_array <<< "${{ inputs.exclude }}"
-            for exc in "${exclude_array[@]}"; do
-              # trim whitespace and trailing slash
-              exc=$(echo "$exc" | xargs | sed 's/\/$//')
-              if [ -n "$exc" ]; then
-                find_cmd="$find_cmd -o -path \"./$exc\" -prune"
-              fi
-            done
+            args="$args --exclude=${{ inputs.exclude }}"
           fi
           
-          find_cmd="$find_cmd -o -name pubspec.yaml -print"
-          
-          echo "Executing: $find_cmd"
-          mapfile -t pkgs < <(eval "$find_cmd" | xargs -I {} dirname {})
-          
-          for pkg in "${pkgs[@]}"; do
-            echo "Running dart fix in $pkg..."
-            pushd "$pkg" > /dev/null
-            dart pub get
-            # Run dart fix --apply. If it fails, the step will fail (set -e is active)
-            dart fix --apply
-            popd > /dev/null
-          done
+          dart .github/ecosystem-helper/tool/tidy.dart $args
+
+      - name: Clean up helper
+        run: rm -rf .github/ecosystem-helper
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31
