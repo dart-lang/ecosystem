@@ -28,12 +28,24 @@ void main(List<String> args) async {
   print('Run format: $runFormat');
   print('Run fix: $runFix');
 
+  // Locate packages early to use for both format and fix
+  final repo = Repository(targetDirectory);
+  final packages = repo.locatePackages(
+    ignore: excludes.map(Glob.new).toList(),
+    includeUnpublished: true,
+  );
+
   if (runFormat) {
     print('Running dart format...');
+    // Respect excludes by only formatting located packages.
+    // If no packages are found, default to the target directory.
+    final pathsToFormat = packages.isEmpty
+        ? [targetDirectory.path]
+        : packages.map((p) => p.directory.path).toList();
+
     final result = await Process.run(
       'dart',
-      ['format', '.'],
-      workingDirectory: targetDirectory.path,
+      ['format', ...pathsToFormat],
     );
     stdout.write(result.stdout);
     stderr.write(result.stderr);
@@ -43,25 +55,26 @@ void main(List<String> args) async {
   }
 
   if (runFix) {
-    // Reuse Repository from package:firehose, pointing to the target directory
-    final repo = Repository(targetDirectory);
-    final packages = repo.locatePackages(
-      ignore: excludes.map(Glob.new).toList(),
-    );
-
     print('Found packages: ${packages.map((e) => e.directory.path).toList()}');
 
     for (final pkg in packages) {
       final pkgPath = pkg.directory.path;
-      print('Tidying package in $pkgPath...');
 
-      print('  Running dart pub get...');
+      // Detect if it is a Flutter package
+      final isFlutter = pkg.pubspec.dependencies.containsKey('flutter') ||
+          pkg.pubspec.devDependencies.containsKey('flutter');
+      final tool = isFlutter ? 'flutter' : 'dart';
+
+      print(
+          'Tidying package in $pkgPath (${isFlutter ? 'Flutter' : 'Dart'})...');
+
+      print('  Running $tool pub get...');
       final pubGetResult =
-          await Process.run('dart', ['pub', 'get'], workingDirectory: pkgPath);
+          await Process.run(tool, ['pub', 'get'], workingDirectory: pkgPath);
       stdout.write(pubGetResult.stdout);
       stderr.write(pubGetResult.stderr);
       if (pubGetResult.exitCode != 0) {
-        print('Error: dart pub get failed in $pkgPath');
+        print('Error: $tool pub get failed in $pkgPath');
         exit(pubGetResult.exitCode);
       }
 
