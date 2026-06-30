@@ -10,8 +10,8 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import '../branches.dart';
-import '../contributors.dart';
 import '../changelog_updater.dart';
+import '../contributors.dart';
 import '../issue_transfer.dart';
 import '../labels.dart';
 import '../labels_update.dart';
