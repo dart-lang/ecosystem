@@ -1,10 +1,21 @@
 import 'dart:io';
 
 void main(List<String> args) async {
+  // Parse arguments in the format --arg=value
+  final formatArg = args.firstWhere((a) => a.startsWith('--format='), orElse: () => '--format=true');
+  final runFormat = formatArg.substring('--format='.length) != 'false';
+
+  final fixArg = args.firstWhere((a) => a.startsWith('--fix='), orElse: () => '--fix=true');
+  final runFix = fixArg.substring('--fix='.length) != 'false';
+
   final excludeArg = args.firstWhere((a) => a.startsWith('--exclude='), orElse: () => '');
-  final excludes = excludeArg.isEmpty
+  final excludeStr = excludeArg.isNotEmpty && excludeArg.contains('=')
+      ? excludeArg.substring(excludeArg.indexOf('=') + 1)
+      : '';
+  
+  final excludes = excludeStr.isEmpty
       ? <String>[]
-      : excludeArg.substring('--exclude='.length).split(',').map((e) => e.trim()).toList();
+      : excludeStr.split(',').map((e) => e.trim()).toList();
 
   // Normalize excludes (remove leading ./ and trailing /)
   for (var i = 0; i < excludes.length; i++) {
@@ -13,9 +24,6 @@ void main(List<String> args) async {
     if (e.endsWith('/')) e = e.substring(0, e.length - 1);
     excludes[i] = e;
   }
-
-  final runFormat = !args.contains('--no-format');
-  final runFix = !args.contains('--no-fix');
 
   print('Excludes: $excludes');
   print('Run format: $runFormat');

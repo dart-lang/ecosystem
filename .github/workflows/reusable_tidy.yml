@@ -72,18 +72,10 @@ jobs:
 
       - name: Run Tidy Script
         run: |
-          args=""
-          if [ "${{ inputs.run-format }}" = "false" ]; then
-            args="$args --no-format"
-          fi
-          if [ "${{ inputs.run-fix }}" = "false" ]; then
-            args="$args --no-fix"
-          fi
-          if [ -n "${{ inputs.exclude }}" ]; then
-            args="$args --exclude=${{ inputs.exclude }}"
-          fi
-          
-          dart .github/ecosystem-helper/tool/tidy.dart $args
+          dart .github/ecosystem-helper/tool/tidy.dart \
+            --format=${{ inputs.run-format }} \
+            --fix=${{ inputs.run-fix }} \
+            --exclude="${{ inputs.exclude }}"
 
       - name: Clean up helper
         run: rm -rf .github/ecosystem-helper
