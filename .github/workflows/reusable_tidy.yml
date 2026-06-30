@@ -1,0 +1,110 @@
+name: Reusable Tidy
+description: Reusable workflow to run dart format and dart fix across packages, and create a PR if there are changes.
+
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: 'Dart SDK version'
+        required: false
+        type: string
+        default: 'stable'
+      run-format:
+        description: 'Run dart format'
+        required: false
+        type: boolean
+        default: true
+      run-fix:
+        description: 'Run dart fix --apply'
+        required: false
+        type: boolean
+        default: true
+      exclude:
+        description: 'Comma-separated list of package directories to exclude'
+        required: false
+        type: string
+        default: ''
+      branch:
+        description: 'PR branch name'
+        required: false
+        type: string
+        default: 'auto-tidy'
+      title:
+        description: 'PR title'
+        required: false
+        type: string
+        default: 'Tidy: Automated dart format and fix'
+      body:
+        description: 'PR body'
+        required: false
+        type: string
+        default: 'This is an automated PR to apply `dart format` and `dart fix --apply`.'
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Generate Dart Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          app-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Run dart format
+        if: ${{ inputs.run-format }}
+        run: dart format .
+
+      - name: Run dart fix
+        if: ${{ inputs.run-fix }}
+        run: |
+          # Build the find command dynamically to support exclusions
+          find_cmd="find . -name .dart_tool -prune -o -name .git -prune"
+          
+          if [ -n "${{ inputs.exclude }}" ]; then
+            IFS=',' read -r -a exclude_array <<< "${{ inputs.exclude }}"
+            for exc in "${exclude_array[@]}"; do
+              # trim whitespace and trailing slash
+              exc=$(echo "$exc" | xargs | sed 's/\/$//')
+              if [ -n "$exc" ]; then
+                find_cmd="$find_cmd -o -path \"./$exc\" -prune"
+              fi
+            done
+          fi
+          
+          find_cmd="$find_cmd -o -name pubspec.yaml -print"
+          
+          echo "Executing: $find_cmd"
+          mapfile -t pkgs < <(eval "$find_cmd" | xargs -I {} dirname {})
+          
+          for pkg in "${pkgs[@]}"; do
+            echo "Running dart fix in $pkg..."
+            pushd "$pkg" > /dev/null
+            dart pub get
+            # Run dart fix --apply. If it fails, the step will fail (set -e is active)
+            dart fix --apply
+            popd > /dev/null
+          done
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
+          author: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
+          commit-message: ${{ inputs.title }}
+          branch: ${{ inputs.branch }}
+          title: ${{ inputs.title }}
+          body: ${{ inputs.body }}
+          delete-branch: true
