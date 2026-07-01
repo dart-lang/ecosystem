@@ -26,8 +26,8 @@ void main(List<String> args) async {
   final isPackage = pubspecFile.existsSync();
 
   if (runFix && !isPackage) {
-    print(
-        'Error: Run fix is enabled, but no pubspec.yaml found in ${targetDirectory.path}');
+    print('''
+Error: Run fix is enabled, but no pubspec.yaml found in ${targetDirectory.path}''');
     exit(1);
   }
 
