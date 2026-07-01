@@ -128,7 +128,8 @@ name: my_package
 version: 1.0.0-wip
 ''');
 
-      updateChangelog(changelogFile: changelogFile, message: 'Another WIP change');
+      updateChangelog(
+          changelogFile: changelogFile, message: 'Another WIP change');
 
       expect(changelogFile.readAsStringSync(), '''
 ## 1.0.0-wip
