@@ -5,10 +5,33 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import 'src/common.dart';
 
-String updateChangelogContent(String changelog, String message) {
-  final lines = LineSplitter.split(changelog).toList();
+void updatePubspecVersion(File pubspecFile, String newVersion) {
+  final content = pubspecFile.readAsStringSync();
+  final lines = LineSplitter.split(content).toList();
+  var updated = false;
+  for (var i = 0; i < lines.length; i++) {
+    final line = lines[i];
+    if (line.startsWith('version:')) {
+      lines[i] = 'version: $newVersion';
+      updated = true;
+      break;
+    }
+  }
+  if (updated) {
+    pubspecFile.writeAsStringSync('${lines.join('\n')}\n');
+  }
+}
+
+void updateChangelog({
+  required File changelogFile,
+  required String message,
+}) {
+  final changelogContent = changelogFile.readAsStringSync();
+  final lines = LineSplitter.split(changelogContent).toList();
   var currentVersion = '0.0.1';
   var currentVersionLine = 0;
 
@@ -49,7 +72,16 @@ String updateChangelogContent(String changelog, String message) {
     ]);
   }
 
-  return '${output.join('\n')}\n';
+  changelogFile.writeAsStringSync('${output.join('\n')}\n');
+
+  if (!isWip) {
+    final newVersion = '$currentVersion-wip';
+    final changelogDir = path.dirname(changelogFile.path);
+    final pubspecFile = File(path.join(changelogDir, 'pubspec.yaml'));
+    if (pubspecFile.existsSync()) {
+      updatePubspecVersion(pubspecFile, newVersion);
+    }
+  }
 }
 
 class ChangelogUpdaterCommand extends ReportCommand {
@@ -74,6 +106,7 @@ Usage: dart run report.dart changelog [--changelog <path>] "Your changelog messa
     }
 
     final message = args.join(' ');
+
     final changelogFile =
         File(argResults?['changelog'] as String? ?? 'CHANGELOG.md');
 
@@ -82,11 +115,7 @@ Usage: dart run report.dart changelog [--changelog <path>] "Your changelog messa
       return 1;
     }
 
-    final newChangelog = updateChangelogContent(
-      changelogFile.readAsStringSync(),
-      message,
-    );
-    changelogFile.writeAsStringSync(newChangelog);
+    updateChangelog(changelogFile: changelogFile, message: message);
     stdout.writeln('Changelog updated successfully.');
     return 0;
   }
