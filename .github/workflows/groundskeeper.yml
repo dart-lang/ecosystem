@@ -1,0 +1,120 @@
+name: Groundskeeper
+description: Reusable workflow to run dart format and dart fix across packages using groundskeeper, and create a PR if there are changes.
+
+on:
+  workflow_call:
+    inputs:
+      sdk:
+        description: 'Dart SDK version'
+        required: false
+        type: string
+        default: 'dev'
+      directory:
+        description: 'The directory to tidy'
+        required: false
+        type: string
+        default: '.'
+      update-changelog:
+        description: 'Whether to update the changelog'
+        required: false
+        type: boolean
+        default: false
+      changelog-message:
+        description: 'The changelog message'
+        required: false
+        type: string
+        default: ''
+      run-format:
+        description: 'Run dart format'
+        required: false
+        type: boolean
+        default: true
+      run-fix:
+        description: 'Run dart fix --apply'
+        required: false
+        type: boolean
+        default: true
+      exclude:
+        description: 'Comma-separated list of package directories to exclude'
+        required: false
+        type: string
+        default: ''
+      branch:
+        description: 'PR branch name'
+        required: false
+        type: string
+        default: 'auto-tidy'
+      title:
+        description: 'PR title'
+        required: false
+        type: string
+        default: 'Tidy: Automated dart format and fix'
+      body:
+        description: 'PR body'
+        required: false
+        type: string
+        default: 'This is an automated PR to apply `dart format` and `dart fix --apply`.'
+
+jobs:
+  tidy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Generate Dart Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        with:
+          app-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
+
+      - name: Checkout caller repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - name: Checkout ecosystem (for tidy script)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          repository: dart-lang/ecosystem
+          ref: add-reusable-tidy # Temporarily use the branch for testing
+          path: .github/ecosystem-helper
+
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Resolve dependencies for firehose
+        working-directory: .github/ecosystem-helper/pkgs/firehose
+        run: dart pub get
+
+      - name: Run Tidy Script
+        run: |
+          dart .github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
+            --directory=${{ inputs.directory }} \
+            --format=${{ inputs.run-format }} \
+            --fix=${{ inputs.run-fix }} \
+            --exclude="${{ inputs.exclude }}"
+
+      - name: Clean up helper
+        run: rm -rf .github/ecosystem-helper
+
+      - name: Update changelog
+        if: ${{ inputs.update-changelog }}
+        working-directory: ${{ inputs.directory }}
+        run: |
+          dart install --git-path pkgs/repo_manage --git-ref addChangelogUpdater https://github.com/dart-lang/ecosystem.git
+          report changelog "${{ inputs.changelog-message }}"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+          committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
+          author: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
+          commit-message: ${{ inputs.title }}
+          branch: ${{ inputs.branch }}
+          title: ${{ inputs.title }}
+          body: ${{ inputs.body }}
+          delete-branch: true

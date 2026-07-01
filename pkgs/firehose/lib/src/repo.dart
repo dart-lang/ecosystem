@@ -41,9 +41,13 @@ class Repository {
   /// `publish_to: none` key.
   ///
   /// Once we find a package, we don't look for packages in sub-directories.
-  List<Package> locatePackages({List<Glob>? only, List<Glob>? ignore}) {
+  List<Package> locatePackages({
+    List<Glob>? only,
+    List<Glob>? ignore,
+    bool includeUnpublished = false,
+  }) {
     final packages = <Package>[];
-    _recurseAndGather(baseDirectory, packages);
+    _recurseAndGather(baseDirectory, packages, includeUnpublished);
     if (ignore != null) {
       packages.removeWhere((package) => ignore.any((glob) => glob.matches(
           path.relative(package.directory.path, from: baseDirectory.path))));
@@ -56,14 +60,18 @@ class Repository {
     return packages;
   }
 
-  void _recurseAndGather(Directory directory, List<Package> packages) {
+  void _recurseAndGather(
+    Directory directory,
+    List<Package> packages,
+    bool includeUnpublished,
+  ) {
     final pubspecFile = File(path.join(directory.path, 'pubspec.yaml'));
 
     if (pubspecFile.existsSync()) {
       final pubspec = yaml.loadYaml(pubspecFile.readAsStringSync()) as Map;
       final publishTo = pubspec['publish_to'] as String?;
-      if (publishTo != 'none') {
-        print('Found published package at $directory');
+      if (includeUnpublished || publishTo != 'none') {
+        print('Found package at $directory');
         packages.add(Package(directory, this));
         // There is an assumption here that published packages do not contain
         // nested published packages.
@@ -76,7 +84,7 @@ class Repository {
       for (final child in directory.listSync().whereType<Directory>()) {
         final name = path.basename(child.path);
         if (!name.startsWith('.')) {
-          _recurseAndGather(child, packages);
+          _recurseAndGather(child, packages, includeUnpublished);
         }
       }
     }

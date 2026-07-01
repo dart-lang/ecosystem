@@ -10,6 +10,7 @@ executables:
   firehose: firehose
   health: health
   comment: comment
+  groundskeeper: groundskeeper
 
 dependencies:
   args: ^2.3.0
