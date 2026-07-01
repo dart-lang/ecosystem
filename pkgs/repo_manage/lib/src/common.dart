@@ -10,6 +10,7 @@ import 'package:github/github.dart';
 import 'package:graphql/client.dart';
 
 import '../branches.dart';
+import '../changelog_updater.dart';
 import '../contributors.dart';
 import '../issue_transfer.dart';
 import '../labels.dart';
@@ -80,6 +81,7 @@ class ReportCommandRunner extends CommandRunner<int> {
       : super('report',
             'Run various reports on Dart and Flutter related repositories.') {
     addCommand(BranchesCommand());
+    addCommand(ChangelogUpdaterCommand());
     addCommand(ContributorsCommand());
     addCommand(LabelsCommand());
     addCommand(LabelsUpdateCommand());
