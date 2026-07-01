@@ -70,12 +70,12 @@ jobs:
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
 
       - name: Checkout caller repo
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Checkout ecosystem (for tidy script)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           repository: dart-lang/ecosystem
           ref: add-reusable-tidy # Temporarily use the branch for testing
@@ -108,7 +108,7 @@ jobs:
           report changelog "${{ inputs.changelog-message }}"
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31
+        uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04
         with:
           token: ${{ steps.generate-token.outputs.token }}
           committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
