@@ -97,15 +97,15 @@ jobs:
             --fix=${{ inputs.run-fix }} \
             --exclude="${{ inputs.exclude }}"
 
-      - name: Clean up helper
-        run: rm -rf .github/ecosystem-helper
-
       - name: Update changelog
         if: ${{ inputs.update-changelog }}
-        working-directory: ${{ inputs.directory }}
+        working-directory: .github/ecosystem-helper/pkgs/repo_manage
         run: |
-          dart install --git-path pkgs/repo_manage --git-ref addChangelogUpdater https://github.com/dart-lang/ecosystem.git
-          report changelog "${{ inputs.changelog-message }}"
+          dart pub get
+          dart run bin/report.dart changelog --changelog "${{ inputs.directory }}/CHANGELOG.md" "${{ inputs.changelog-message }}"
+
+      - name: Clean up helper
+        run: rm -rf .github/ecosystem-helper
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@6fff569d741c6b8131d2a49663b16573ef90be31
