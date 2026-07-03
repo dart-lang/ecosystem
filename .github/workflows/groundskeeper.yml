@@ -73,7 +73,6 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           repository: dart-lang/ecosystem
-          ref: add-reusable-tidy # Temporarily use the branch for testing
           path: .github/ecosystem-helper
 
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
