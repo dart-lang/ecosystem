@@ -172,13 +172,10 @@ void main() {
 
 void withChangelog(String contents, void Function(File file) closure) {
   final dir = Directory.systemTemp.createTempSync();
+  addTearDown(() => dir.deleteSync(recursive: true));
   final file = File('${dir.path}/CHANGELOG.md');
-  try {
-    file.writeAsStringSync(contents);
-    closure(file);
-  } finally {
-    dir.deleteSync(recursive: true);
-  }
+  file.writeAsStringSync(contents);
+  closure(file);
 }
 
 const _defaultContents = '''

@@ -1,5 +1,5 @@
 name: Groundskeeper
-description: Reusable workflow to run dart format and dart fix across packages using groundskeeper, and create a PR if there are changes.
+description: Reusable workflow to run dart format and dart fix on a single package, and create a PR if there are changes.
 
 on:
   workflow_call:
@@ -34,11 +34,6 @@ on:
         required: false
         type: boolean
         default: true
-      exclude:
-        description: 'Comma-separated list of package directories to exclude'
-        required: false
-        type: string
-        default: ''
       branch:
         description: 'PR branch name'
         required: false
@@ -90,22 +85,21 @@ jobs:
         run: dart pub get
 
       - name: Run Tidy Script
+        working-directory: ${{ inputs.directory }}
         run: |
-          dart .github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
-            --directory=${{ inputs.directory }} \
+          dart $GITHUB_WORKSPACE/.github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
             --format=${{ inputs.run-format }} \
-            --fix=${{ inputs.run-fix }} \
-            --exclude="${{ inputs.exclude }}"
-
-      - name: Clean up helper
-        run: rm -rf .github/ecosystem-helper
+            --fix=${{ inputs.run-fix }}
 
       - name: Update changelog
         if: ${{ inputs.update-changelog }}
-        working-directory: ${{ inputs.directory }}
+        working-directory: .github/ecosystem-helper/pkgs/repo_manage
         run: |
-          dart install --git-path pkgs/repo_manage --git-ref addChangelogUpdater https://github.com/dart-lang/ecosystem.git
-          report changelog "${{ inputs.changelog-message }}"
+          dart pub get
+          dart run bin/report.dart changelog --changelog "../../../../${{ inputs.directory }}/CHANGELOG.md" "${{ inputs.changelog-message }}"
+
+      - name: Clean up helper
+        run: rm -rf .github/ecosystem-helper
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04

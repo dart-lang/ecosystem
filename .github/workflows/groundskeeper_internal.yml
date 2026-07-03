@@ -10,5 +10,20 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    strategy:
+      matrix:
+        package:
+          - blast_repo
+          - canary
+          - corpus
+          - dart_flutter_team_lints
+          - firehose
+          - repo_manage
+          - sdk_triage_bot
+          - trebuchet
     uses: ./.github/workflows/groundskeeper.yml
+    with:
+      directory: pkgs/${{ matrix.package }}
+      branch: auto-tidy-${{ matrix.package }}
+      title: 'Tidy: package:${{ matrix.package }}'
     secrets: inherit

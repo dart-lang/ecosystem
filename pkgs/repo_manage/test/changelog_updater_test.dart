@@ -1,10 +1,15 @@
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:repo_manage/changelog_updater.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('updateChangelogContent', () {
+  group('updateChangelog', () {
     test('adds an entry to a wip changelog', () {
       expectGolden(
         inputPath: 'test/data/changelog_wip.md',
@@ -45,6 +50,105 @@ void main() {
       );
     });
   });
+
+  group('updatePubspecVersion', () {
+    test('updates version line', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.0.0
+dependencies:
+  path: ^1.8.0
+''');
+
+      updatePubspecVersion(pubspecFile, '1.0.1-wip');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.0.1-wip
+dependencies:
+  path: ^1.8.0
+''');
+    });
+  });
+
+  group('updateChangelog (with pubspec)', () {
+    test('updates pubspec if transitioned to WIP', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.0.0
+
+- Released version
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.0.0
+''');
+
+      updateChangelog(changelogFile: changelogFile, message: 'New WIP change');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.0.0-wip
+
+- New WIP change
+
+## 1.0.0
+
+- Released version
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.0.0-wip
+''');
+    });
+
+    test('does not update pubspec if already WIP', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.0.0-wip
+
+- WIP change
+
+## 1.0.0
+
+- Released version
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.0.0-wip
+''');
+
+      updateChangelog(
+          changelogFile: changelogFile, message: 'Another WIP change');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.0.0-wip
+
+- WIP change
+- Another WIP change
+
+## 1.0.0
+
+- Released version
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.0.0-wip
+''');
+    });
+  });
 }
 
 void expectGolden({
@@ -52,8 +156,14 @@ void expectGolden({
   required String goldenPath,
   required String message,
 }) {
-  final input = File(inputPath).readAsStringSync();
-  final output = updateChangelogContent(input, message);
+  final tempDir = Directory.systemTemp.createTempSync();
+  addTearDown(() => tempDir.deleteSync(recursive: true));
+  final tempChangelog = File(path.join(tempDir.path, 'CHANGELOG.md'));
+  tempChangelog.writeAsStringSync(File(inputPath).readAsStringSync());
+
+  updateChangelog(changelogFile: tempChangelog, message: message);
+
+  final output = tempChangelog.readAsStringSync();
   final goldenFile = File(goldenPath);
 
   if (!goldenFile.existsSync()) {
