@@ -54,6 +54,7 @@ void main() {
   group('updatePubspecVersion', () {
     test('updates version line', () {
       final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
       final pubspecFile = File('${tempDir.path}/pubspec.yaml');
       pubspecFile.writeAsStringSync('''
 name: my_package
@@ -70,13 +71,13 @@ version: 1.0.1-wip
 dependencies:
   path: ^1.8.0
 ''');
-      tempDir.deleteSync(recursive: true);
     });
   });
 
   group('updateChangelog (with pubspec)', () {
     test('updates pubspec if transitioned to WIP', () {
       final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
       final changelogFile = File('${tempDir.path}/CHANGELOG.md');
       final pubspecFile = File('${tempDir.path}/pubspec.yaml');
 
@@ -106,11 +107,11 @@ version: 1.0.0
 name: my_package
 version: 1.0.0-wip
 ''');
-      tempDir.deleteSync(recursive: true);
     });
 
     test('does not update pubspec if already WIP', () {
       final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
       final changelogFile = File('${tempDir.path}/CHANGELOG.md');
       final pubspecFile = File('${tempDir.path}/pubspec.yaml');
 
@@ -146,7 +147,6 @@ version: 1.0.0-wip
 name: my_package
 version: 1.0.0-wip
 ''');
-      tempDir.deleteSync(recursive: true);
     });
   });
 }
@@ -157,6 +157,7 @@ void expectGolden({
   required String message,
 }) {
   final tempDir = Directory.systemTemp.createTempSync();
+  addTearDown(() => tempDir.deleteSync(recursive: true));
   final tempChangelog = File(path.join(tempDir.path, 'CHANGELOG.md'));
   tempChangelog.writeAsStringSync(File(inputPath).readAsStringSync());
 
@@ -168,10 +169,8 @@ void expectGolden({
   if (!goldenFile.existsSync()) {
     goldenFile.parent.createSync(recursive: true);
     goldenFile.writeAsStringSync(output);
-    tempDir.deleteSync(recursive: true);
     return;
   }
 
   expect(output, goldenFile.readAsStringSync());
-  tempDir.deleteSync(recursive: true);
 }

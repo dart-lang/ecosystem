@@ -126,8 +126,9 @@ Future<void> checkGolden(
   List<String> ignoredPackage = const [],
   List<String> flutterPackages = const [],
 }) async {
-  final commentPath = p.join(Directory.systemTemp.createTempSync().path,
-      'comment_${check.displayName}.md');
+  final tempDir = Directory.systemTemp.createTempSync();
+  addTearDown(() => tempDir.deleteSync(recursive: true));
+  final commentPath = p.join(tempDir.path, 'comment_${check.displayName}.md');
   await FakeHealth(
     directory,
     check,
