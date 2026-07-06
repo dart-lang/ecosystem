@@ -90,8 +90,18 @@ jobs:
             --format=${{ inputs.run-format }} \
             --fix=${{ inputs.run-fix }}
 
+      - name: Check for changes
+        id: check_changes
+        working-directory: ${{ inputs.directory }}
+        run: |
+          if [ -n "$(git status --porcelain .)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update changelog
-        if: ${{ inputs.update-changelog }}
+        if: ${{ inputs.update-changelog && steps.check_changes.outputs.changed == 'true' }}
         working-directory: .github/ecosystem-helper/pkgs/repo_manage
         run: |
           dart pub get
@@ -101,6 +111,7 @@ jobs:
         run: rm -rf .github/ecosystem-helper
 
       - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04
         with:
           token: ${{ steps.generate-token.outputs.token }}
