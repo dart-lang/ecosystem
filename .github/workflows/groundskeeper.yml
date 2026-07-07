@@ -61,7 +61,7 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
         with:
-          app-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
+          client-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
 
       - name: Checkout caller repo
@@ -73,7 +73,6 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           repository: dart-lang/ecosystem
-          ref: add-reusable-tidy # Temporarily use the branch for testing
           path: .github/ecosystem-helper
 
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
@@ -91,8 +90,18 @@ jobs:
             --format=${{ inputs.run-format }} \
             --fix=${{ inputs.run-fix }}
 
+      - name: Check for changes
+        id: check_changes
+        working-directory: ${{ inputs.directory }}
+        run: |
+          if [ -n "$(git status --porcelain .)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Update changelog
-        if: ${{ inputs.update-changelog }}
+        if: ${{ inputs.update-changelog && steps.check_changes.outputs.changed == 'true' }}
         working-directory: .github/ecosystem-helper/pkgs/repo_manage
         run: |
           dart pub get
@@ -102,6 +111,7 @@ jobs:
         run: rm -rf .github/ecosystem-helper
 
       - name: Create Pull Request
+        if: steps.check_changes.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04
         with:
           token: ${{ steps.generate-token.outputs.token }}
