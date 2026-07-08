@@ -15,6 +15,7 @@ void main(List<String> args) async {
   final argResults = parser.parse(args);
 
   final targetDirectory = Directory.current;
+  final pkgPath = targetDirectory.path;
   final runFormat = argResults['format'] != 'false';
   final runFix = argResults['fix'] != 'false';
 
@@ -31,23 +32,9 @@ Error: Run fix is enabled, but no pubspec.yaml found in ${targetDirectory.path}'
     exit(1);
   }
 
-  if (runFormat) {
-    print('Running dart format...');
-    final result = await Process.run(
-      'dart',
-      ['format', targetDirectory.path],
-    );
-    stdout.write(result.stdout);
-    stderr.write(result.stderr);
-    if (result.exitCode != 0) {
-      exit(result.exitCode);
-    }
-  }
-
-  if (runFix) {
+  if (isPackage) {
     final repo = Repository(targetDirectory);
     final pkg = Package(targetDirectory, repo);
-    final pkgPath = targetDirectory.path;
 
     // Detect if it is a Flutter package
     final isFlutter = pkg.pubspec.dependencies.containsKey('flutter') ||
@@ -65,7 +52,22 @@ Error: Run fix is enabled, but no pubspec.yaml found in ${targetDirectory.path}'
       print('Error: $tool pub get failed in $pkgPath');
       exit(pubGetResult.exitCode);
     }
+  }
 
+  if (runFormat) {
+    print('Running dart format...');
+    final result = await Process.run(
+      'dart',
+      ['format', pkgPath],
+    );
+    stdout.write(result.stdout);
+    stderr.write(result.stderr);
+    if (result.exitCode != 0) {
+      exit(result.exitCode);
+    }
+  }
+
+  if (runFix) {
     print('  Running dart fix --apply...');
     final fixResult = await Process.run('dart', ['fix', '--apply'],
         workingDirectory: pkgPath);

@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Run `pub get` before `dart format` in `groundskeeper`.
+
 - Add `groundskeeper` executable to format and fix packages.
 - Add parameter to `locatePackages` to allow locating all packages with `publish_to: none`.
 - Inlined GitHub comment management into `firehose` as a first-class executable.
