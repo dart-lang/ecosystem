@@ -52,6 +52,13 @@ class Pub {
 }
 
 extension VersionExtension on Version {
-  bool get wip =>
-      isPreRelease && preRelease.length == 1 && preRelease.first == 'wip';
+  bool get wip {
+    if (!isPreRelease) return false;
+    final last = preRelease.last;
+    return last is String &&
+        (last == 'wip' // e.g. 1.2.3-wip
+            ||
+            last.endsWith('-wip') // e.g. 1.2.3-alpha.3-wip
+        );
+  }
 }

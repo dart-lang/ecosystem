@@ -16,6 +16,7 @@
 - Improve and clarify readme documentation.
 - Add description for the table 'Package publishing'.
 - Simplify `groundskeeper` workflow
+- Fix recognition of `-wip` endings.
 
 ## 0.13.1
 
