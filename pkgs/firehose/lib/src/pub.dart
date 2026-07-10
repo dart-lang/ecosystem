@@ -55,10 +55,10 @@ extension VersionExtension on Version {
   bool get wip {
     if (!isPreRelease) return false;
     final last = preRelease.last;
-    if (last is String) {
-      return last == 'wip' || // e.g. 1.2.3-wip
-          last.endsWith('-wip'); // e.g. 1.2.3-alpha.3-wip
-    }
-    return false;
+    return last is String &&
+        (last == 'wip' // e.g. 1.2.3-wip
+            ||
+            last.endsWith('-wip') // e.g. 1.2.3-alpha.3-wip
+        );
   }
 }
