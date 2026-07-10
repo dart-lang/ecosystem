@@ -63,5 +63,20 @@ void main() {
       final version = Version.parse('1.2.3-wip');
       expect(version.wip, true);
     });
+
+    test('wip pre-release multipart wip (dot)', () async {
+      final version = Version.parse('1.2.3-alpha.3.wip');
+      expect(version.wip, true);
+    });
+
+    test('wip pre-release multipart wip (hyphen)', () async {
+      final version = Version.parse('1.2.3-alpha.3-wip');
+      expect(version.wip, true);
+    });
+
+    test('wip pre-release awip', () async {
+      final version = Version.parse('1.2.3-awip');
+      expect(version.wip, false);
+    });
   });
 }
