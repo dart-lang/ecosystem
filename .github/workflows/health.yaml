@@ -180,6 +180,8 @@ jobs:
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
       - name: Find Comment
         id: fc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           COMMENT_ID=$(dart pub global run firehose:comment find --issue ${{ github.event.number }} --author github-actions[bot] --body-includes "## PR Health")
           echo "comment-id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
@@ -332,6 +334,8 @@ jobs:
 
       - name: Find Comment
         id: fc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           COMMENT_ID=$(dart pub global run firehose:comment find --issue ${{ github.event.number }} --author github-actions[bot] --body-includes "## PR Health")
           echo "comment-id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
