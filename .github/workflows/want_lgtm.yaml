@@ -48,36 +48,65 @@ jobs:
             }
 
             const requiredUsers = new Set();
+            let requireAll = false;
+
             const lines = body.split(/\r?\n/);
             for (const line of lines) {
-              const match = line.match(/(?:WANT|NEEDS)[_-]LGTM\s*:\s*(.*)/i);
+              const match = line.match(/(?:WANT|NEEDS)[_-]LGTM\s*[:=]\s*(.*)/i);
               if (match) {
-                const parts = match[1].split(/[,]+/);
-                for (let part of parts) {
-                  const tokens = part.trim().split(/\s+/);
-                  for (let token of tokens) {
-                    const cleaned = token.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9-]+$/g, '').toLowerCase();
-                    if (cleaned.length > 0 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(cleaned)) {
-                      requiredUsers.add(cleaned);
+                const val = match[1].trim();
+                if (val.toLowerCase() === 'all') {
+                  requireAll = true;
+                } else {
+                  const parts = val.split(/[,]+/);
+                  for (let part of parts) {
+                    const tokens = part.trim().split(/\s+/);
+                    for (let token of tokens) {
+                      const cleaned = token.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9-]+$/g, '').toLowerCase();
+                      if (cleaned.length > 0 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(cleaned)) {
+                        requiredUsers.add(cleaned);
+                      }
                     }
                   }
                 }
               }
             }
 
-            if (requiredUsers.size === 0) {
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull_number,
+            });
+
+            if (requireAll) {
+              const { data: requested } = await github.rest.pulls.listRequestedReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              if (requested && requested.users) {
+                for (const u of requested.users) {
+                  requiredUsers.add(u.login.toLowerCase());
+                }
+              }
+              for (const r of reviews) {
+                if (r.user) {
+                  requiredUsers.add(r.user.login.toLowerCase());
+                }
+              }
+              if (requiredUsers.size === 0) {
+                core.setFailed('WANT_LGTM=all specified, but no reviewers are assigned to this PR.');
+                return;
+              }
+            }
+
+            if (!requireAll && requiredUsers.size === 0) {
               console.log('No WANT_LGTM requirement found in PR description.');
               return;
             }
 
             const reqList = Array.from(requiredUsers);
             console.log(`Required LGTMs from users: ${reqList.join(', ')}`);
-
-            const reviews = await github.paginate(github.rest.pulls.listReviews, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pull_number,
-            });
 
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
