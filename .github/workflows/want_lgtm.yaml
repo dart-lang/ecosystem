@@ -1,18 +1,18 @@
-name: Needs LGTM
+name: Want LGTM
 
 # A reusable CI workflow to check if required LGTMs specified in the PR body are present.
 #
 # Usage in caller repositories (e.g. dart-lang/tools):
 #
-# name: Needs LGTM
+# name: Want LGTM
 # on:
 #   pull_request_target:
 #     types: [opened, synchronize, reopened, edited]
 #   pull_request_review:
 #     types: [submitted, edited, dismissed]
 # jobs:
-#   needs-lgtm:
-#     uses: dart-lang/ecosystem/.github/workflows/needs_lgtm.yaml@main
+#   want-lgtm:
+#     uses: dart-lang/ecosystem/.github/workflows/want_lgtm.yaml@main
 
 on:
   workflow_call:
@@ -50,7 +50,7 @@ jobs:
             const requiredUsers = new Set();
             const lines = body.split(/\r?\n/);
             for (const line of lines) {
-              const match = line.match(/NEEDS[_-]LGTM\s*:\s*(.*)/i);
+              const match = line.match(/(?:WANT|NEEDS)[_-]LGTM\s*:\s*(.*)/i);
               if (match) {
                 const parts = match[1].split(/[,]+/);
                 for (let part of parts) {
@@ -66,7 +66,7 @@ jobs:
             }
 
             if (requiredUsers.size === 0) {
-              console.log('No NEEDS_LGTM requirement found in PR description.');
+              console.log('No WANT_LGTM requirement found in PR description.');
               return;
             }
 
