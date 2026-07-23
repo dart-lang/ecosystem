@@ -34,7 +34,9 @@ jobs:
           channel: main
           cache: true
 
-      - run: echo "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+      - run: echo "$LABELS_JSON"
+        env:
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
 
       - name: Install local version of `package:canary`
         run: dart pub global activate -s path pkgs/canary
@@ -45,10 +47,13 @@ jobs:
 
       - name: Update package and test
         run: |
-          dart pub global run canary ${INPUTS_REPOS_FILE} ${{ github.repositoryUrl }} ${{ github.head_ref || github.ref_name }} "${{ toJSON(github.event.pull_request.labels.*.name) }}"
+          dart pub global run canary "$INPUTS_REPOS_FILE" "$GITHUB_REPOSITORY_URL" "$HEAD_REF" "$LABELS_JSON"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INPUTS_REPOS_FILE: ${{ inputs.repos_file }}
+          GITHUB_REPOSITORY_URL: ${{ github.repositoryUrl }}
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+          LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
 
       - name: Output issue number
         run: |
@@ -57,7 +62,9 @@ jobs:
 
       - name: Install firehose (internal)
         if: github.repository == 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$HEAD_REF"
+        env:
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
 
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
