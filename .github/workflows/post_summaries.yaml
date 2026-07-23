@@ -61,6 +61,37 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             var fs = require('fs');
+
+            const prs = context.payload.workflow_run ? context.payload.workflow_run.pull_requests : [];
+            const issue_number = prs.length > 0 ? prs[0].number : (context.issue ? context.issue.number : null);
+
+            if (!issue_number) {
+              console.log('No PR number found in context. Aborting.');
+              return;
+            }
+
+            if (fs.existsSync('./issueNumber')) {
+              const artifactIssue = Number(fs.readFileSync('./issueNumber', 'utf8'));
+              if (artifactIssue !== issue_number) {
+                console.log(`Artifact issueNumber (${artifactIssue}) does not match PR #${issue_number}. Aborting.`);
+                return;
+              }
+            }
+
+            if (fs.existsSync('./commentId')) {
+              const comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
+              const comment = await github.rest.issues.getComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: comment_number,
+              });
+              const commentIssueNumber = Number(comment.data.issue_url.split('/').pop());
+              if (commentIssueNumber !== issue_number) {
+                console.log(`Comment ID ${comment_number} belongs to PR #${commentIssueNumber}, not PR #${issue_number}. Aborting.`);
+                return;
+              }
+            }
+
             if (fs.existsSync('./comment.md')) {
               var markdown = fs.readFileSync('./comment.md', 'utf8');
               var firstLine = markdown.split('\n')[0];
@@ -75,8 +106,6 @@ jobs:
                   body: markdown
                 });
               } else {
-                var issue_number = Number(fs.readFileSync('./issueNumber', 'utf8'));
-                
                 const comments = await github.rest.issues.listComments({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
