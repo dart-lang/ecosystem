@@ -1,0 +1,159 @@
+name: Want LGTM
+
+# A reusable CI workflow to check if required LGTMs specified in the PR body are present.
+#
+# Usage in caller repositories (e.g. dart-lang/tools):
+#
+# name: Want LGTM
+# on:
+#   pull_request_target:
+#     types: [opened, synchronize, reopened, edited]
+#   pull_request_review:
+#     types: [submitted, edited, dismissed]
+# jobs:
+#   want-lgtm:
+#     uses: dart-lang/ecosystem/.github/workflows/want_lgtm.yaml@main
+
+on:
+  workflow_call:
+
+permissions:
+  pull-requests: read
+  issues: read
+
+jobs:
+  check-lgtm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required LGTMs
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const pull_number = pr ? pr.number : context.issue.number;
+
+            if (!pull_number) {
+              console.log('No pull request context found.');
+              return;
+            }
+
+            let body = pr ? pr.body : null;
+            if (body === null || body === undefined) {
+              const { data: pullRequest } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              body = pullRequest.body || '';
+            }
+
+            const requiredUsers = new Set();
+            let requireAll = false;
+
+            const lines = body.split(/\r?\n/);
+            for (const line of lines) {
+              const match = line.match(/(?:WANT|NEEDS)[_-]LGTM\s*[:=]\s*(.*)/i);
+              if (match) {
+                const val = match[1].trim();
+                if (val.toLowerCase() === 'all') {
+                  requireAll = true;
+                } else {
+                  const parts = val.split(/[,]+/);
+                  for (let part of parts) {
+                    const tokens = part.trim().split(/\s+/);
+                    for (let token of tokens) {
+                      const cleaned = token.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9-]+$/g, '').toLowerCase();
+                      if (cleaned.length > 0 && /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(cleaned)) {
+                        requiredUsers.add(cleaned);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pull_number,
+            });
+
+            if (requireAll) {
+              const { data: requested } = await github.rest.pulls.listRequestedReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pull_number,
+              });
+              if (requested && requested.users) {
+                for (const u of requested.users) {
+                  requiredUsers.add(u.login.toLowerCase());
+                }
+              }
+              for (const r of reviews) {
+                if (r.user) {
+                  requiredUsers.add(r.user.login.toLowerCase());
+                }
+              }
+              if (requiredUsers.size === 0) {
+                core.setFailed('WANT_LGTM=all specified, but no reviewers are assigned to this PR.');
+                return;
+              }
+            }
+
+            if (!requireAll && requiredUsers.size === 0) {
+              console.log('No WANT_LGTM requirement found in PR description.');
+              return;
+            }
+
+            const reqList = Array.from(requiredUsers);
+            console.log(`Required LGTMs from users: ${reqList.join(', ')}`);
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull_number,
+            });
+
+            const userLatestState = {};
+            const userHasApproved = {};
+            const userHasLgtm = {};
+
+            for (const review of reviews) {
+              if (!review.user) continue;
+              const user = review.user.login.toLowerCase();
+              if (['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED'].includes(review.state)) {
+                userLatestState[user] = review.state;
+              }
+              if (review.state === 'APPROVED') {
+                userHasApproved[user] = true;
+              }
+              if (review.body && /\blgtm\b/i.test(review.body)) {
+                userHasLgtm[user] = true;
+              }
+            }
+
+            for (const comment of comments) {
+              if (!comment.user) continue;
+              const user = comment.user.login.toLowerCase();
+              if (comment.body && /\blgtm\b/i.test(comment.body)) {
+                userHasLgtm[user] = true;
+              }
+            }
+
+            const missing = [];
+            const approved = [];
+            for (const reqUser of reqList) {
+              const latestState = userLatestState[reqUser];
+              const hasLgtmSignal = userHasApproved[reqUser] || userHasLgtm[reqUser];
+              if (hasLgtmSignal && latestState !== 'CHANGES_REQUESTED') {
+                approved.push(reqUser);
+              } else {
+                missing.push(reqUser);
+              }
+            }
+
+            if (missing.length > 0) {
+              core.setFailed(`Missing required LGTMs from: ${missing.join(', ')}`);
+            } else {
+              console.log(`All required LGTMs received from: ${approved.join(', ')}`);
+            }

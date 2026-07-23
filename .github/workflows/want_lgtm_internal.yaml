@@ -1,0 +1,12 @@
+name: Want LGTM:Internal
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened, edited]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+
+jobs:
+  want_lgtm:
+    uses: ./.github/workflows/want_lgtm.yaml
