@@ -65,12 +65,12 @@ jobs:
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
 
       - name: Checkout caller repo
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
       - name: Checkout ecosystem (for tidy script)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: dart-lang/ecosystem
           path: .github/ecosystem-helper
@@ -112,7 +112,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04
+        uses: peter-evans/create-pull-request@11fa467881691ac900904a2eea702c5ea848ad13
         with:
           token: ${{ steps.generate-token.outputs.token }}
           committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
