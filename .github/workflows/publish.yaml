@@ -98,6 +98,12 @@ on:
         default: ''
         required: false
         type: string
+      tag-prefix:
+        description: >-
+          The prefix to expect and generate for release git tags (e.g. 'v' or '').
+        default: "v"
+        required: false
+        type: string
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
@@ -169,11 +175,13 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.number }}
           PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
           INPUTS_IGNORE_PACKAGES: ${{ inputs.ignore-packages }}
+          INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
         run: |
           dart pub global run firehose \
             --validate \
             ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-            --ignore-packages "${INPUTS_IGNORE_PACKAGES}"
+            --ignore-packages "${INPUTS_IGNORE_PACKAGES}" \
+            --tag-prefix "${INPUTS_TAG_PREFIX}"
 
       - name: Get comment id
         id: comment-id
@@ -255,4 +263,10 @@ jobs:
         if: ${{ inputs.local_debug }}
 
       - name: Publish packages
-        run: dart pub global run firehose --publish ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }}
+        env:
+          INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
+        run: |
+          dart pub global run firehose \
+            --publish \
+            ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
+            --tag-prefix "${INPUTS_TAG_PREFIX}"

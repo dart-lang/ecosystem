@@ -90,16 +90,20 @@ class Repository {
     }
   }
 
-  String calculateRepoTag(Package package) {
+  String calculateRepoTag(Package package, {String tagPrefix = 'v'}) {
     if (isSinglePackageRepo) {
-      return 'v${package.pubspec.version}';
+      return '$tagPrefix${package.pubspec.version}';
     } else {
-      return '${package.name}-v${package.pubspec.version}';
+      return '${package.name}-$tagPrefix${package.pubspec.version}';
     }
   }
 
-  Uri calculateReleaseUri(Package package, GithubApi github) {
-    final tag = calculateRepoTag(package);
+  Uri calculateReleaseUri(
+    Package package,
+    GithubApi github, {
+    String tagPrefix = 'v',
+  }) {
+    final tag = calculateRepoTag(package, tagPrefix: tagPrefix);
     final title = 'package:${package.name} v${package.pubspec.version}';
     final body = package.changelog.describeLatestChanges;
     return Uri.https('github.com', '/${github.repoSlug}/releases/new',

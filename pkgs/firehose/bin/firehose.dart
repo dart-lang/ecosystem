@@ -12,6 +12,7 @@ const helpFlag = 'help';
 const validateFlag = 'validate';
 const publishFlag = 'publish';
 const useFlutterFlag = 'use-flutter';
+const tagPrefixOption = 'tag-prefix';
 
 void main(List<String> arguments) async {
   final argParser = _createArgs();
@@ -26,6 +27,7 @@ void main(List<String> arguments) async {
     final validate = argResults[validateFlag] as bool;
     final publish = argResults[publishFlag] as bool;
     final useFlutter = argResults[useFlutterFlag] as bool;
+    final tagPrefix = argResults[tagPrefixOption] as String;
     final ignoredPackages = (argResults['ignore-packages'] as List<String>)
         .where((pattern) => pattern.isNotEmpty)
         .map((pattern) => Glob(pattern, recursive: true))
@@ -47,7 +49,12 @@ void main(List<String> arguments) async {
       return;
     }
 
-    final firehose = Firehose(Directory.current, useFlutter, ignoredPackages);
+    final firehose = Firehose(
+      Directory.current,
+      useFlutter,
+      ignoredPackages,
+      tagPrefix: tagPrefix,
+    );
 
     if (validate) {
       await firehose.validate();
@@ -94,6 +101,11 @@ ArgParser _createArgs() => ArgParser()
     useFlutterFlag,
     negatable: true,
     help: 'Whether this is a Flutter project.',
+  )
+  ..addOption(
+    tagPrefixOption,
+    defaultsTo: 'v',
+    help: 'The tag prefix to expect and generate (e.g. "v" or "").',
   )
   ..addMultiOption(
     'ignore-packages',

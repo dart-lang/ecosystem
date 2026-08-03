@@ -31,8 +31,14 @@ class Firehose {
   final Directory directory;
   final bool useFlutter;
   final List<Glob> ignoredPackages;
+  final String tagPrefix;
 
-  Firehose(this.directory, this.useFlutter, this.ignoredPackages);
+  Firehose(
+    this.directory,
+    this.useFlutter,
+    this.ignoredPackages, {
+    this.tagPrefix = 'v',
+  });
 
   /// Validate the packages in the repository.
   ///
@@ -109,7 +115,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     final results = VerificationResults();
 
     for (final package in packages) {
-      final repoTag = repo.calculateRepoTag(package);
+      final repoTag = repo.calculateRepoTag(package, tagPrefix: tagPrefix);
 
       print('');
       print('Validating $package:${package.name}');
@@ -172,7 +178,11 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
             package,
             '**ready to publish**',
             repoTag,
-            repo.calculateReleaseUri(package, github),
+            repo.calculateReleaseUri(
+              package,
+              github,
+              tagPrefix: tagPrefix,
+            ),
           );
           print(result);
           results.addResult(result);
@@ -206,7 +216,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
 
     // Validate the git tag.
-    final tag = Tag(github.refName!);
+    final tag = Tag(github.refName!, prefix: tagPrefix);
     if (!tag.valid) {
       stderr.writeln("Git tag not in expected format: '$tag'");
       return false;
