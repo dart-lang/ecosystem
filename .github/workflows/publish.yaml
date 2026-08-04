@@ -146,7 +146,9 @@ jobs:
 
       - name: Install firehose (internal)
         if: ${{ !inputs.local_debug && github.repository == 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+        env:
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -176,12 +178,18 @@ jobs:
           PR_LABELS: ${{ steps.fetch-labels.outputs.labels }}
           INPUTS_IGNORE_PACKAGES: ${{ inputs.ignore-packages }}
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          USE_FLUTTER: ${{ inputs.use-flutter }}
         run: |
+          if [ "$USE_FLUTTER" = "true" ]; then
+            FLUTTER_FLAG="--use-flutter"
+          else
+            FLUTTER_FLAG="--no-use-flutter"
+          fi
           dart pub global run firehose \
             --validate \
-            ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-            --ignore-packages "${INPUTS_IGNORE_PACKAGES}" \
-            --tag-prefix "${INPUTS_TAG_PREFIX}"
+            "$FLUTTER_FLAG" \
+            --ignore-packages "$INPUTS_IGNORE_PACKAGES" \
+            --tag-prefix "$INPUTS_TAG_PREFIX"
 
       - name: Get comment id
         id: comment-id
@@ -196,18 +204,22 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: dart pub global run firehose:comment create-or-update --issue ${{ github.event.number }} --body-path output/comment.md
+          ISSUE_NUMBER: ${{ github.event.number }}
+        run: dart pub global run firehose:comment create-or-update --issue "$ISSUE_NUMBER" --body-path output/comment.md
 
       - name: Update comment
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: dart pub global run firehose:comment create-or-update --comment-id ${{ steps.comment-id.outputs.comment }} --body-path output/comment.md
+          COMMENT_ID: ${{ steps.comment-id.outputs.comment }}
+        run: dart pub global run firehose:comment create-or-update --comment-id "$COMMENT_ID" --body-path output/comment.md
 
       - name: Save PR number
         if: ${{ !inputs.write-comments }}
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-          mkdir -p output/ && echo ${{ github.event.number }} > output/issueNumber
+          mkdir -p output/ && echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Upload folder with number and markdown
         if: ${{ !inputs.write-comments }}
@@ -252,7 +264,9 @@ jobs:
 
       - name: Install firehose (internal)
         if: ${{ !inputs.local_debug && github.repository == 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+        env:
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -265,8 +279,14 @@ jobs:
       - name: Publish packages
         env:
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          USE_FLUTTER: ${{ inputs.use-flutter }}
         run: |
+          if [ "$USE_FLUTTER" = "true" ]; then
+            FLUTTER_FLAG="--use-flutter"
+          else
+            FLUTTER_FLAG="--no-use-flutter"
+          fi
           dart pub global run firehose \
             --publish \
-            ${{ fromJSON('{"true":"--use-flutter","false":"--no-use-flutter"}')[inputs.use-flutter] }} \
-            --tag-prefix "${INPUTS_TAG_PREFIX}"
+            "$FLUTTER_FLAG" \
+            --tag-prefix "$INPUTS_TAG_PREFIX"
