@@ -12,6 +12,9 @@ name: Want LGTM
 #     types: [submitted, edited, dismissed]
 # jobs:
 #   want-lgtm:
+#     permissions:
+#       pull-requests: read
+#       issues: read
 #     uses: dart-lang/ecosystem/.github/workflows/want_lgtm.yaml@main
 
 on:
