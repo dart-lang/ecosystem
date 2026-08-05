@@ -174,7 +174,10 @@ jobs:
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       - name: Install firehose (internal)
         if: github.repository == 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+        env:
+          GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
@@ -182,8 +185,9 @@ jobs:
         id: fc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-          COMMENT_ID=$(dart pub global run firehose:comment find --issue ${{ github.event.number }} --author github-actions[bot] --body-includes "## PR Health")
+          COMMENT_ID=$(dart pub global run firehose:comment find --issue "$ISSUE_NUMBER" --author github-actions[bot] --body-includes "## PR Health")
           echo "comment-id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
 
       - name: Update comment
@@ -321,7 +325,10 @@ jobs:
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       - name: Install firehose (internal)
         if: github.repository == 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref ${{ github.head_ref || github.ref_name }}
+        env:
+          GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
@@ -336,16 +343,19 @@ jobs:
         id: fc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-          COMMENT_ID=$(dart pub global run firehose:comment find --issue ${{ github.event.number }} --author github-actions[bot] --body-includes "## PR Health")
+          COMMENT_ID=$(dart pub global run firehose:comment find --issue "$ISSUE_NUMBER" --author github-actions[bot] --body-includes "## PR Health")
           echo "comment-id=$COMMENT_ID" >> "$GITHUB_OUTPUT"
       
       - name: Merge all single comments
+        env:
+          ISSUE_NUMBER: ${{ github.event.number }}
         run: |
          mkdir output
          echo $'## PR Health\n\n' >> output/comment.md
          find single-comments -name '*.md' -exec cat {} + >> output/comment.md
-         echo ${{ github.event.number }} > output/issueNumber
+         echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
