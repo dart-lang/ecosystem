@@ -62,5 +62,40 @@ void main() {
       tag = Tag('foobar-1.2.3');
       expect(tag.valid, false);
     });
+
+    test('empty prefix single package repo', () {
+      final tag = Tag('1.2.3', prefix: '');
+      expect(tag.valid, true);
+      expect(tag.package, isNull);
+      expect(tag.version, '1.2.3');
+    });
+
+    test('empty prefix single package repo pre-release', () {
+      final tag = Tag('1.2.3-beta', prefix: '');
+      expect(tag.valid, true);
+      expect(tag.package, isNull);
+      expect(tag.version, '1.2.3-beta');
+    });
+
+    test('empty prefix mono repo', () {
+      final tag = Tag('foobar-1.2.3', prefix: '');
+      expect(tag.valid, true);
+      expect(tag.package, 'foobar');
+      expect(tag.version, '1.2.3');
+    });
+
+    test('custom prefix single package repo', () {
+      final tag = Tag('rel-1.2.3', prefix: 'rel-');
+      expect(tag.valid, true);
+      expect(tag.package, isNull);
+      expect(tag.version, '1.2.3');
+    });
+
+    test('custom prefix mono repo', () {
+      final tag = Tag('foobar-rel-1.2.3', prefix: 'rel-');
+      expect(tag.valid, true);
+      expect(tag.package, 'foobar');
+      expect(tag.version, '1.2.3');
+    });
   });
 }

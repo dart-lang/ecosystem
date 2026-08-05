@@ -65,6 +65,26 @@ void main() {
           allOf(contains(package.name), contains(package.version.toString())));
       expect(queryParams['body'], package.changelog.describeLatestChanges);
     });
+
+    test('github release link with custom prefix', () {
+      final github = GithubApi(
+        repoSlug: RepositorySlug.full('dart-lang/ecosystem'),
+      );
+      final package = packages.locatePackages().first;
+      final releaseUri = packages.calculateReleaseUri(
+        package,
+        github,
+        tagPrefix: '',
+      );
+      expect(releaseUri.path, '/${github.repoSlug}/releases/new');
+
+      final queryParams = releaseUri.queryParameters;
+      expect(
+        queryParams['tag'],
+        packages.calculateRepoTag(package, tagPrefix: ''),
+      );
+      expect(queryParams['tag'], '${package.name}-${package.pubspec.version}');
+    });
   });
 
   group('pub workspace repo', () {
