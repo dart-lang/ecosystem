@@ -193,13 +193,15 @@ jobs:
       - name: Update comment
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         if: steps.fc.outputs.comment-id != 0
+        env:
+          COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             await github.rest.issues.updateComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              comment_id: ${{ steps.fc.outputs.comment-id }},
+              comment_id: process.env.COMMENT_ID,
               body: '## PR Health ⚠️\n\nHealth checks are rerunning. These details are out-of-date.'
             });
 

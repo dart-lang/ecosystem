@@ -197,11 +197,17 @@ jobs:
           INPUTS_HEALTH_YAML_NAME: ${{ inputs.health_yaml_name }}
           INPUTS_LICENSE: ${{ inputs.license }}
           INPUTS_LICENSE_TEST_STRING: ${{ inputs.license_test_string }}
+          INPUTS_COVERAGE_WEB: ${{ inputs.coverage_web }}
         run: |
           cd current_repo/
+          if [ "$INPUTS_COVERAGE_WEB" = "true" ]; then
+            COVERAGE_WEB_FLAG="--coverage_web"
+          else
+            COVERAGE_WEB_FLAG=""
+          fi
           dart pub global run firehose:health \
-            --check ${INPUTS_CHECK} \
-            ${{ fromJSON('{"true":"--coverage_web","false":""}')[inputs.coverage_web] }} \
+            --check "${INPUTS_CHECK}" \
+            $COVERAGE_WEB_FLAG \
             --fail_on "${INPUTS_FAIL_ON}" \
             --warn_on "${INPUTS_WARN_ON}" \
             --flutter_packages "${INPUTS_FLUTTER_PACKAGES}" \
@@ -221,7 +227,7 @@ jobs:
 
       - name: Ensure comment file exists
         run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
-        if: ${{ '$action_state' == 1 }}
+        if: failure()
         env:
           INPUTS_CHECK: ${{ inputs.check }}
 
