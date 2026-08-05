@@ -207,6 +207,8 @@ jobs:
 
   changelog:
     if: ${{ contains(inputs.checks, 'changelog') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -222,6 +224,8 @@ jobs:
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -239,6 +243,8 @@ jobs:
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -257,6 +263,8 @@ jobs:
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -272,6 +280,8 @@ jobs:
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -287,6 +297,8 @@ jobs:
 
   leaking:
     if: ${{ contains(inputs.checks, 'leaking') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
@@ -302,6 +314,8 @@ jobs:
 
   unused-dependencies:
     if: ${{ contains(inputs.checks, 'unused-dependencies') }}
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/health_base.yaml
     with:
       sdk: ${{ inputs.sdk }}
