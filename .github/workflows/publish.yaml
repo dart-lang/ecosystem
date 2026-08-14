@@ -304,7 +304,7 @@ jobs:
       - name: Generate Build Provenance
         if: ${{ inputs.provenance }}
         id: attest
-        uses: actions/attest-build-provenance@c735d8856cf286b0337c76b92a6c11391754eb5e # v2.2.0
+        uses: actions/attest-build-provenance@520d128f165991a6c774bcb264f323e3d70747f4 # v2.2.0
         with:
           subject-path: 'output/*.tar.gz'
 
