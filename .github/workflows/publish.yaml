@@ -285,6 +285,29 @@ jobs:
         run: dart pub global activate --source path pkgs/firehose/
         if: ${{ inputs.local_debug }}
 
+      - name: Package archive for provenance
+        if: ${{ inputs.provenance }}
+        env:
+          INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          USE_FLUTTER: ${{ inputs.use-flutter }}
+        run: |
+          if [ "$USE_FLUTTER" = "true" ]; then
+            FLUTTER_FLAG="--use-flutter"
+          else
+            FLUTTER_FLAG="--no-use-flutter"
+          fi
+          dart pub global run firehose \
+            --package-only \
+            "$FLUTTER_FLAG" \
+            --tag-prefix "$INPUTS_TAG_PREFIX"
+
+      - name: Generate Build Provenance
+        if: ${{ inputs.provenance }}
+        id: attest
+        uses: actions/attest-build-provenance@c735d8856cf286b0337c76b92a6c11391754eb5e # v2.2.0
+        with:
+          subject-path: 'output/*.tar.gz'
+
       - name: Publish packages
         env:
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}

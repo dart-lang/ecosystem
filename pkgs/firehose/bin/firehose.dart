@@ -11,6 +11,7 @@ import 'package:glob/glob.dart';
 const helpFlag = 'help';
 const validateFlag = 'validate';
 const publishFlag = 'publish';
+const packageOnlyFlag = 'package-only';
 const useFlutterFlag = 'use-flutter';
 const tagPrefixOption = 'tag-prefix';
 const provenanceFlag = 'provenance';
@@ -27,6 +28,7 @@ void main(List<String> arguments) async {
 
     final validate = argResults[validateFlag] as bool;
     final publish = argResults[publishFlag] as bool;
+    final packageOnly = argResults[packageOnlyFlag] as bool;
     final useFlutter = argResults[useFlutterFlag] as bool;
     final tagPrefix = argResults[tagPrefixOption] as String;
     final provenance = argResults[provenanceFlag] as bool;
@@ -35,18 +37,21 @@ void main(List<String> arguments) async {
         .map((pattern) => Glob(pattern, recursive: true))
         .toList();
 
-    if (!validate && !publish) {
+    if (!validate && !publish && !packageOnly) {
       _usage(argParser,
-          error: 'Error: one of --validate or --publish must be specified.');
+          error:
+              'Error: one of --validate, --publish, or --package-only must be '
+              'specified.');
       exitCode = 1;
       return;
     }
 
     final github = GithubApi();
-    if (publish && !github.inGithubContext) {
+    if ((publish || packageOnly) && !github.inGithubContext) {
       _usage(argParser,
-          error: 'Error: --publish can only be executed from within a GitHub '
-              'action.');
+          error:
+              'Error: --publish and --package-only can only be executed from '
+              'within a GitHub action.');
       exitCode = 1;
       return;
     }
@@ -63,6 +68,8 @@ void main(List<String> arguments) async {
       await firehose.validate();
     } else if (publish) {
       await firehose.publish();
+    } else if (packageOnly) {
+      await firehose.packageOnly();
     }
   } on ArgParserException catch (e) {
     _usage(argParser, error: e.message);
@@ -99,6 +106,11 @@ ArgParser _createArgs() => ArgParser()
     publishFlag,
     negatable: false,
     help: 'Publish any changed packages.',
+  )
+  ..addFlag(
+    packageOnlyFlag,
+    negatable: false,
+    help: 'Package the archive for the release tag without publishing.',
   )
   ..addFlag(
     useFlutterFlag,

@@ -197,6 +197,54 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     return results;
   }
 
+  /// Package the archive for the targeted package without publishing.
+  Future packageOnly() async {
+    final success = await _packageOnly();
+    if (!success && exitCode == 0) {
+      exitCode = 1;
+    }
+  }
+
+  Future<bool> _packageOnly() async {
+    final package = _findPackageToPublish();
+    if (package == null) return false;
+
+    print('Packaging ${'package:${package.name}'}');
+    print('');
+
+    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
+    print('');
+
+    final outputDir = Directory('output');
+    if (!outputDir.existsSync()) {
+      await outputDir.create(recursive: true);
+    }
+    final archiveFile = File(
+      '${outputDir.path}/${package.name}-${package.pubspec.version}.tar.gz',
+    );
+
+    final command = useFlutter ? 'flutter' : 'dart';
+    print(
+      'Creating package archive at ${archiveFile.path} '
+      'for provenance signing...',
+    );
+    final result = await runCommand(
+      command,
+      args: [
+        'pub',
+        'publish',
+        '--to-archive=${archiveFile.path}',
+      ],
+      cwd: package.directory,
+    );
+    if (result.code != 0) {
+      exitCode = result.code;
+      return false;
+    }
+    print('Package archive created at ${archiveFile.path}');
+    return true;
+  }
+
   /// Publish the indicated package in the repository.
   ///
   /// This is intended to be run on a github workflow in response to a git tag.
@@ -213,18 +261,58 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
   }
 
   Future<bool> _publish() async {
+    final package = _findPackageToPublish();
+    if (package == null) return false;
+
+    print('');
+    print('Publishing ${'package:${package.name}'}');
+    print('');
+
+    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
+    print('');
+
+    final archiveFile = File(
+      'output/${package.name}-${package.pubspec.version}.tar.gz',
+    );
+    if (provenance && archiveFile.existsSync()) {
+      print('Publishing from prepared archive: ${archiveFile.path}');
+      final command = useFlutter ? 'flutter' : 'dart';
+      final result = await runCommand(
+        command,
+        args: [
+          'pub',
+          'publish',
+          '--from-archive=${archiveFile.path}',
+          '--force',
+        ],
+        cwd: package.directory,
+      );
+      if (result.code != 0) {
+        exitCode = result.code;
+      }
+      return result.code == 0;
+    }
+
+    final result = await _runPublish(package, dryRun: false, force: true);
+    if (result.code != 0) {
+      exitCode = result.code;
+    }
+    return result.code == 0;
+  }
+
+  Package? _findPackageToPublish() {
     final github = GithubApi();
 
-    if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
+    if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return null;
 
     // Validate the git tag.
     final tag = Tag(github.refName!, prefix: tagPrefix);
     if (!tag.valid) {
       stderr.writeln("Git tag not in expected format: '$tag'");
-      return false;
+      return null;
     }
 
-    print("Publishing '$tag'");
+    print("Targeting git tag '$tag'");
     print('');
 
     final repo = Repository();
@@ -241,25 +329,21 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     if (repo.isSinglePackageRepo) {
       if (packages.isEmpty) {
         stderr.writeln('No publishable package found.');
-        return false;
+        return null;
       }
       package = packages.first;
     } else {
       final name = tag.package;
       if (name == null) {
         stderr.writeln("Tag does not include package name ('$tag').");
-        return false;
+        return null;
       }
       if (!packages.any((p) => p.name == name)) {
         stderr.writeln("Tag does not match a repo package ('$tag').");
-        return false;
+        return null;
       }
       package = packages.firstWhere((p) => p.name == name);
     }
-
-    print('');
-    print('Publishing ${'package:${package.name}'}');
-    print('');
 
     print('pubspec:');
     final pubspecVersion = package.pubspec.version?.toString();
@@ -273,7 +357,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       stderr.writeln(
         "Pubspec version ($pubspecVersion) and git tag ($tag) don't agree.",
       );
-      return false;
+      return null;
     }
 
     if (pubspecVersion != changelogVersion) {
@@ -281,17 +365,10 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         'Pubspec version ($pubspecVersion) and changelog version '
         "($changelogVersion) don't agree.",
       );
-      return false;
+      return null;
     }
 
-    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
-    print('');
-
-    final result = await _runPublish(package, dryRun: false, force: true);
-    if (result.code != 0) {
-      exitCode = result.code;
-    }
-    return result.code == 0;
+    return package;
   }
 
   Future<CommandResult> _runPublish(
@@ -304,46 +381,6 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       command = 'flutter';
     } else {
       command = 'dart';
-    }
-
-    if (provenance && !dryRun) {
-      final tempDir = await Directory.systemTemp.createTemp('firehose_pkg_');
-      try {
-        final archiveFile = File(
-          '${tempDir.path}/${package.name}-${package.pubspec.version}.tar.gz',
-        );
-        print(
-          'Packaging ${package.name} archive to ${archiveFile.path} '
-          'for provenance signing...',
-        );
-        final archiveResult = await runCommand(
-          command,
-          args: [
-            'pub',
-            'publish',
-            '--to-archive=${archiveFile.path}',
-          ],
-          cwd: package.directory,
-        );
-        if (archiveResult.code != 0) {
-          return archiveResult;
-        }
-
-        print('Package archive created at ${archiveFile.path}');
-
-        return await runCommand(
-          command,
-          args: [
-            'pub',
-            'publish',
-            '--from-archive=${archiveFile.path}',
-            if (force) '--force',
-          ],
-          cwd: package.directory,
-        );
-      } finally {
-        await tempDir.delete(recursive: true);
-      }
     }
 
     return await runCommand(
