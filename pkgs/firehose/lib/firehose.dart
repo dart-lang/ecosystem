@@ -32,12 +32,14 @@ class Firehose {
   final bool useFlutter;
   final List<Glob> ignoredPackages;
   final String tagPrefix;
+  final bool provenance;
 
   Firehose(
     this.directory,
     this.useFlutter,
     this.ignoredPackages, {
     this.tagPrefix = 'v',
+    this.provenance = false,
   });
 
   /// Validate the packages in the repository.
@@ -303,6 +305,47 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     } else {
       command = 'dart';
     }
+
+    if (provenance && !dryRun) {
+      final tempDir = await Directory.systemTemp.createTemp('firehose_pkg_');
+      try {
+        final archiveFile = File(
+          '${tempDir.path}/${package.name}-${package.pubspec.version}.tar.gz',
+        );
+        print(
+          'Packaging ${package.name} archive to ${archiveFile.path} '
+          'for provenance signing...',
+        );
+        final archiveResult = await runCommand(
+          command,
+          args: [
+            'pub',
+            'publish',
+            '--to-archive=${archiveFile.path}',
+          ],
+          cwd: package.directory,
+        );
+        if (archiveResult.code != 0) {
+          return archiveResult;
+        }
+
+        print('Package archive created at ${archiveFile.path}');
+
+        return await runCommand(
+          command,
+          args: [
+            'pub',
+            'publish',
+            '--from-archive=${archiveFile.path}',
+            if (force) '--force',
+          ],
+          cwd: package.directory,
+        );
+      } finally {
+        await tempDir.delete(recursive: true);
+      }
+    }
+
     return await runCommand(
       command,
       args: ['pub', 'publish', if (dryRun) '--dry-run', if (force) '--force'],

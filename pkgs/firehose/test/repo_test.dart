@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:firehose/firehose.dart';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/repo.dart';
 import 'package:github/github.dart' show RepositorySlug;
@@ -118,6 +119,18 @@ void main() {
             isA<Package>().having((p) => p.name, 'name', 'pkg_1'),
             isA<Package>().having((p) => p.name, 'name', 'pkg_2'),
           ]));
+    });
+  });
+
+  group('firehose configuration', () {
+    test('default provenance is false', () {
+      final firehose = Firehose(Directory.current, false, []);
+      expect(firehose.provenance, isFalse);
+    });
+
+    test('custom provenance', () {
+      final firehose = Firehose(Directory.current, false, [], provenance: true);
+      expect(firehose.provenance, isTrue);
     });
   });
 }

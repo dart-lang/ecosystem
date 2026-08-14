@@ -104,6 +104,12 @@ on:
         default: "v"
         required: false
         type: string
+      provenance:
+        description: >-
+          Whether to enable package provenance signing (experimental).
+        default: false
+        required: false
+        type: boolean
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
@@ -235,9 +241,10 @@ jobs:
     # Require the github deployment environment if supplied.
     environment: ${{ inputs.environment }}
 
-    # This permission is required for authentication using OIDC.
+    # This permission is required for authentication using OIDC and for artifact attestations.
     permissions:
       id-token: write
+      attestations: write
 
     runs-on: ubuntu-latest
     steps:
@@ -282,13 +289,20 @@ jobs:
         env:
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
           USE_FLUTTER: ${{ inputs.use-flutter }}
+          PROVENANCE: ${{ inputs.provenance }}
         run: |
           if [ "$USE_FLUTTER" = "true" ]; then
             FLUTTER_FLAG="--use-flutter"
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
+          if [ "$PROVENANCE" = "true" ]; then
+            PROVENANCE_FLAG="--provenance"
+          else
+            PROVENANCE_FLAG=""
+          fi
           dart pub global run firehose \
             --publish \
             "$FLUTTER_FLAG" \
-            --tag-prefix "$INPUTS_TAG_PREFIX"
+            --tag-prefix "$INPUTS_TAG_PREFIX" \
+            $PROVENANCE_FLAG

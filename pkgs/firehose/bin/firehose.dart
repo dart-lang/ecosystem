@@ -13,6 +13,7 @@ const validateFlag = 'validate';
 const publishFlag = 'publish';
 const useFlutterFlag = 'use-flutter';
 const tagPrefixOption = 'tag-prefix';
+const provenanceFlag = 'provenance';
 
 void main(List<String> arguments) async {
   final argParser = _createArgs();
@@ -28,6 +29,7 @@ void main(List<String> arguments) async {
     final publish = argResults[publishFlag] as bool;
     final useFlutter = argResults[useFlutterFlag] as bool;
     final tagPrefix = argResults[tagPrefixOption] as String;
+    final provenance = argResults[provenanceFlag] as bool;
     final ignoredPackages = (argResults['ignore-packages'] as List<String>)
         .where((pattern) => pattern.isNotEmpty)
         .map((pattern) => Glob(pattern, recursive: true))
@@ -54,6 +56,7 @@ void main(List<String> arguments) async {
       useFlutter,
       ignoredPackages,
       tagPrefix: tagPrefix,
+      provenance: provenance,
     );
 
     if (validate) {
@@ -106,6 +109,11 @@ ArgParser _createArgs() => ArgParser()
     tagPrefixOption,
     defaultsTo: 'v',
     help: 'The tag prefix to expect and generate (e.g. "v" or "").',
+  )
+  ..addFlag(
+    provenanceFlag,
+    negatable: false,
+    help: 'Whether to sign packages with build provenance before publishing.',
   )
   ..addMultiOption(
     'ignore-packages',
