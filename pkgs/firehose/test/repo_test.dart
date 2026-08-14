@@ -9,8 +9,6 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:firehose/firehose.dart';
-import 'package:firehose/src/github.dart';
-import 'package:firehose/src/repo.dart';
 import 'package:github/github.dart' show RepositorySlug;
 import 'package:test/test.dart';
 
