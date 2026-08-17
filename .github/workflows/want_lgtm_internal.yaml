@@ -9,4 +9,7 @@ on:
 
 jobs:
   want_lgtm:
+    permissions:
+      pull-requests: read
+      issues: read
     uses: ./.github/workflows/want_lgtm.yaml
