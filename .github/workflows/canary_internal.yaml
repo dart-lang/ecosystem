@@ -7,6 +7,8 @@ on:
         
 jobs:
   test_ecosystem:
+    permissions:
+      pull-requests: write
     uses: ./.github/workflows/canary.yaml
     with:
       repos_file: .github/test_repos/repos.json
