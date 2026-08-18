@@ -261,16 +261,26 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       'Creating package archive at ${archiveFile.path} '
       'for provenance signing...',
     );
-    final result = await runCommand(
-      command,
-      args: [
-        'pub',
-        'publish',
-        '--to-archive=${archiveFile.path}',
-        '--skip-validation',
-      ],
-      cwd: package.directory,
-    );
+    final publishArgs = [
+      'pub',
+      'publish',
+      '--to-archive=${archiveFile.path}',
+      '--skip-validation',
+    ];
+    final CommandResult result;
+    if (Platform.isLinux) {
+      result = await runCommand(
+        'unshare',
+        args: ['-r', '-n', '--', command, ...publishArgs],
+        cwd: package.directory,
+      );
+    } else {
+      result = await runCommand(
+        command,
+        args: publishArgs,
+        cwd: package.directory,
+      );
+    }
     if (result.code != 0) {
       exitCode = result.code;
       return false;
