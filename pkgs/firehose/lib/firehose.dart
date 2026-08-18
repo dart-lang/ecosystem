@@ -246,6 +246,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         'pub',
         'publish',
         '--to-archive=${archiveFile.path}',
+        '--skip-validation',
       ],
       cwd: package.directory,
     );
