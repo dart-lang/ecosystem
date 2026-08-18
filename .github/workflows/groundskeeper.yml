@@ -5,10 +5,15 @@ on:
   workflow_call:
     inputs:
       sdk:
-        description: 'Flutter SDK channel'
+        description: 'Dart SDK version or Flutter channel'
         required: false
         type: string
         default: 'dev'
+      use-flutter:
+        description: 'Whether to use Flutter for this package'
+        required: false
+        type: boolean
+        default: false
       directory:
         description: 'The directory to tidy'
         required: false
@@ -80,9 +85,15 @@ jobs:
           persist-credentials: false
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        if: ${{ inputs.use-flutter }}
         with:
           channel: ${{ inputs.sdk }}
           cache: true
+
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
 
       - name: Resolve dependencies for firehose
         working-directory: .github/ecosystem-helper/pkgs/firehose

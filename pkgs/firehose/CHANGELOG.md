@@ -1,6 +1,6 @@
 ## 0.13.2-wip
 
-- Use Flutter `dev` channel in `groundskeeper` workflow to support Flutter packages.
+- Support `use-flutter` option in `groundskeeper` workflow to allow tidying Flutter packages.
 - Log full `dart_apitool` failure output to the workflow log instead of dumping
   multi-line stack traces into the PR health comment Markdown table.
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
