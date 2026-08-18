@@ -235,8 +235,73 @@ jobs:
           name: output
           path: output/
 
+  package:
+    if: ${{ github.event_name == 'push' && inputs.provenance }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          submodules: ${{ inputs.checkout_submodules }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        if: ${{ inputs.use-flutter }}
+        with:
+          channel: ${{ inputs.sdk }}
+          cache: true
+
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        if: ${{ !inputs.use-flutter }}
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - name: Install firehose (internal)
+        if: ${{ !inputs.local_debug && github.repository == 'dart-lang/ecosystem' }}
+        env:
+          GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
+          GIT_REF: ${{ github.head_ref || github.ref_name }}
+        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+
+      - name: Install firehose (external)
+        if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+
+      - name: Install local firehose
+        run: dart pub global activate --source path pkgs/firehose/
+        if: ${{ inputs.local_debug }}
+
+      - name: Package archive for provenance
+        env:
+          INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
+          USE_FLUTTER: ${{ inputs.use-flutter }}
+        run: |
+          if [ "$USE_FLUTTER" = "true" ]; then
+            FLUTTER_FLAG="--use-flutter"
+          else
+            FLUTTER_FLAG="--no-use-flutter"
+          fi
+          dart pub global run firehose \
+            --package-only \
+            "$FLUTTER_FLAG" \
+            --tag-prefix "$INPUTS_TAG_PREFIX"
+
+      - name: Upload package archive
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.0.0
+        with:
+          name: package-archive
+          path: output/
+
   publish:
-    if: ${{ github.event_name == 'push' }}
+    if: ${{ github.event_name == 'push' && !cancelled() && !failure() }}
+    needs: [package]
 
     # Require the github deployment environment if supplied.
     environment: ${{ inputs.environment }}
@@ -285,21 +350,12 @@ jobs:
         run: dart pub global activate --source path pkgs/firehose/
         if: ${{ inputs.local_debug }}
 
-      - name: Package archive for provenance
+      - name: Download package archive
         if: ${{ inputs.provenance }}
-        env:
-          INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
-          USE_FLUTTER: ${{ inputs.use-flutter }}
-        run: |
-          if [ "$USE_FLUTTER" = "true" ]; then
-            FLUTTER_FLAG="--use-flutter"
-          else
-            FLUTTER_FLAG="--no-use-flutter"
-          fi
-          dart pub global run firehose \
-            --package-only \
-            "$FLUTTER_FLAG" \
-            --tag-prefix "$INPUTS_TAG_PREFIX"
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: package-archive
+          path: output/
 
       - name: Generate Build Provenance
         if: ${{ inputs.provenance }}

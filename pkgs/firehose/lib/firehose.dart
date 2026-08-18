@@ -224,6 +224,18 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     );
 
     final command = useFlutter ? 'flutter' : 'dart';
+    print('Validating ${package.name} with dry-run before packaging...');
+    final dryRunResult = await runCommand(
+      command,
+      args: ['pub', 'publish', '--dry-run'],
+      cwd: package.directory,
+    );
+    if (dryRunResult.code != 0) {
+      exitCode = dryRunResult.code;
+      return false;
+    }
+    print('');
+
     print(
       'Creating package archive at ${archiveFile.path} '
       'for provenance signing...',
