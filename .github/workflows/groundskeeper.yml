@@ -5,7 +5,7 @@ on:
   workflow_call:
     inputs:
       sdk:
-        description: 'Dart SDK version'
+        description: 'Flutter SDK channel'
         required: false
         type: string
         default: 'dev'
@@ -75,9 +75,10 @@ jobs:
           repository: dart-lang/ecosystem
           path: .github/ecosystem-helper
 
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
-          sdk: ${{ inputs.sdk }}
+          channel: ${{ inputs.sdk }}
+          cache: true
 
       - name: Resolve dependencies for firehose
         working-directory: .github/ecosystem-helper/pkgs/firehose
