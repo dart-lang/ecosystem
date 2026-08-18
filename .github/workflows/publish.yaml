@@ -333,7 +333,7 @@ jobs:
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          dart pub global run firehose \
+          unshare -r -n -- dart pub global run firehose \
             --package-only \
             "$FLUTTER_FLAG" \
             --tag-prefix "$INPUTS_TAG_PREFIX"

@@ -245,9 +245,6 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     print('Packaging ${'package:${package.name}'}');
     print('');
 
-    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
-    print('');
-
     final outputDir = Directory('output');
     if (!outputDir.existsSync()) {
       await outputDir.create(recursive: true);
@@ -261,26 +258,16 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       'Creating package archive at ${archiveFile.path} '
       'for provenance signing...',
     );
-    final publishArgs = [
-      'pub',
-      'publish',
-      '--to-archive=${archiveFile.path}',
-      '--skip-validation',
-    ];
-    final CommandResult result;
-    if (Platform.isLinux) {
-      result = await runCommand(
-        'unshare',
-        args: ['-r', '-n', '--', command, ...publishArgs],
-        cwd: package.directory,
-      );
-    } else {
-      result = await runCommand(
-        command,
-        args: publishArgs,
-        cwd: package.directory,
-      );
-    }
+    final result = await runCommand(
+      command,
+      args: [
+        'pub',
+        'publish',
+        '--to-archive=${archiveFile.path}',
+        '--skip-validation',
+      ],
+      cwd: package.directory,
+    );
     if (result.code != 0) {
       exitCode = result.code;
       return false;
