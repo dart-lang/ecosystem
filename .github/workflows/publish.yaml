@@ -245,13 +245,6 @@ jobs:
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-cache-
-
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         if: ${{ inputs.use-flutter }}
         with:
@@ -303,13 +296,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           submodules: ${{ inputs.checkout_submodules }}
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-cache-
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         if: ${{ inputs.use-flutter }}
@@ -375,13 +361,6 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           submodules: ${{ inputs.checkout_submodules }}
-
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-cache-
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         if: ${{ inputs.use-flutter }}
