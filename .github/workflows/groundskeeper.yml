@@ -63,17 +63,21 @@ jobs:
         with:
           client-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - name: Checkout caller repo
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           token: ${{ steps.generate-token.outputs.token }}
+          persist-credentials: false
 
       - name: Checkout ecosystem (for tidy script)
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           repository: dart-lang/ecosystem
           path: .github/ecosystem-helper
+          persist-credentials: false
 
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         with:
@@ -86,10 +90,13 @@ jobs:
 
       - name: Run Tidy Script
         working-directory: ${{ inputs.directory }}
+        env:
+          RUN_FORMAT: ${{ inputs.run-format }}
+          RUN_FIX: ${{ inputs.run-fix }}
         run: |
           dart $GITHUB_WORKSPACE/.github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
-            --format=${{ inputs.run-format }} \
-            --fix=${{ inputs.run-fix }}
+            --format="$RUN_FORMAT" \
+            --fix="$RUN_FIX"
 
       - name: Check for changes
         id: check_changes
@@ -104,9 +111,12 @@ jobs:
       - name: Update changelog
         if: ${{ inputs.update-changelog && steps.check_changes.outputs.changed == 'true' }}
         working-directory: .github/ecosystem-helper/pkgs/repo_manage
+        env:
+          DIRECTORY: ${{ inputs.directory }}
+          CHANGELOG_MESSAGE: ${{ inputs.changelog-message }}
         run: |
           dart pub get
-          dart run bin/report.dart changelog --changelog "../../../../${{ inputs.directory }}/CHANGELOG.md" "${{ inputs.changelog-message }}"
+          dart run bin/report.dart changelog --changelog "../../../../$DIRECTORY/CHANGELOG.md" "$CHANGELOG_MESSAGE"
 
       - name: Clean up helper
         run: rm -rf .github/ecosystem-helper
