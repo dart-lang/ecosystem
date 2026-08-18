@@ -110,6 +110,13 @@ on:
         default: false
         required: false
         type: boolean
+      skip-validation:
+        description: >-
+          Whether to skip the pre-release validation step. Useful if you run
+          your own custom validation before publishing.
+        default: false
+        required: false
+        type: boolean
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
@@ -236,7 +243,7 @@ jobs:
           path: output/
 
   validate-release:
-    if: ${{ github.event_name == 'push' && inputs.provenance }}
+    if: ${{ github.event_name == 'push' && inputs.provenance && !inputs.skip-validation && !contains(github.ref_name, 'skip-validation') }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -287,7 +294,7 @@ jobs:
             --tag-prefix "$INPUTS_TAG_PREFIX"
 
   package:
-    if: ${{ github.event_name == 'push' && inputs.provenance }}
+    if: ${{ github.event_name == 'push' && inputs.provenance && !cancelled() && !failure() }}
     needs: [validate-release]
     permissions:
       contents: read
