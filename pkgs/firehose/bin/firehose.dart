@@ -10,6 +10,7 @@ import 'package:glob/glob.dart';
 
 const helpFlag = 'help';
 const validateFlag = 'validate';
+const validateReleaseFlag = 'validate-release';
 const publishFlag = 'publish';
 const packageOnlyFlag = 'package-only';
 const useFlutterFlag = 'use-flutter';
@@ -27,6 +28,7 @@ void main(List<String> arguments) async {
     }
 
     final validate = argResults[validateFlag] as bool;
+    final validateRelease = argResults[validateReleaseFlag] as bool;
     final publish = argResults[publishFlag] as bool;
     final packageOnly = argResults[packageOnlyFlag] as bool;
     final useFlutter = argResults[useFlutterFlag] as bool;
@@ -37,21 +39,20 @@ void main(List<String> arguments) async {
         .map((pattern) => Glob(pattern, recursive: true))
         .toList();
 
-    if (!validate && !publish && !packageOnly) {
+    if (!validate && !validateRelease && !publish && !packageOnly) {
       _usage(argParser,
-          error:
-              'Error: one of --validate, --publish, or --package-only must be '
-              'specified.');
+          error: 'Error: one of --validate, --validate-release, --publish, or '
+              '--package-only must be specified.');
       exitCode = 1;
       return;
     }
 
     final github = GithubApi();
-    if ((publish || packageOnly) && !github.inGithubContext) {
+    if ((validateRelease || publish || packageOnly) &&
+        !github.inGithubContext) {
       _usage(argParser,
-          error:
-              'Error: --publish and --package-only can only be executed from '
-              'within a GitHub action.');
+          error: 'Error: --validate-release, --publish, and --package-only can '
+              'only be executed from within a GitHub action.');
       exitCode = 1;
       return;
     }
@@ -66,6 +67,8 @@ void main(List<String> arguments) async {
 
     if (validate) {
       await firehose.validate();
+    } else if (validateRelease) {
+      await firehose.validateRelease();
     } else if (publish) {
       await firehose.publish();
     } else if (packageOnly) {
@@ -101,6 +104,11 @@ ArgParser _createArgs() => ArgParser()
     negatable: false,
     help: 'Validate packages and indicate whether --publish would publish '
         'anything.',
+  )
+  ..addFlag(
+    validateReleaseFlag,
+    negatable: false,
+    help: 'Validate the release package with pub publish --dry-run.',
   )
   ..addFlag(
     publishFlag,

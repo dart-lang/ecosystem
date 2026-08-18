@@ -197,6 +197,39 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     return results;
   }
 
+  /// Validate the targeted package for release without publishing or packaging.
+  Future validateRelease() async {
+    final success = await _validateRelease();
+    if (!success && exitCode == 0) {
+      exitCode = 1;
+    }
+  }
+
+  Future<bool> _validateRelease() async {
+    final package = _findPackageToPublish();
+    if (package == null) return false;
+
+    print('Validating ${'package:${package.name}'} with pub publish --dry-run');
+    print('');
+
+    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
+    print('');
+
+    final command = useFlutter ? 'flutter' : 'dart';
+    final dryRunResult = await runCommand(
+      command,
+      args: ['pub', 'publish', '--dry-run'],
+      cwd: package.directory,
+    );
+    if (dryRunResult.code != 0) {
+      exitCode = dryRunResult.code;
+      return false;
+    }
+    print('');
+    print('Package validation succeeded for ${package.name}.');
+    return true;
+  }
+
   /// Package the archive for the targeted package without publishing.
   Future packageOnly() async {
     final success = await _packageOnly();
@@ -224,18 +257,6 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     );
 
     final command = useFlutter ? 'flutter' : 'dart';
-    print('Validating ${package.name} with dry-run before packaging...');
-    final dryRunResult = await runCommand(
-      command,
-      args: ['pub', 'publish', '--dry-run'],
-      cwd: package.directory,
-    );
-    if (dryRunResult.code != 0) {
-      exitCode = dryRunResult.code;
-      return false;
-    }
-    print('');
-
     print(
       'Creating package archive at ${archiveFile.path} '
       'for provenance signing...',
