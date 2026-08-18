@@ -1,5 +1,6 @@
 ## 0.13.2-wip
 
+- Support `use-flutter` option in `groundskeeper` workflow to allow tidying Flutter packages.
 - Add `--tag-prefix` option to `firehose` and `tag-prefix` input to `publish.yaml` to allow configuring the release tag prefix (defaults to `'v'`).
 - Run `pub get` before `dart format` in `groundskeeper`.
 - Add `groundskeeper` executable to format and fix packages.
