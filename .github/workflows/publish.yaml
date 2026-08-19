@@ -186,7 +186,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
+        env:
+          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -292,7 +294,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
+        env:
+          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -344,7 +348,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
+        env:
+          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -409,7 +415,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
+        env:
+          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
