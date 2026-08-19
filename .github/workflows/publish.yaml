@@ -187,7 +187,7 @@ jobs:
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         env:
-          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+          FIREHOSE_REF: ${{ job.workflow_sha || inputs.firehose_ref || 'main' }}
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
@@ -295,7 +295,7 @@ jobs:
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         env:
-          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+          FIREHOSE_REF: ${{ job.workflow_sha || inputs.firehose_ref || 'main' }}
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
@@ -349,7 +349,7 @@ jobs:
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         env:
-          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+          FIREHOSE_REF: ${{ job.workflow_sha || inputs.firehose_ref || 'main' }}
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
@@ -416,7 +416,7 @@ jobs:
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         env:
-          FIREHOSE_REF: ${{ inputs.firehose_ref }}
+          FIREHOSE_REF: ${{ job.workflow_sha || inputs.firehose_ref || 'main' }}
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
 
       - name: Install local firehose
