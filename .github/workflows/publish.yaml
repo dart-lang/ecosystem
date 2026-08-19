@@ -415,6 +415,13 @@ jobs:
         with:
           subject-path: 'output/*.tar.gz'
 
+      - name: Upload attestation bundle
+        if: ${{ inputs.provenance }}
+        uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
+        with:
+          name: attestation-bundle
+          path: ${{ steps.attest.outputs.bundle-path }}
+
       - name: Publish packages
         env:
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
