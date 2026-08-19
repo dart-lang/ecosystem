@@ -117,6 +117,12 @@ on:
         default: false
         required: false
         type: boolean
+      firehose_ref:
+        description: >-
+          The git ref to use when activating package:firehose from dart-lang/ecosystem.
+        default: "main"
+        required: false
+        type: string
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
@@ -166,11 +172,7 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        env:
-          WORKFLOW_REF: ${{ github.workflow_ref }}
-        run: |
-          GIT_REF="${WORKFLOW_REF#*@}"
-          dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -276,11 +278,7 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        env:
-          WORKFLOW_REF: ${{ github.workflow_ref }}
-        run: |
-          GIT_REF="${WORKFLOW_REF#*@}"
-          dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -332,11 +330,7 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        env:
-          WORKFLOW_REF: ${{ github.workflow_ref }}
-        run: |
-          GIT_REF="${WORKFLOW_REF#*@}"
-          dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -401,11 +395,7 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        env:
-          WORKFLOW_REF: ${{ github.workflow_ref }}
-        run: |
-          GIT_REF="${WORKFLOW_REF#*@}"
-          dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ inputs.firehose_ref }}"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
