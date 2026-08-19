@@ -346,7 +346,7 @@ jobs:
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          sudo unshare -n sudo -u $(whoami) -H env "PATH=$PATH" dart pub global run firehose \
+          sudo -E unshare -n sudo -u $(whoami) -E env "PATH=$PATH" "HOME=$HOME" dart pub global run firehose \
             --package-only \
             "$FLUTTER_FLAG" \
             --tag-prefix "$INPUTS_TAG_PREFIX"
