@@ -117,6 +117,20 @@ on:
         default: false
         required: false
         type: boolean
+      use-prebuilt-archive:
+        description: >-
+          Whether to use a pre-built package archive uploaded by the caller workflow
+          (named by `package-archive-name` or defaulting to 'package-archive').
+          When true, skips the internal `validate-release` and `package` jobs.
+        default: false
+        required: false
+        type: boolean
+      package-archive-name:
+        description: >-
+          The name of the uploaded artifact containing the package archive(s).
+        default: "package-archive"
+        required: false
+        type: string
       firehose_ref:
         description: >-
           The git ref to use when activating package:firehose from dart-lang/ecosystem.
@@ -249,7 +263,7 @@ jobs:
           path: output/
 
   validate-release:
-    if: ${{ github.event_name == 'push' && inputs.provenance && !inputs.skip-validation && !contains(github.ref_name, 'skip-validation') }}
+    if: ${{ github.event_name == 'push' && inputs.provenance && !inputs.use-prebuilt-archive && !inputs.skip-validation && !contains(github.ref_name, 'skip-validation') }}
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -300,7 +314,7 @@ jobs:
             --tag-prefix "$INPUTS_TAG_PREFIX"
 
   package:
-    if: ${{ github.event_name == 'push' && inputs.provenance && !cancelled() && !failure() }}
+    if: ${{ github.event_name == 'push' && inputs.provenance && !inputs.use-prebuilt-archive && !cancelled() && !failure() }}
     needs: [validate-release]
     permissions:
       contents: read
@@ -402,21 +416,21 @@ jobs:
         if: ${{ inputs.local_debug }}
 
       - name: Download package archive
-        if: ${{ inputs.provenance }}
+        if: ${{ inputs.provenance || inputs.use-prebuilt-archive }}
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
-          name: package-archive
+          name: ${{ inputs.package-archive-name }}
           path: output/
 
       - name: Generate Build Provenance
-        if: ${{ inputs.provenance }}
+        if: ${{ inputs.provenance || inputs.use-prebuilt-archive }}
         id: attest
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: 'output/*.tar.gz'
 
       - name: Upload attestation bundle
-        if: ${{ inputs.provenance }}
+        if: ${{ inputs.provenance || inputs.use-prebuilt-archive }}
         uses: actions/upload-artifact@c7d193f32edcb7bfad88892161225aeda64e9392 # v4.0.0
         with:
           name: attestation-bundle
@@ -427,13 +441,14 @@ jobs:
           INPUTS_TAG_PREFIX: ${{ inputs.tag-prefix }}
           USE_FLUTTER: ${{ inputs.use-flutter }}
           PROVENANCE: ${{ inputs.provenance }}
+          USE_PREBUILT_ARCHIVE: ${{ inputs.use-prebuilt-archive }}
         run: |
           if [ "$USE_FLUTTER" = "true" ]; then
             FLUTTER_FLAG="--use-flutter"
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          if [ "$PROVENANCE" = "true" ]; then
+          if [ "$PROVENANCE" = "true" ] || [ "$USE_PREBUILT_ARCHIVE" = "true" ]; then
             PROVENANCE_FLAG="--provenance"
           else
             PROVENANCE_FLAG=""
