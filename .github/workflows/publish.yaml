@@ -178,6 +178,7 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -185,11 +186,13 @@ jobs:
           FIREHOSE_REF: ${{ job.workflow_sha }}
         run: |
           dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install local firehose
         if: ${{ inputs.local_debug }}
         run: |
           dart install "firehose@{path: $PWD/pkgs/firehose}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Fetch labels
         id: fetch-labels
@@ -289,6 +292,7 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -296,11 +300,13 @@ jobs:
           FIREHOSE_REF: ${{ job.workflow_sha }}
         run: |
           dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install local firehose
         if: ${{ inputs.local_debug }}
         run: |
           dart install "firehose@{path: $PWD/pkgs/firehose}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Validate package for release
         env:
@@ -346,6 +352,7 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -353,11 +360,13 @@ jobs:
           FIREHOSE_REF: ${{ job.workflow_sha }}
         run: |
           dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install local firehose
         if: ${{ inputs.local_debug }}
         run: |
           dart install "firehose@{path: $PWD/pkgs/firehose}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Package archive for provenance
         env:
@@ -416,6 +425,7 @@ jobs:
           GIT_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
@@ -423,11 +433,13 @@ jobs:
           FIREHOSE_REF: ${{ job.workflow_sha }}
         run: |
           dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Install local firehose
         if: ${{ inputs.local_debug }}
         run: |
           dart install "firehose@{path: $PWD/pkgs/firehose}"
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
 
       - name: Download package archive
         if: ${{ inputs.provenance || inputs.use-prebuilt-archive }}
