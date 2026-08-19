@@ -148,8 +148,6 @@ jobs:
       pull-requests: write
 
     runs-on: ubuntu-latest
-    env:
-      FIREHOSE_REF: ${{ job.workflow_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -182,6 +180,8 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          FIREHOSE_REF: ${{ job.workflow_sha }}
         run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
@@ -263,8 +263,6 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    env:
-      FIREHOSE_REF: ${{ job.workflow_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -290,6 +288,8 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          FIREHOSE_REF: ${{ job.workflow_sha }}
         run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
@@ -317,8 +317,6 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
-    env:
-      FIREHOSE_REF: ${{ job.workflow_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -344,6 +342,8 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          FIREHOSE_REF: ${{ job.workflow_sha }}
         run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
@@ -384,8 +384,6 @@ jobs:
       attestations: write
 
     runs-on: ubuntu-latest
-    env:
-      FIREHOSE_REF: ${{ job.workflow_sha }}
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -411,6 +409,8 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          FIREHOSE_REF: ${{ job.workflow_sha }}
         run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
