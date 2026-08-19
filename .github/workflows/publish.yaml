@@ -178,14 +178,14 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
-        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
+        run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
-        run: dart pub global activate --source path pkgs/firehose/
+        run: dart install "firehose@{path: $PWD/pkgs/firehose}"
         if: ${{ inputs.local_debug }}
 
       - name: Fetch labels
@@ -215,7 +215,7 @@ jobs:
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          dart pub global run firehose \
+          firehose \
             --validate \
             "$FLUTTER_FLAG" \
             --ignore-packages "$INPUTS_IGNORE_PACKAGES" \
@@ -235,14 +235,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.number }}
-        run: dart pub global run firehose:comment create-or-update --issue "$ISSUE_NUMBER" --body-path output/comment.md
+        run: comment create-or-update --issue "$ISSUE_NUMBER" --body-path output/comment.md
 
       - name: Update comment
         if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_ID: ${{ steps.comment-id.outputs.comment }}
-        run: dart pub global run firehose:comment create-or-update --comment-id "$COMMENT_ID" --body-path output/comment.md
+        run: comment create-or-update --comment-id "$COMMENT_ID" --body-path output/comment.md
 
       - name: Save PR number
         if: ${{ !inputs.write-comments }}
@@ -286,14 +286,14 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
-        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
+        run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
-        run: dart pub global activate --source path pkgs/firehose/
+        run: dart install "firehose@{path: $PWD/pkgs/firehose}"
         if: ${{ inputs.local_debug }}
 
       - name: Validate package for release
@@ -306,7 +306,7 @@ jobs:
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          dart pub global run firehose \
+          firehose \
             --validate-release \
             "$FLUTTER_FLAG" \
             --tag-prefix "$INPUTS_TAG_PREFIX"
@@ -340,14 +340,14 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
-        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
+        run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
-        run: dart pub global activate --source path pkgs/firehose/
+        run: dart install "firehose@{path: $PWD/pkgs/firehose}"
         if: ${{ inputs.local_debug }}
 
       - name: Package archive for provenance
@@ -360,7 +360,7 @@ jobs:
           else
             FLUTTER_FLAG="--no-use-flutter"
           fi
-          sudo -E unshare -n sudo -u $(whoami) -E env "PATH=$PATH" "HOME=$HOME" dart pub global run firehose \
+          sudo -E unshare -n sudo -u $(whoami) -E env "PATH=$PATH" "HOME=$HOME" firehose \
             --package-only \
             "$FLUTTER_FLAG" \
             --tag-prefix "$INPUTS_TAG_PREFIX"
@@ -407,14 +407,14 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
-        run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
+        run: dart install "firehose@{git: {url: '$GIT_URL', path: pkgs/firehose, ref: '$GIT_REF'}}"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$FIREHOSE_REF"
+        run: dart install "firehose@{git: {url: https://github.com/dart-lang/ecosystem, path: pkgs/firehose, ref: '$FIREHOSE_REF'}}"
 
       - name: Install local firehose
-        run: dart pub global activate --source path pkgs/firehose/
+        run: dart install "firehose@{path: $PWD/pkgs/firehose}"
         if: ${{ inputs.local_debug }}
 
       - name: Download package archive
@@ -455,7 +455,7 @@ jobs:
           else
             PROVENANCE_FLAG=""
           fi
-          dart pub global run firehose \
+          firehose \
             --publish \
             "$FLUTTER_FLAG" \
             --tag-prefix "$INPUTS_TAG_PREFIX" \
