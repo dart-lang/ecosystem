@@ -110,11 +110,21 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     final repo = Repository(directory);
     final packages = repo.locatePackages(ignore: ignoredPackages);
 
+    final filesInPR = await allowFailure(
+      github.listFilesForPR(directory, ignoredPackages),
+      logError: print,
+    );
+
     final pub = Pub();
 
     final results = VerificationResults();
 
     for (final package in packages) {
+      final isAffected = filesInPR == null ||
+          filesInPR
+              .where((f) => f.status.isRelevant)
+              .any((f) => f.isInPackage(package));
+
       final repoTag = repo.calculateRepoTag(package, tagPrefix: tagPrefix);
 
       print('');
@@ -126,6 +136,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         final result = Result.fail(
           package,
           "no version specified (perhaps you need a' publish_to: none' entry?)",
+          isAffected: isAffected,
         );
         print(result);
         results.addResult(result);
@@ -142,6 +153,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
           package,
           'pubspec version ($pubspecVersion) and changelog ($changelogVersion) '
           "don't agree",
+          isAffected: isAffected,
         );
         print(result);
         results.addResult(result);
@@ -149,11 +161,19 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       }
 
       if (await pub.hasPublishedVersion(package.name, pubspecVersion)) {
-        final result = Result.info(package, 'already published at pub.dev');
+        final result = Result.info(
+          package,
+          'already published at pub.dev',
+          isAffected: isAffected,
+        );
         print(result);
         results.addResult(result);
       } else if (package.pubspec.version!.wip) {
-        final result = Result.info(package, 'WIP (no publish necessary)');
+        final result = Result.info(
+          package,
+          'WIP (no publish necessary)',
+          isAffected: isAffected,
+        );
         print(result);
         results.addResult(result);
       } else {
@@ -172,17 +192,20 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
               'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
               'label to ignore';
           github.notice(message: message);
-          results.addResult(Result.fail(package, message));
+          results.addResult(
+            Result.fail(package, message, isAffected: isAffected),
+          );
         } else {
           final result = Result.success(
             package,
             '**ready to publish**',
-            repoTag,
-            repo.calculateReleaseUri(
+            gitTag: repoTag,
+            publishReleaseUri: repo.calculateReleaseUri(
               package,
               github,
               tagPrefix: tagPrefix,
             ),
+            isAffected: isAffected,
           );
           print(result);
           results.addResult(result);
@@ -323,21 +346,54 @@ class VerificationResults {
 
   bool get hasError => results.any((r) => r.severity == Severity.error);
 
-  String describeAsMarkdown({bool withTag = true}) => results.map((r) {
-        final sev = r.severity == Severity.error ? '(error) ' : '';
-        var tagColumn = '';
-        if (withTag) {
-          var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
-          final publishReleaseUri = r.publishReleaseUri;
-          if (publishReleaseUri != null) {
-            tag = '[$tag]($publishReleaseUri)';
-          }
+  Iterable<Result> get visibleResults =>
+      results.where((r) => r.isVisibleInTable);
 
-          tagColumn = ' | $tag';
+  Iterable<Result> get hiddenResults =>
+      results.where((r) => !r.isVisibleInTable);
+
+  String describeAsMarkdown({bool withTag = true}) {
+    final buffer = StringBuffer();
+    for (final r in visibleResults) {
+      final sev = r.severity == Severity.error ? '(error) ' : '';
+      var tagColumn = '';
+      if (withTag) {
+        var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
+        final publishReleaseUri = r.publishReleaseUri;
+        if (publishReleaseUri != null) {
+          tag = '[$tag]($publishReleaseUri)';
         }
-        return '| package:${r.package.name} | ${r.package.version} | '
-            '$sev${r.message}$tagColumn |';
-      }).join('\n');
+
+        tagColumn = ' | $tag';
+      }
+      buffer.writeln(
+        '| package:${r.package.name} | ${r.package.version} | '
+        '$sev${r.message}$tagColumn |',
+      );
+    }
+
+    final hidden = hiddenResults.toList();
+    final alreadyPublishedCount =
+        hidden.where((r) => r.message.startsWith('already published')).length;
+    final wipCount = hidden.where((r) => r.message.startsWith('WIP')).length;
+
+    final summaryLines = <String>[];
+    if (alreadyPublishedCount > 0) {
+      summaryLines.add('$alreadyPublishedCount already published.');
+    }
+    if (wipCount > 0) {
+      summaryLines.add('$wipCount WIP (no publish necessary).');
+    }
+
+    if (summaryLines.isNotEmpty) {
+      if (visibleResults.isNotEmpty) {
+        buffer.writeln();
+      }
+      buffer.write(summaryLines.join('\n'));
+    }
+
+    return buffer.toString().trimRight();
+  }
 }
 
 class Result {
@@ -346,6 +402,7 @@ class Result {
   final String message;
   final String? gitTag;
   final Uri? publishReleaseUri;
+  final bool isAffected;
 
   Result(
     this.severity,
@@ -353,21 +410,35 @@ class Result {
     this.message, [
     this.gitTag,
     this.publishReleaseUri,
+    this.isAffected = false,
   ]);
 
-  factory Result.fail(Package package, String message) =>
-      Result(Severity.error, package, message);
+  factory Result.fail(
+    Package package,
+    String message, {
+    bool isAffected = false,
+  }) =>
+      Result(Severity.error, package, message, null, null, isAffected);
 
-  factory Result.info(Package package, String message) =>
-      Result(Severity.info, package, message);
+  factory Result.info(
+    Package package,
+    String message, {
+    bool isAffected = false,
+  }) =>
+      Result(Severity.info, package, message, null, null, isAffected);
 
   factory Result.success(
     Package package,
-    String message, [
+    String message, {
     String? gitTag,
     Uri? publishReleaseUri,
-  ]) =>
-      Result(Severity.success, package, message, gitTag, publishReleaseUri);
+    bool isAffected = false,
+  }) =>
+      Result(Severity.success, package, message, gitTag, publishReleaseUri,
+          isAffected);
+
+  bool get isVisibleInTable =>
+      isAffected || severity == Severity.success || severity == Severity.error;
 
   @override
   String toString() {
