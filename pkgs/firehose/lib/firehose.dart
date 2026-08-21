@@ -382,10 +382,10 @@ class VerificationResults {
 
     final summaryLines = <String>[];
     if (alreadyPublishedCount > 0) {
-      summaryLines.add('$alreadyPublishedCount already published.');
+      summaryLines.add('* $alreadyPublishedCount already published.');
     }
     if (wipCount > 0) {
-      summaryLines.add('$wipCount WIP (no publish necessary).');
+      summaryLines.add('* $wipCount WIP (no publish necessary).');
     }
 
     if (summaryLines.isNotEmpty) {

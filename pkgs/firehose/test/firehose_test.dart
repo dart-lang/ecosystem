@@ -84,8 +84,8 @@ void main() {
       expect(markdown, isNot(contains('| package:package2 |')));
       expect(markdown, isNot(contains('| package:package3 |')));
 
-      expect(markdown, contains('1 already published.'));
-      expect(markdown, contains('2 WIP (no publish necessary).'));
+      expect(markdown, contains('* 1 already published.'));
+      expect(markdown, contains('* 2 WIP (no publish necessary).'));
     });
 
     test('summary omitted when counts are zero', () {
@@ -110,8 +110,10 @@ void main() {
       expect(results.hiddenResults.length, 2);
 
       final markdown = results.describeAsMarkdown(withTag: false);
-      expect(markdown,
-          equals('1 already published.\n1 WIP (no publish necessary).'));
+      expect(
+        markdown,
+        equals('* 1 already published.\n* 1 WIP (no publish necessary).'),
+      );
     });
   });
 
