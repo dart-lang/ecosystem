@@ -31,9 +31,8 @@ void main() {
 
     test('all packages affected are visible in table and highlighted', () {
       final results = VerificationResults()
-        ..addResult(
-            Result.info(pkgA, 'WIP (no publish necessary)', isAffected: true))
-        ..addResult(Result.info(pkgB, 'already published at pub.dev',
+        ..addResult(Result.info(pkgA, Result.wipMessage, isAffected: true))
+        ..addResult(Result.info(pkgB, Result.alreadyPublishedMessage,
             isAffected: true));
 
       expect(results.visibleResults.length, 2);
@@ -65,13 +64,10 @@ void main() {
       final results = VerificationResults()
         ..addResult(
             Result.success(pkgA, '**ready to publish**', isAffected: false))
-        ..addResult(
-            Result.info(pkgB, 'WIP (no publish necessary)', isAffected: true))
-        ..addResult(
-            Result.info(pkgC, 'WIP (no publish necessary)', isAffected: false))
-        ..addResult(
-            Result.info(pkgD, 'WIP (no publish necessary)', isAffected: false))
-        ..addResult(Result.info(pkgE, 'already published at pub.dev',
+        ..addResult(Result.info(pkgB, Result.wipMessage, isAffected: true))
+        ..addResult(Result.info(pkgC, Result.wipMessage, isAffected: false))
+        ..addResult(Result.info(pkgD, Result.wipMessage, isAffected: false))
+        ..addResult(Result.info(pkgE, Result.alreadyPublishedMessage,
             isAffected: false));
 
       expect(results.visibleResults.length, 2);
@@ -101,10 +97,9 @@ void main() {
 
     test('only summary when no packages visible in table', () {
       final results = VerificationResults()
-        ..addResult(Result.info(pkgA, 'already published at pub.dev',
+        ..addResult(Result.info(pkgA, Result.alreadyPublishedMessage,
             isAffected: false))
-        ..addResult(
-            Result.info(pkgB, 'WIP (no publish necessary)', isAffected: false));
+        ..addResult(Result.info(pkgB, Result.wipMessage, isAffected: false));
 
       expect(results.visibleResults, isEmpty);
       expect(results.hiddenResults.length, 2);

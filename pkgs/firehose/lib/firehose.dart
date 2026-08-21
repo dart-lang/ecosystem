@@ -114,16 +114,15 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       github.listFilesForPR(directory, ignoredPackages),
       logError: print,
     );
+    final relevantFiles = filesInPR?.where((f) => f.status.isRelevant).toList();
 
     final pub = Pub();
 
     final results = VerificationResults();
 
     for (final package in packages) {
-      final isAffected = filesInPR == null ||
-          filesInPR
-              .where((f) => f.status.isRelevant)
-              .any((f) => f.isInPackage(package));
+      final isAffected = relevantFiles == null ||
+          relevantFiles.any((f) => f.isInPackage(package));
 
       final repoTag = repo.calculateRepoTag(package, tagPrefix: tagPrefix);
 
@@ -163,7 +162,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       if (await pub.hasPublishedVersion(package.name, pubspecVersion)) {
         final result = Result.info(
           package,
-          'already published at pub.dev',
+          Result.alreadyPublishedMessage,
           isAffected: isAffected,
         );
         print(result);
@@ -171,7 +170,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       } else if (package.pubspec.version!.wip) {
         final result = Result.info(
           package,
-          'WIP (no publish necessary)',
+          Result.wipMessage,
           isAffected: isAffected,
         );
         print(result);
@@ -377,8 +376,8 @@ class VerificationResults {
 
     final hidden = hiddenResults.toList();
     final alreadyPublishedCount =
-        hidden.where((r) => r.message.startsWith('already published')).length;
-    final wipCount = hidden.where((r) => r.message.startsWith('WIP')).length;
+        hidden.where((r) => r.message == Result.alreadyPublishedMessage).length;
+    final wipCount = hidden.where((r) => r.message == Result.wipMessage).length;
 
     final summaryLines = <String>[];
     if (alreadyPublishedCount > 0) {
@@ -400,6 +399,9 @@ class VerificationResults {
 }
 
 class Result {
+  static const String alreadyPublishedMessage = 'already published at pub.dev';
+  static const String wipMessage = 'WIP (no publish necessary)';
+
   final Severity severity;
   final Package package;
   final String message;
