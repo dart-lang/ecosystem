@@ -366,8 +366,11 @@ class VerificationResults {
 
         tagColumn = ' | $tag';
       }
+      final pkgName = r.isAffected
+          ? '**package:${r.package.name}** ⭐'
+          : 'package:${r.package.name}';
       buffer.writeln(
-        '| package:${r.package.name} | ${r.package.version} | '
+        '| $pkgName | ${r.package.version} | '
         '$sev${r.message}$tagColumn |',
       );
     }

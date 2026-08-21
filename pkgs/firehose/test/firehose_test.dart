@@ -29,7 +29,7 @@ void main() {
       pkgE = Package(Directory('test_data/test_repo/pkgs/package3'), repo);
     });
 
-    test('all packages affected are visible in table', () {
+    test('all packages affected are visible in table and highlighted', () {
       final results = VerificationResults()
         ..addResult(
             Result.info(pkgA, 'WIP (no publish necessary)', isAffected: true))
@@ -40,13 +40,13 @@ void main() {
       expect(results.hiddenResults, isEmpty);
 
       final markdown = results.describeAsMarkdown(withTag: false);
-      expect(markdown, contains('| package:pkg_1 |'));
-      expect(markdown, contains('| package:pkg_2 |'));
+      expect(markdown, contains('| **package:pkg_1** ⭐ |'));
+      expect(markdown, contains('| **package:pkg_2** ⭐ |'));
       expect(markdown, isNot(contains('already published.')));
       expect(markdown, isNot(contains('WIP (no publish necessary).')));
     });
 
-    test('unaffected ready-to-publish and error packages are in table', () {
+    test('unaffected ready-to-publish and error packages are not starred', () {
       final results = VerificationResults()
         ..addResult(
             Result.success(pkgA, '**ready to publish**', isAffected: false))
@@ -58,6 +58,7 @@ void main() {
       final markdown = results.describeAsMarkdown(withTag: false);
       expect(markdown, contains('| package:pkg_1 |'));
       expect(markdown, contains('| package:pkg_2 |'));
+      expect(markdown, isNot(contains('⭐')));
     });
 
     test('unaffected WIP and already-published packages are summarized', () {
@@ -78,7 +79,7 @@ void main() {
 
       final markdown = results.describeAsMarkdown(withTag: false);
       expect(markdown, contains('| package:pkg_1 |'));
-      expect(markdown, contains('| package:pkg_2 |'));
+      expect(markdown, contains('| **package:pkg_2** ⭐ |'));
       expect(markdown, isNot(contains('| package:package1 |')));
       expect(markdown, isNot(contains('| package:package2 |')));
       expect(markdown, isNot(contains('| package:package3 |')));
@@ -93,7 +94,7 @@ void main() {
             Result.success(pkgA, '**ready to publish**', isAffected: true));
 
       final markdown = results.describeAsMarkdown(withTag: false);
-      expect(markdown, contains('| package:pkg_1 |'));
+      expect(markdown, contains('| **package:pkg_1** ⭐ |'));
       expect(markdown, isNot(contains('already published.')));
       expect(markdown, isNot(contains('WIP (no publish necessary).')));
     });
