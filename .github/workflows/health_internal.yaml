@@ -14,7 +14,6 @@ jobs:
       sdk: dev
       local_debug: true
       coverage_web: false
-      upload_coverage: false
       checks: changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies
       fail_on: changelog,do-not-submit
       warn_on: license,coverage,breaking,leaking,unused-dependencies
