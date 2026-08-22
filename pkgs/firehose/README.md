@@ -156,7 +156,7 @@ When run from a PR, this tool will check a configurable subset of the following
 * All `.dart` files have a license header.
 * How the test coverage is affected by the PR.
 * The package versioning takes into account any breaking changes in the PR.
-* The PR contains `DO_NOT`_`SUBMIT` strings in the files or the description.
+* The PR contains `DO_NOT_SUBMIT` strings in the files or the description.
 * Any symbols are visible in the public API, but not exported.
 
 This tool can work with either single package repos or with mono-repos (repos
@@ -221,7 +221,7 @@ jobs:
 | **`license`** | Scans all `.dart` files in the PR to ensure they contain the required license header (e.g., the BSD 3-Clause header used by Dart ecosystem packages). |
 | **`coverage`** | Runs tests and calculates code coverage. It compares the coverage of the PR branch against the base branch to report whether coverage has increased, decreased, or stayed the same. |
 | **`breaking`** | Analyzes public API changes using `package:dart_apitool`. If breaking changes are detected (e.g., removing a class or changing a method signature), it ensures the version bump reflects a major/breaking change. |
-| **`do-not-submit`** | Scans the file contents and the PR description for the string `DO_NOT`_`SUBMIT`. This prevents developers from accidentally merging debug code, "TODO" shortcuts, or sensitive local configurations. |
+| **`do-not-submit`** | Scans the file contents and the PR description for the string `DO_NOT_SUBMIT`. This prevents developers from accidentally merging debug code, "TODO" shortcuts, or sensitive local configurations. |
 | **`leaking`** | Checks for "leaked" symbols—types or classes that are visible in your public API (e.g., used as a return type in a public method) but are not actually exported in your package's main library entry point. |
 | **`unused-dependencies`** | Analyzes the imports in your source code against the dependencies listed in `pubspec.yaml` to identify packages that are declared but never actually used, using `package:dependency_validator`. |
 
