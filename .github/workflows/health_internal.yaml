@@ -19,6 +19,7 @@ jobs:
       warn_on: license,coverage,breaking,leaking,unused-dependencies
       ignore_license: 'pkgs/firehose/test_data'
       ignore_coverage: 'pkgs/firehose/bin,pkgs/firehose/test_data'
+      ignore_donotsubmit: 'pkgs/firehose/test_data'
       health_yaml_name: 'health_internal.yaml'
     permissions:
       pull-requests: write
