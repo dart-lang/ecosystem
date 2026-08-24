@@ -182,7 +182,6 @@ jobs:
 #     fail_on: "version,changelog,do-not-submit"
 #     warn_on: "license,coverage,breaking,leaking"
 #     coverage_web: false
-#     upload_coverage: false
 #     use-flutter: true
 #     ignore_license: "**.g.dart"
 #     ignore_coverage: "**.mock.dart,**.g.dart"
@@ -234,7 +233,6 @@ jobs:
 | `checks`  | List of strings  | What to check for in the PR health check | `"changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"` |
 | `fail_on`  | List of strings  | Which checks should lead to failure | `"changelog,do-not-submit"` |
 | `warn_on`  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
-| `upload_coverage`  | boolean  | Whether to upload the coverage to [coveralls](https://coveralls.io/) | `true` |
 | `coverage_web`  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
 | `flutter_packages`  | List of strings  | List of packages depending on Flutter | `"pkgs/intl_flutter"` |
 | `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, `donotsubmit`, or `unuseddependencies`. For the `breaking` and `unuseddependencies` checks, the glob should be all files of the package. | `"**.g.dart"` |
