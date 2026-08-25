@@ -3,6 +3,7 @@
 - Condense PR package publishing table to show only packages affected by the PR,
   packages ready to publish, and errors, summarizing unaffected WIP and published
   packages.
+- Remove 3rd-party Coveralls action and `upload_coverage` input from health workflows.
 - Add `--tag-prefix` option to `firehose` and `tag-prefix` input to `publish.yaml` to allow configuring the release tag prefix (defaults to `'v'`).
 - Run `pub get` before `dart format` in `groundskeeper`.
 - Add `groundskeeper` executable to format and fix packages.
