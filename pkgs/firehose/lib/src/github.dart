@@ -132,9 +132,8 @@ class GithubApi {
     await _github.issues.updateComment(_slug, commentId, body);
   }
 
-  Future<bool> deleteComment(int commentId) async {
-    return await _github.issues.deleteComment(_slug, commentId);
-  }
+  Future<bool> deleteComment(int commentId) async =>
+      await _github.issues.deleteComment(_slug, commentId);
 
   Future<List<GitFile>> listFilesForPR(
     Directory directory, [

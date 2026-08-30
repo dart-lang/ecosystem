@@ -56,8 +56,9 @@ ArgParser _createArgParser() {
     ..addOption('body', help: 'Comment body text')
     ..addOption('body-path', help: 'Path to file containing comment body');
 
-  parser.addCommand('delete')
-    ..addOption('comment-id', help: 'Existing comment ID to delete');
+  parser
+      .addCommand('delete')
+      .addOption('comment-id', help: 'Existing comment ID to delete');
 
   return parser;
 }
@@ -150,7 +151,7 @@ Future<void> _createOrUpdateComment(ArgResults results) async {
 }
 
 Future<void> _deleteComment(ArgResults results) async {
-  final commentId = results.option('comment-id') as String?;
+  final commentId = results.option('comment-id');
   if (commentId == null || commentId == '0' || commentId.isEmpty) {
     stderr.writeln('Invalid comment ID: $commentId');
     exitCode = 64;
