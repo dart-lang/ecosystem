@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Update `dependency_validator` pinned commit hash to 5.0.6 (`7582a808960d2170800bfbd7a83526619ce300ce`),
+  enabling support for newer Dart syntax (up to analyzer 13).
 - Condense PR package publishing table to show only packages affected by the PR,
   packages ready to publish, and errors, summarizing unaffected WIP and published
   packages.
