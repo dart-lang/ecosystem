@@ -88,19 +88,21 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       await idFile.writeAsString(existingCommentId.toString());
     }
 
-    if (results.hasSuccess) {
+    if (results.hasSuccess || existingCommentId != null) {
+      final description =
+          results.hasSuccess ? '$_publishBotDescription\n\n' : '';
       final commentText = '$_publishBotTag\n\n'
-          '$_publishBotDescription\n\n'
+          '$description'
           '$markdownTable';
 
       final commentFile = File('./output/comment.md');
       print('Saving comment markdown to file ${commentFile.path}');
       await commentFile.create(recursive: true);
       await commentFile.writeAsString(commentText);
-    } else {
-      if (results.hasError && exitCode == 0) {
-        exitCode = 1;
-      }
+    }
+
+    if (results.hasError && exitCode == 0) {
+      exitCode = 1;
     }
 
     github.close();

@@ -1,7 +1,7 @@
 ## 0.13.2-wip
 
-- Delete existing publishing PR comments when packages are no longer ready to
-  publish (e.g. when updated to `-wip`).
+- Update existing publishing PR comments with accurate status when packages are
+  no longer ready to publish (e.g. when updated to `-wip`).
 - Add `delete` command to `firehose:comment` executable.
 - Condense PR package publishing table to show only packages affected by the PR,
   packages ready to publish, and errors, summarizing unaffected WIP and published
