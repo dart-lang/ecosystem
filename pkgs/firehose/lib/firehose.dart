@@ -80,18 +80,18 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
       logError: print,
     );
 
+    if (existingCommentId != null) {
+      final idFile = File('./output/commentId');
+      print('''
+Saving existing comment id $existingCommentId to file ${idFile.path}''');
+      await idFile.create(recursive: true);
+      await idFile.writeAsString(existingCommentId.toString());
+    }
+
     if (results.hasSuccess) {
       final commentText = '$_publishBotTag\n\n'
           '$_publishBotDescription\n\n'
           '$markdownTable';
-
-      if (existingCommentId != null) {
-        final idFile = File('./output/commentId');
-        print('''
-Saving existing comment id $existingCommentId to file ${idFile.path}''');
-        await idFile.create(recursive: true);
-        await idFile.writeAsString(existingCommentId.toString());
-      }
 
       final commentFile = File('./output/comment.md');
       print('Saving comment markdown to file ${commentFile.path}');

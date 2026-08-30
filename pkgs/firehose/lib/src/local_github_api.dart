@@ -45,6 +45,11 @@ class LocalGithubApi implements GithubApi {
   }
 
   @override
+  Future<bool> deleteComment(int commentId) async {
+    throw UnimplementedError();
+  }
+
+  @override
   String? get githubAuthToken => throw UnimplementedError();
 
   @override

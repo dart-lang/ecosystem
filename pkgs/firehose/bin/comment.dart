@@ -36,6 +36,8 @@ Future<void> main(List<String> arguments) async {
     await _findComment(command);
   } else if (command.name == 'create-or-update') {
     await _createOrUpdateComment(command);
+  } else if (command.name == 'delete') {
+    await _deleteComment(command);
   }
 }
 
@@ -53,6 +55,9 @@ ArgParser _createArgParser() {
     ..addOption('comment-id', help: 'Existing comment ID to update')
     ..addOption('body', help: 'Comment body text')
     ..addOption('body-path', help: 'Path to file containing comment body');
+
+  parser.addCommand('delete')
+    ..addOption('comment-id', help: 'Existing comment ID to delete');
 
   return parser;
 }
@@ -139,6 +144,28 @@ Future<void> _createOrUpdateComment(ArgResults results) async {
       await github.createComment(resolvedIssueNumber, body);
       print('Created comment');
     }
+  } finally {
+    github.close();
+  }
+}
+
+Future<void> _deleteComment(ArgResults results) async {
+  final commentId = results.option('comment-id') as String?;
+  if (commentId == null || commentId == '0' || commentId.isEmpty) {
+    stderr.writeln('Invalid comment ID: $commentId');
+    exitCode = 64;
+    return;
+  }
+  final id = int.tryParse(commentId);
+  if (id == null) {
+    stderr.writeln('Invalid comment ID: $commentId');
+    exitCode = 64;
+    return;
+  }
+  final github = GithubApi();
+  try {
+    await github.deleteComment(id);
+    print('Deleted comment $id');
   } finally {
     github.close();
   }

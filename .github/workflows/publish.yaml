@@ -194,7 +194,7 @@ jobs:
 
       - name: Get comment id
         id: comment-id
-        if: ${{ (hashFiles('output/comment.md') != '') && inputs.write-comments }}
+        if: ${{ inputs.write-comments }}
         run: |
           touch -a output/commentId
           COMMENT_ID=$(cat output/commentId)
@@ -214,6 +214,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMENT_ID: ${{ steps.comment-id.outputs.comment }}
         run: dart pub global run firehose:comment create-or-update --comment-id "$COMMENT_ID" --body-path output/comment.md
+
+      - name: Delete comment
+        if: ${{ (hashFiles('output/comment.md') == '') && (hashFiles('output/commentId') != '') && inputs.write-comments && (steps.comment-id.outputs.comment != '') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_ID: ${{ steps.comment-id.outputs.comment }}
+        run: dart pub global run firehose:comment delete --comment-id "$COMMENT_ID"
 
       - name: Save PR number
         if: ${{ !inputs.write-comments }}
