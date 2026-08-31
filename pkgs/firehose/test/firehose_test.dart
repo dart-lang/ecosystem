@@ -140,4 +140,25 @@ void main() {
       );
     });
   });
+
+  group('bin/comment.dart CLI', () {
+    test('delete command exits with code 64 on missing or empty comment ID',
+        () async {
+      final result = await Process.run(
+        Platform.resolvedExecutable,
+        ['bin/comment.dart', 'delete', '--comment-id', '0'],
+      );
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains('Invalid comment ID'));
+    });
+
+    test('delete command fails when required option is omitted', () async {
+      final result = await Process.run(
+        Platform.resolvedExecutable,
+        ['bin/comment.dart', 'delete'],
+      );
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains('Invalid comment ID'));
+    });
+  });
 }
