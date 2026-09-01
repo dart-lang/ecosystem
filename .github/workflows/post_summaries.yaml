@@ -63,7 +63,19 @@ jobs:
             var fs = require('fs');
 
             const prs = context.payload.workflow_run ? context.payload.workflow_run.pull_requests : [];
-            const issue_number = prs.length > 0 ? prs[0].number : (context.issue ? context.issue.number : null);
+            let issue_number = prs.length > 0 ? prs[0].number : (context.issue ? context.issue.number : null);
+
+            if (!issue_number && context.payload.workflow_run && context.payload.workflow_run.head_sha) {
+              const prList = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.payload.workflow_run.head_sha,
+              });
+              const pr = prList.data.find(p => p.state === 'open') || prList.data[0];
+              if (pr) {
+                issue_number = pr.number;
+              }
+            }
 
             if (!issue_number) {
               console.log('No PR number found in context. Aborting.');
@@ -71,7 +83,7 @@ jobs:
             }
 
             if (fs.existsSync('./issueNumber')) {
-              const artifactIssue = Number(fs.readFileSync('./issueNumber', 'utf8'));
+              const artifactIssue = Number(fs.readFileSync('./issueNumber', 'utf8').trim());
               if (artifactIssue !== issue_number) {
                 console.log(`Artifact issueNumber (${artifactIssue}) does not match PR #${issue_number}. Aborting.`);
                 return;
@@ -79,7 +91,7 @@ jobs:
             }
 
             if (fs.existsSync('./commentId')) {
-              const comment_number = Number(fs.readFileSync('./commentId', 'utf8'));
+              const comment_number = Number(fs.readFileSync('./commentId', 'utf8').trim());
               const comment = await github.rest.issues.getComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -88,6 +100,10 @@ jobs:
               const commentIssueNumber = Number(comment.data.issue_url.split('/').pop());
               if (commentIssueNumber !== issue_number) {
                 console.log(`Comment ID ${comment_number} belongs to PR #${commentIssueNumber}, not PR #${issue_number}. Aborting.`);
+                return;
+              }
+              if (comment.data.user && comment.data.user.login !== 'github-actions[bot]') {
+                console.log(`Comment ID ${comment_number} was authored by ${comment.data.user.login}, not github-actions[bot]. Aborting.`);
                 return;
               }
             }
