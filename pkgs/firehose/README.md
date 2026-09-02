@@ -268,4 +268,4 @@ mitigated by not using `actions/checkout` to bring in code from the PR branch,
 and by strictly validating the target PR and comment IDs before acting on them.
 The elevated `pull-requests: write` permission is used to allow posting the
 results of PR health checks and publishing validations as a comment on the PR.
-Use an `# zizmor: ignore[dangerous-triggers]` comment to ignore.
+Use a `# zizmor: ignore[dangerous-triggers]` comment to ignore.
