@@ -1,5 +1,8 @@
 ## 0.13.2-wip
 
+- Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
+- Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
+  commit SHA, and verify comment authorship when checking `commentId`.
 - Update `dependency_validator` pinned commit hash to 5.0.6 (`7582a808960d2170800bfbd7a83526619ce300ce`),
   enabling support for newer Dart syntax (up to analyzer 13).
 - Update existing publishing PR comments with accurate status when packages are
