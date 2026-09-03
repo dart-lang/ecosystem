@@ -3,8 +3,8 @@
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
 - Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
   commit SHA, and verify comment authorship when checking `commentId`.
-- Update `dependency_validator` pinned commit hash to 5.0.6 (`7582a808960d2170800bfbd7a83526619ce300ce`),
-  enabling support for newer Dart syntax (up to analyzer 13).
+- Update `dependency_validator` pinned commit hash to `52f142e104371eab25d56cafef127ee53b715d22`,
+  enabling support for newer Dart syntax and analyzer 14 (e.g. `{@example}` doc directives).
 - Update existing publishing PR comments with accurate status when packages are
   no longer ready to publish (e.g. when updated to `-wip`).
 - Add `delete` command to `firehose:comment` executable.
