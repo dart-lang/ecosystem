@@ -14,9 +14,9 @@ jobs:
       sdk: dev
       local_debug: true
       coverage_web: false
-      checks: changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies
+      checks: changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish
       fail_on: changelog,do-not-submit
-      warn_on: license,coverage,breaking,leaking,unused-dependencies
+      warn_on: license,coverage,breaking,leaking,unused-dependencies,publish
       ignore_license: 'pkgs/firehose/test_data'
       ignore_coverage: 'pkgs/firehose/bin,pkgs/firehose/test_data'
       ignore_donotsubmit: 'pkgs/firehose/README.md,pkgs/firehose/test_data'

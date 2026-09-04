@@ -1,5 +1,6 @@
 ## 0.13.2-wip
 
+- Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
 - Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
   commit SHA, and verify comment authorship when checking `commentId`.

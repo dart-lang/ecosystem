@@ -1,0 +1,18 @@
+# A CI configuration to publish package:firehose to pub.dev.
+
+name: Publish package:firehose
+
+on:
+  push:
+    tags:
+      - 'firehose-v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v2
+    with:
+      working-directory: pkgs/firehose
