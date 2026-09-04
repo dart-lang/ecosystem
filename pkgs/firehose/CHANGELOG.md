@@ -2,7 +2,7 @@
 
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
 - Remove obsolete `validate()` and `publish()` methods from `Firehose` and
-  deprecate the `firehose` CLI executable.
+  delete the `firehose` CLI executable (`bin/firehose.dart`).
 - Print the links to create GitHub releases at the end of the `publish.yaml`
   validation log so they are available when the PR comment can't be written.
 - Group the `publish.yaml` log output into collapsible sections for package
