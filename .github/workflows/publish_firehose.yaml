@@ -13,6 +13,6 @@ jobs:
       id-token: write
       attestations: write
       contents: read
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v2
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@f452aa90bb3c3726734faa9a86685617572bfeb0
     with:
       working-directory: pkgs/firehose
