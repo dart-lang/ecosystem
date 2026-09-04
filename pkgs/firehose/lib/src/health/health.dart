@@ -34,7 +34,8 @@ enum Check {
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
   donotsubmit('Do Not Submit', 'do-not-submit'),
-  unuseddependencies('Unused Dependencies', 'unused-dependencies');
+  unuseddependencies('Unused Dependencies', 'unused-dependencies'),
+  publish('Publish', 'publish');
 
   final String tag;
 
@@ -169,7 +170,31 @@ class Health {
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
         Check.unuseddependencies => unusedDependenciesCheck,
+        Check.publish => publishCheck,
       };
+
+  Future<HealthCheckResult> publishCheck() async {
+    final firehose = Firehose(
+      directory,
+      flutterPackageGlobs.isNotEmpty,
+      ignoredPackages,
+    );
+    final results = await firehose.verify(github);
+    final markdownResult = '''
+| Package | Version | Status | Publish tag (post-merge) |
+| :--- | ---: | :--- | ---: |
+${results.describeAsMarkdown()}
+
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+''';
+
+    return HealthCheckResult(
+      Check.publish,
+      results.severity,
+      markdownResult,
+    );
+  }
+
   Future<HealthCheckResult> unusedDependenciesCheck() async {
     final filesInPR = await listFilesInPRorAll();
     final flutterPackages =

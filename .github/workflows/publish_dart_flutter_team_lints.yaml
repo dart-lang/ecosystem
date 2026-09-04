@@ -1,0 +1,18 @@
+# A CI configuration to publish package:dart_flutter_team_lints to pub.dev.
+
+name: Publish package:dart_flutter_team_lints
+
+on:
+  push:
+    tags:
+      - 'dart_flutter_team_lints-v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v2
+    with:
+      working-directory: pkgs/dart_flutter_team_lints
