@@ -177,10 +177,16 @@ class Health {
     final firehose = Firehose(
       directory,
       flutterPackageGlobs.isNotEmpty,
-      ignoredPackages,
+      ignored,
     );
     final results = await firehose.verify(github);
-    final markdownResult = '''
+    final markdownResult = results.visibleResults.isEmpty
+        ? '''
+${results.describeAsMarkdown()}
+
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+'''
+        : '''
 | Package | Version | Status | Publish tag (post-merge) |
 | :--- | ---: | :--- | ---: |
 ${results.describeAsMarkdown()}
