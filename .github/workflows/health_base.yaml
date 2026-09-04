@@ -66,6 +66,10 @@ on:
         default: ''
         required: false
         type: string
+      ignore_publish:
+        default: ''
+        required: false
+        type: string
       ignore_packages:
         default: ''
         required: false
@@ -189,6 +193,7 @@ jobs:
           INPUTS_IGNORE_LEAKING: ${{ inputs.ignore_leaking }}
           INPUTS_IGNORE_DONOTSUBMIT: ${{ inputs.ignore_donotsubmit }}
           INPUTS_IGNORE_UNUSEDDEPENDENCIES: ${{ inputs.ignore_unuseddependencies }}
+          INPUTS_IGNORE_PUBLISH: ${{ inputs.ignore_publish }}
           INPUTS_EXPERIMENTS: ${{ inputs.experiments }}
           INPUTS_HEALTH_YAML_NAME: ${{ inputs.health_yaml_name }}
           INPUTS_LICENSE: ${{ inputs.license }}
@@ -215,6 +220,7 @@ jobs:
             --ignore_leaking "${INPUTS_IGNORE_LEAKING}" \
             --ignore_donotsubmit "${INPUTS_IGNORE_DONOTSUBMIT}" \
             --ignore_unuseddependencies "${INPUTS_IGNORE_UNUSEDDEPENDENCIES}" \
+            --ignore_publish "${INPUTS_IGNORE_PUBLISH}" \
             --experiments "${INPUTS_EXPERIMENTS}" \
             --health_yaml_name "${INPUTS_HEALTH_YAML_NAME}" \
             --no-local \
