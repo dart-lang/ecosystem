@@ -1,6 +1,8 @@
 ## 0.13.2-wip
 
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
+- Remove obsolete `validate()` and `publish()` methods from `Firehose` and
+  deprecate the `firehose` CLI executable.
 - Fail `Firehose.verify` when a PR modifies files in a package whose `pubspec.yaml`
   version is already published on `pub.dev` without bumping to `-wip`.
 - Verify that `CHANGELOG.md` updates in PRs modify the top version section,
