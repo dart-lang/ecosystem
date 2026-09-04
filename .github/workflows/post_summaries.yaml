@@ -6,7 +6,6 @@ on:
   workflow_call:
   workflow_run: # zizmor: ignore[dangerous-triggers]
     workflows:
-      - Publish:Internal
       - Health:Internal
       - Canary:Internal
     types:
