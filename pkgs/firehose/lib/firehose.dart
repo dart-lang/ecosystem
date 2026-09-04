@@ -17,14 +17,6 @@ export 'src/github.dart' show FileStatus, GitFile, GithubApi;
 export 'src/repo.dart' show Package, Repository;
 export 'src/utils.dart' show Severity;
 
-const String _botSuffix = '[bot]';
-
-const String _githubActionsUser = 'github-actions[bot]';
-
-const String _publishBotTag = '## Package publishing';
-const String _publishBotDescription = 'If you have publishing permissions, '
-    'you can use the links below to publish the changes after merging this PR.';
-
 const String _ignoreWarningsLabel = 'publish-ignore-warnings';
 
 class Firehose {
@@ -39,74 +31,6 @@ class Firehose {
     this.ignoredPackages, {
     this.tagPrefix = 'v',
   });
-
-  /// Validate the packages in the repository.
-  ///
-  /// This method is intended to run in the context of a PR. It will:
-  /// - determine the set of packages in the repo
-  /// - validate that the changelog version == the pubspec version
-  /// - provide feedback on the PR (via a PR comment) about packages which are
-  ///   ready to publish
-  Future<void> validate() async {
-    final github = GithubApi();
-
-    // Do basic validation of our expected env var.
-    if (!expectEnv(github.githubAuthToken, 'GITHUB_TOKEN')) return;
-    if (!expectEnv(github.repoSlug?.fullName, 'GITHUB_REPOSITORY')) return;
-    if (!expectEnv(github.issueNumber?.toString(), 'ISSUE_NUMBER')) return;
-    if (!expectEnv(github.sha, 'GITHUB_SHA')) return;
-
-    if ((github.actor ?? '').endsWith(_botSuffix)) {
-      print('Skipping package validation for ${github.actor} PRs.');
-      return;
-    }
-
-    final results = await verify(github);
-
-    final markdownTable = '''
-| Package | Version | Status | Publish tag (post-merge) |
-| :--- | ---: | :--- | ---: |
-${results.describeAsMarkdown()}
-
-Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
-''';
-    github.appendStepSummary(markdownTable);
-
-    final existingCommentId = await allowFailure(
-      github.findCommentId(
-        user: _githubActionsUser,
-        searchTerm: _publishBotTag,
-      ),
-      logError: print,
-    );
-
-    if (existingCommentId != null) {
-      final idFile = File('./output/commentId');
-      print('''
-Saving existing comment id $existingCommentId to file ${idFile.path}''');
-      await idFile.create(recursive: true);
-      await idFile.writeAsString(existingCommentId.toString());
-    }
-
-    if (results.hasSuccess || existingCommentId != null) {
-      final description =
-          results.hasSuccess ? '$_publishBotDescription\n\n' : '';
-      final commentText = '$_publishBotTag\n\n'
-          '$description'
-          '$markdownTable';
-
-      final commentFile = File('./output/comment.md');
-      print('Saving comment markdown to file ${commentFile.path}');
-      await commentFile.create(recursive: true);
-      await commentFile.writeAsString(commentText);
-    }
-
-    if (results.hasError && exitCode == 0) {
-      exitCode = 1;
-    }
-
-    github.close();
-  }
 
   Future<VerificationResults> verify(GithubApi github) async {
     final repo = Repository(directory);
@@ -181,7 +105,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         const preReleaseText =
             'consider publishing the package as a pre-release instead';
 
-        final result = await _runPublish(package, dryRun: true, force: false);
+        final result = await _runPublish(package, dryRun: true);
 
         final hasPreReleaseText = result.stdout.contains(preReleaseText);
         final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
@@ -219,117 +143,14 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     return results;
   }
 
-  /// Publish the indicated package in the repository.
-  ///
-  /// This is intended to be run on a github workflow in response to a git tag.
-  /// It will:
-  /// - validate the tag
-  /// - validate the package exists
-  /// - validate changelog and pubspec versions
-  /// - perform a publish
-  Future publish() async {
-    final success = await _publish();
-    if (!success && exitCode == 0) {
-      exitCode = 1;
-    }
-  }
-
-  Future<bool> _publish() async {
-    final github = GithubApi();
-
-    if (!expectEnv(github.refName, 'GITHUB_REF_NAME')) return false;
-
-    // Validate the git tag.
-    final tag = Tag(github.refName!, prefix: tagPrefix);
-    if (!tag.valid) {
-      stderr.writeln("Git tag not in expected format: '$tag'");
-      return false;
-    }
-
-    print("Publishing '$tag'");
-    print('');
-
-    final repo = Repository();
-    final packages = repo.locatePackages();
-    print('');
-    print('Repository packages:');
-    for (final package in packages) {
-      print('  $package');
-    }
-    print('');
-
-    // Find package to publish.
-    Package package;
-    if (repo.isSinglePackageRepo) {
-      if (packages.isEmpty) {
-        stderr.writeln('No publishable package found.');
-        return false;
-      }
-      package = packages.first;
-    } else {
-      final name = tag.package;
-      if (name == null) {
-        stderr.writeln("Tag does not include package name ('$tag').");
-        return false;
-      }
-      if (!packages.any((p) => p.name == name)) {
-        stderr.writeln("Tag does not match a repo package ('$tag').");
-        return false;
-      }
-      package = packages.firstWhere((p) => p.name == name);
-    }
-
-    print('');
-    print('Publishing ${'package:${package.name}'}');
-    print('');
-
-    print('pubspec:');
-    final pubspecVersion = package.pubspec.version?.toString();
-    print('  version: $pubspecVersion');
-
-    print('changelog:');
-    print(package.changelog.describeLatestChanges);
-    final changelogVersion = package.changelog.latestVersion;
-
-    if (pubspecVersion != tag.version) {
-      stderr.writeln(
-        "Pubspec version ($pubspecVersion) and git tag ($tag) don't agree.",
-      );
-      return false;
-    }
-
-    if (pubspecVersion != changelogVersion) {
-      stderr.writeln(
-        'Pubspec version ($pubspecVersion) and changelog version '
-        "($changelogVersion) don't agree.",
-      );
-      return false;
-    }
-
-    await runCommand('dart', args: ['pub', 'get'], cwd: package.directory);
-    print('');
-
-    final result = await _runPublish(package, dryRun: false, force: true);
-    if (result.code != 0) {
-      exitCode = result.code;
-    }
-    return result.code == 0;
-  }
-
   Future<CommandResult> _runPublish(
     Package package, {
     required bool dryRun,
-    required bool force,
   }) async {
-    String command;
-    if (useFlutter) {
-      command = 'flutter';
-    } else {
-      command = 'dart';
-    }
+    final command = useFlutter ? 'flutter' : 'dart';
     return await runCommand(
       command,
-      args: ['pub', 'publish', if (dryRun) '--dry-run', if (force) '--force'],
+      args: ['pub', 'publish', if (dryRun) '--dry-run'],
       cwd: package.directory,
     );
   }
