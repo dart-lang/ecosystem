@@ -179,7 +179,14 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          if [ -n "$WORKFLOW_SHA" ]; then
+            dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
+          else
+            dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+          fi
       - name: Find Comment
         id: fc
         env:
@@ -220,6 +227,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -239,6 +247,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
       license: ${{ inputs.license }}
       license_test_string: ${{ inputs.license_test_string }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -258,6 +267,7 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       experiments: ${{ inputs.experiments }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -275,6 +285,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -292,6 +303,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   leaking:
     if: ${{ contains(inputs.checks, 'leaking') }}
@@ -309,6 +321,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   unused-dependencies:
     if: ${{ contains(inputs.checks, 'unused-dependencies') }}
@@ -325,6 +338,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   publish:
     if: ${{ contains(inputs.checks, 'publish') }}
@@ -342,6 +356,7 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
+      workflow_sha: ${{ job.workflow_sha }}
 
   comment:
     needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish]
@@ -362,7 +377,14 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: |
+          if [ -n "$WORKFLOW_SHA" ]; then
+            dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
+          else
+            dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+          fi
       - name: Download All Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
