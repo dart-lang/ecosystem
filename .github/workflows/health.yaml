@@ -227,7 +227,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   license:
     if: ${{ contains(inputs.checks, 'license') }}
@@ -247,7 +246,6 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
       license: ${{ inputs.license }}
       license_test_string: ${{ inputs.license_test_string }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   coverage:
     if: ${{ contains(inputs.checks, 'coverage') }}
@@ -267,7 +265,6 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       experiments: ${{ inputs.experiments }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   breaking:
     if: ${{ contains(inputs.checks, 'breaking') }}
@@ -285,7 +282,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   do-not-submit:
     if: ${{ contains(inputs.checks, 'do-not-submit') }}
@@ -303,7 +299,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   leaking:
     if: ${{ contains(inputs.checks, 'leaking') }}
@@ -321,7 +316,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   unused-dependencies:
     if: ${{ contains(inputs.checks, 'unused-dependencies') }}
@@ -338,7 +332,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   publish:
     if: ${{ contains(inputs.checks, 'publish') }}
@@ -356,7 +349,6 @@ jobs:
       ignore_packages: ${{ inputs.ignore_packages }}
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
-      workflow_sha: ${{ job.workflow_sha }}
 
   comment:
     needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish]
