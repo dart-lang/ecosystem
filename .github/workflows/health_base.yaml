@@ -155,7 +155,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "${{ job.workflow_sha }}"
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
