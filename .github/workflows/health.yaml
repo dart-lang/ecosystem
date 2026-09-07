@@ -397,10 +397,27 @@ jobs:
         env:
           ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-         mkdir output
-         echo $'## PR Health\n\n' >> output/comment.md
-         find single-comments -name '*.md' -exec cat {} + >> output/comment.md
-         echo "$ISSUE_NUMBER" > output/issueNumber
+          mkdir -p output
+          echo $'## PR Health\n\n' >> output/comment.md
+          if [ -d single-comments ]; then
+            for check in publish changelog breaking leaking unused-dependencies license; do
+              for file in $(find single-comments -name "comment-${check}.md"); do
+                if [ -f "$file" ]; then
+                  cat "$file" >> output/comment.md
+                fi
+              done
+            done
+            for file in $(find single-comments -name '*.md' | sort); do
+              case "$(basename "$file")" in
+                comment-publish.md|comment-changelog.md|comment-breaking.md|comment-leaking.md|comment-unused-dependencies.md|comment-license.md)
+                  ;;
+                *)
+                  cat "$file" >> output/comment.md
+                  ;;
+              esac
+            done
+          fi
+          echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
