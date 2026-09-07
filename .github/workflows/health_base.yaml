@@ -66,6 +66,10 @@ on:
         default: ''
         required: false
         type: string
+      ignore_publish:
+        default: ''
+        required: false
+        type: string
       ignore_packages:
         default: ''
         required: false
@@ -88,6 +92,10 @@ on:
         type: string
       license_test_string:
         default: ''
+        required: false
+        type: string
+      order:
+        default: '99'
         required: false
         type: string
 
@@ -151,7 +159,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
 
       - name: Install local firehose
         run: dart pub global activate --source path current_repo/pkgs/firehose/
@@ -189,6 +199,7 @@ jobs:
           INPUTS_IGNORE_LEAKING: ${{ inputs.ignore_leaking }}
           INPUTS_IGNORE_DONOTSUBMIT: ${{ inputs.ignore_donotsubmit }}
           INPUTS_IGNORE_UNUSEDDEPENDENCIES: ${{ inputs.ignore_unuseddependencies }}
+          INPUTS_IGNORE_PUBLISH: ${{ inputs.ignore_publish }}
           INPUTS_EXPERIMENTS: ${{ inputs.experiments }}
           INPUTS_HEALTH_YAML_NAME: ${{ inputs.health_yaml_name }}
           INPUTS_LICENSE: ${{ inputs.license }}
@@ -215,21 +226,33 @@ jobs:
             --ignore_leaking "${INPUTS_IGNORE_LEAKING}" \
             --ignore_donotsubmit "${INPUTS_IGNORE_DONOTSUBMIT}" \
             --ignore_unuseddependencies "${INPUTS_IGNORE_UNUSEDDEPENDENCIES}" \
+            --ignore_publish "${INPUTS_IGNORE_PUBLISH}" \
             --experiments "${INPUTS_EXPERIMENTS}" \
             --health_yaml_name "${INPUTS_HEALTH_YAML_NAME}" \
             --no-local \
             --license "${INPUTS_LICENSE}" \
             --license_test_string "${INPUTS_LICENSE_TEST_STRING}"
 
+      - name: Rename comment file with order prefix
+        if: success() || failure()
+        run: |
+          if [ -f current_repo/output/comment-${INPUTS_CHECK}.md ]; then
+            mv current_repo/output/comment-${INPUTS_CHECK}.md current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md
+          fi
+        env:
+          INPUTS_CHECK: ${{ inputs.check }}
+          INPUTS_ORDER: ${{ inputs.order }}
+
       - name: Ensure comment file exists
-        run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
+        run: test -f current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md
         if: failure()
         env:
           INPUTS_CHECK: ${{ inputs.check }}
+          INPUTS_ORDER: ${{ inputs.order }}
 
       - name: Upload markdown
         if: success() || failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: comment-${{ inputs.check }}
-          path: current_repo/output/comment-${{ inputs.check }}.md
+          name: comment-${{ inputs.order }}-${{ inputs.check }}
+          path: current_repo/output/comment-${{ inputs.order }}-${{ inputs.check }}.md
