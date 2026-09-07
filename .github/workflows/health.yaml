@@ -214,6 +214,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: changelog
+      order: '02'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -231,6 +232,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: license
+      order: '06'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -250,6 +252,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: coverage
+      order: '08'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       coverage_web: ${{ inputs.coverage_web }}
@@ -269,6 +272,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: breaking
+      order: '03'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -286,6 +290,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: do-not-submit
+      order: '07'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -303,6 +308,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: leaking
+      order: '04'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -320,6 +326,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: unused-dependencies
+      order: '05'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -336,6 +343,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: publish
+      order: '01'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -390,21 +398,8 @@ jobs:
           mkdir -p output
           echo $'## PR Health\n\n' >> output/comment.md
           if [ -d single-comments ]; then
-            for check in publish changelog breaking leaking unused-dependencies license; do
-              for file in $(find single-comments -name "comment-${check}.md"); do
-                if [ -f "$file" ]; then
-                  cat "$file" >> output/comment.md
-                fi
-              done
-            done
             for file in $(find single-comments -name '*.md' | sort); do
-              case "$(basename "$file")" in
-                comment-publish.md|comment-changelog.md|comment-breaking.md|comment-leaking.md|comment-unused-dependencies.md|comment-license.md)
-                  ;;
-                *)
-                  cat "$file" >> output/comment.md
-                  ;;
-              esac
+              cat "$file" >> output/comment.md
             done
           fi
           echo "$ISSUE_NUMBER" > output/issueNumber

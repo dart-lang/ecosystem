@@ -94,6 +94,10 @@ on:
         default: ''
         required: false
         type: string
+      order:
+        default: '99'
+        required: false
+        type: string
 
 jobs:
   health:
@@ -229,15 +233,26 @@ jobs:
             --license "${INPUTS_LICENSE}" \
             --license_test_string "${INPUTS_LICENSE_TEST_STRING}"
 
+      - name: Rename comment file with order prefix
+        if: success() || failure()
+        run: |
+          if [ -f current_repo/output/comment-${INPUTS_CHECK}.md ]; then
+            mv current_repo/output/comment-${INPUTS_CHECK}.md current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md
+          fi
+        env:
+          INPUTS_CHECK: ${{ inputs.check }}
+          INPUTS_ORDER: ${{ inputs.order }}
+
       - name: Ensure comment file exists
-        run: test -f current_repo/output/comment-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_CHECK}.md
+        run: test -f current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md || echo $'The ${INPUTS_CHECK} workflow has encountered an exception and did not complete.' >> current_repo/output/comment-${INPUTS_ORDER}-${INPUTS_CHECK}.md
         if: failure()
         env:
           INPUTS_CHECK: ${{ inputs.check }}
+          INPUTS_ORDER: ${{ inputs.order }}
 
       - name: Upload markdown
         if: success() || failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: comment-${{ inputs.check }}
-          path: current_repo/output/comment-${{ inputs.check }}.md
+          name: comment-${{ inputs.order }}-${{ inputs.check }}
+          path: current_repo/output/comment-${{ inputs.order }}-${{ inputs.check }}.md
