@@ -94,10 +94,6 @@ on:
         default: ''
         required: false
         type: string
-      workflow_sha:
-        default: ''
-        required: false
-        type: string
 
 jobs:
   health:
@@ -160,7 +156,7 @@ jobs:
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
         env:
-          WORKFLOW_SHA: ${{ inputs.workflow_sha || job.workflow_sha }}
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
         run: |
           if [ -n "$WORKFLOW_SHA" ]; then
             dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
