@@ -397,11 +397,9 @@ jobs:
         run: |
           mkdir -p output
           echo $'## PR Health\n\n' >> output/comment.md
-          if [ -d single-comments ]; then
-            for file in $(find single-comments -name '*.md' | sort); do
-              cat "$file" >> output/comment.md
-            done
-          fi
+          for file in $(find single-comments -name '*.md' | sort); do
+            cat "$file" >> output/comment.md
+          done
           echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Write comment id to file
