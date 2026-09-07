@@ -28,14 +28,14 @@ const dart_apitoolHash = '6d710709e5d51bab52ecd911c84a3264e5277a69';
 const dependency_validatorHash = '7582a808960d2170800bfbd7a83526619ce300ce';
 
 enum Check {
-  license('License Headers', 'license'),
+  publish('Publish', 'publish'),
   changelog('Changelog Entry', 'changelog'),
-  coverage('Coverage', 'coverage'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
-  donotsubmit('Do Not Submit', 'do-not-submit'),
   unuseddependencies('Unused Dependencies', 'unused-dependencies'),
-  publish('Publish', 'publish');
+  license('License Headers', 'license'),
+  donotsubmit('Do Not Submit', 'do-not-submit'),
+  coverage('Coverage', 'coverage');
 
   final String tag;
 
