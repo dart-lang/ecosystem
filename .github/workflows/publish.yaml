@@ -149,13 +149,26 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
+          # setup-dart provisions PUB_TOKEN for the later publish step. Keep
+          # Firehose dependency resolution unauthenticated: the OIDC token is
+          # scoped to publishing and pub.dev rejects it for public reads.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          # setup-dart provisions PUB_TOKEN for the later publish step. Keep
+          # Firehose dependency resolution unauthenticated: the OIDC token is
+          # scoped to publishing and pub.dev rejects it for public reads.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
 
       - name: Install local firehose
+        env:
+          # Keep local Firehose dependency resolution separate from the
+          # publish-only OIDC credentials as well.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source path pkgs/firehose/
         if: ${{ inputs.local_debug }}
 
@@ -268,13 +281,26 @@ jobs:
         env:
           GIT_URL: ${{ github.event.pull_request.head.repo.clone_url || 'https://github.com/dart-lang/ecosystem' }}
           GIT_REF: ${{ github.head_ref || github.ref_name }}
+          # Keep Firehose dependency resolution unauthenticated. The OIDC
+          # token provisioned by setup-dart is scoped to publishing and
+          # pub.dev rejects it for public reads.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
+        env:
+          # Keep Firehose dependency resolution unauthenticated. The OIDC
+          # token provisioned by setup-dart is scoped to publishing and
+          # pub.dev rejects it for public reads.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
 
       - name: Install local firehose
+        env:
+          # Keep local Firehose dependency resolution separate from the
+          # publish-only OIDC credentials as well.
+          XDG_CONFIG_HOME: ${{ runner.temp }}/firehose-pub-config
         run: dart pub global activate --source path pkgs/firehose/
         if: ${{ inputs.local_debug }}
 
