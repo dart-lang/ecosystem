@@ -9,6 +9,7 @@ import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
 import 'package:firehose/src/repo.dart';
 import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {
@@ -115,6 +116,26 @@ Future<void> main() async {
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
+
+  test('BreakingChange.toMarkdownRow sanitizes newlines and pipes', () {
+    final change = BreakingChange(
+      level: BreakingLevel.breaking,
+      oldVersion: Version(0, 0, 0),
+      newVersion: Version.parse('0.3.2-wip'),
+      neededVersion: null,
+      versionIsFine: false,
+      explanation: 'Error line 1\nError line 2 | with pipe\r\nError line 3',
+    );
+    final row = change.toMarkdownRow();
+    expect(row, isNot(contains('\n')));
+    expect(row, isNot(contains('\r')));
+    expect(
+      row,
+      'Breaking|0.0.0|0.3.2-wip|'
+      r'Error line 1 Error line 2 \| with pipe Error line 3|'
+      ':warning:',
+    );
+  });
 }
 
 Future<void> checkGolden(

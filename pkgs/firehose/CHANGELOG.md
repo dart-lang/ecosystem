@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Log full `dart_apitool` failure output to the workflow log instead of dumping
+  multi-line stack traces into the PR health comment Markdown table.
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
 - Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
   commit SHA, and verify comment authorship when checking `commentId`.
