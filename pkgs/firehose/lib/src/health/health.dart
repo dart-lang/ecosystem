@@ -329,14 +329,15 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
           explanation: versionMap['explanation'].toString(),
         );
       } else {
-        log('Report was not created for $package at $reportPath');
+        log('Report was not created for $package at $reportPath: $err');
         changeForPackage[package] = BreakingChange(
           level: BreakingLevel.breaking,
           oldVersion: Version(0, 0, 0),
-          newVersion: Version(0, 0, 0),
-          neededVersion: Version(0, 0, 0),
+          newVersion: package.version ?? Version(0, 0, 0),
+          neededVersion: null,
           versionIsFine: false,
-          explanation: 'Report was not created for $package. Error: $err',
+          explanation: 'Unable to calculate breaking changes '
+              '(see workflow logs for details).',
         );
       }
     }
@@ -797,6 +798,11 @@ class BreakingChange {
       newVersion.toString(),
       needed,
       versionIsFine ? ':heavy_check_mark:' : ':warning:'
-    ].map((e) => e.toString()).join('|');
+    ]
+        .map((e) => e
+            .toString()
+            .replaceAll(RegExp(r'\r?\n'), ' ')
+            .replaceAll('|', r'\|'))
+        .join('|');
   }
 }
