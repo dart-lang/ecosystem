@@ -25,7 +25,6 @@ name: Health
 #       fail_on: "changelog,do-not-submit"
 #       warn_on: "license,coverage,breaking,leaking"
 #       coverage_web: false
-#       upload_coverage: false
 #       flutter_packages: "pkgs/my_flutter_package"
 #       ignore_license: "**.g.dart"
 #       ignore_changelog: ""
@@ -79,11 +78,6 @@ on:
       local_debug:
         description: Whether to use a local copy of package:firehose - only for debug
         default: false
-        type: boolean
-        required: false
-      upload_coverage:
-        description: Whether to upload the coverage to coveralls
-        default: true
         type: boolean
         required: false
       coverage_web:
@@ -251,7 +245,6 @@ jobs:
       check: coverage
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
-      upload_coverage: ${{ inputs.upload_coverage }}
       coverage_web: ${{ inputs.coverage_web }}
       local_debug: ${{ inputs.local_debug }}
       flutter_packages: ${{ inputs.flutter_packages }}

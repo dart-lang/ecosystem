@@ -87,7 +87,7 @@ jobs:
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
         if: ${{ inputs.use-flutter }}
         with:
-          channel: ${{ inputs.sdk }}
+          channel: ${{ inputs.sdk == 'dev' && 'master' || inputs.sdk }}
           cache: true
 
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
@@ -104,10 +104,12 @@ jobs:
         env:
           RUN_FORMAT: ${{ inputs.run-format }}
           RUN_FIX: ${{ inputs.run-fix }}
+          USE_FLUTTER: ${{ inputs.use-flutter }}
         run: |
           dart $GITHUB_WORKSPACE/.github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
             --format="$RUN_FORMAT" \
-            --fix="$RUN_FIX"
+            --fix="$RUN_FIX" \
+            --use-flutter="$USE_FLUTTER"
 
       - name: Check for changes
         id: check_changes

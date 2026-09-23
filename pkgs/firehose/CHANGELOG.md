@@ -1,6 +1,18 @@
 ## 0.13.2-wip
 
 - Support `use-flutter` option in `groundskeeper` workflow to allow tidying Flutter packages.
+- Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
+- Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
+  commit SHA, and verify comment authorship when checking `commentId`.
+- Update `dependency_validator` pinned commit hash to 5.0.6 (`7582a808960d2170800bfbd7a83526619ce300ce`),
+  enabling support for newer Dart syntax (up to analyzer 13).
+- Update existing publishing PR comments with accurate status when packages are
+  no longer ready to publish (e.g. when updated to `-wip`).
+- Add `delete` command to `firehose:comment` executable.
+- Condense PR package publishing table to show only packages affected by the PR,
+  packages ready to publish, and errors, summarizing unaffected WIP and published
+  packages.
+- Remove 3rd-party Coveralls action and `upload_coverage` input from health workflows.
 - Add `--tag-prefix` option to `firehose` and `tag-prefix` input to `publish.yaml` to allow configuring the release tag prefix (defaults to `'v'`).
 - Run `pub get` before `dart format` in `groundskeeper`.
 - Add `groundskeeper` executable to format and fix packages.

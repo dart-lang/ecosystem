@@ -30,10 +30,6 @@ on:
         default: false
         type: boolean
         required: false
-      upload_coverage:
-        default: true
-        type: boolean
-        required: false
       coverage_web:
         default: false
         type: boolean
@@ -230,15 +226,6 @@ jobs:
         if: failure()
         env:
           INPUTS_CHECK: ${{ inputs.check }}
-
-      - name: Upload coverage to Coveralls
-        if: ${{ inputs.upload_coverage && inputs.check == 'coverage' }}
-        uses: coverallsapp/github-action@5cbfd81b66ca5d10c19b062c04de0199c215fb6e
-        with:
-          format: lcov
-          base-path: current_repo/
-          compare-sha: ${{ github.event.pull_request.base.ref }}
-          allow-empty: true
 
       - name: Upload markdown
         if: success() || failure()
