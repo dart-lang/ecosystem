@@ -25,7 +25,7 @@ const dart_apitoolHash = '6d710709e5d51bab52ecd911c84a3264e5277a69';
 
 /// To allow easier searching for the package name
 // ignore: constant_identifier_names
-const dependency_validatorHash = '7582a808960d2170800bfbd7a83526619ce300ce';
+const dependency_validatorHash = '52f142e104371eab25d56cafef127ee53b715d22';
 
 enum Check {
   license('License Headers', 'license'),
