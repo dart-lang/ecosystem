@@ -132,6 +132,9 @@ class GithubApi {
     await _github.issues.updateComment(_slug, commentId, body);
   }
 
+  Future<bool> deleteComment(int commentId) =>
+      _github.issues.deleteComment(_slug, commentId);
+
   Future<List<GitFile>> listFilesForPR(
     Directory directory, [
     List<Glob> ignoredFiles = const [],

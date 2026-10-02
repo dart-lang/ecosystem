@@ -259,3 +259,13 @@ or configure it further, for example
 ```
 dart pub global run firehose:health --check unused-dependencies,license --comment test.md
 ```
+
+## Zizmor compatibility
+
+The `post_summaries` workflow uses a `workflow_run` trigger which is
+flagged by zizmor as a risk (`dangerous-triggers`). The risk in this case is
+mitigated by not using `actions/checkout` to bring in code from the PR branch,
+and by strictly validating the target PR and comment IDs before acting on them.
+The elevated `pull-requests: write` permission is used to allow posting the
+results of PR health checks and publishing validations as a comment on the PR.
+Use a `# zizmor: ignore[dangerous-triggers]` comment to ignore.
