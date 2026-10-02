@@ -197,7 +197,9 @@ class _RunCommand extends Command<int> {
       ...opts.rest,
     ];
 
-    final dartBin = _resolveDartExecutable();
+    final dartBin =
+        dartExecutable ??
+        (throw StateError('Could not locate the `dart` executable.'));
     final proc = await Process.start(
       dartBin,
       [
@@ -215,15 +217,5 @@ class _RunCommand extends Command<int> {
       mode: ProcessStartMode.inheritStdio,
     );
     return proc.exitCode;
-  }
-
-  static String _resolveDartExecutable() {
-    final exe = Platform.resolvedExecutable;
-    final base = p.basenameWithoutExtension(exe);
-    if (base == 'dart') return exe;
-    final sdk = sdkPath;
-    final ext = Platform.isWindows ? '.exe' : '';
-    final candidate = p.join(sdk, 'bin', 'dart$ext');
-    return File(candidate).existsSync() ? candidate : 'dart';
   }
 }
