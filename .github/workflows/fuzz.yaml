@@ -1,0 +1,91 @@
+name: Fuzz
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: 'Path to the Dart fuzz harness script (relative to package-root)'
+        type: string
+        required: true
+      package-root:
+        description: 'Directory of the target package to instrument and fuzz'
+        type: string
+        default: '.'
+        required: false
+      mode:
+        description: 'Fuzzing mode (cgf or pure-dart)'
+        type: string
+        default: 'cgf'
+        required: false
+      runs:
+        description: 'Maximum number of fuzzing executions (-runs=<N>)'
+        type: number
+        default: 200000
+        required: false
+      max-len:
+        description: 'Maximum input length in bytes (-max_len=<N>)'
+        type: number
+        default: 64
+        required: false
+      max-total-time:
+        description: 'Maximum total fuzzing time in seconds (-max_total_time=<S>)'
+        type: number
+        default: 60
+        required: false
+      sdk:
+        description: 'Dart SDK channel (stable, beta, dev, main)'
+        type: string
+        default: 'stable'
+        required: false
+      local_debug:
+        description: 'Use local checkout of pkgs/dash_fuzz (only inside dart-lang/ecosystem)'
+        type: boolean
+        default: false
+        required: false
+
+jobs:
+  fuzz:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        with:
+          sdk: ${{ inputs.sdk }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Install clang and LLVM compiler-rt
+        if: ${{ inputs.mode == 'cgf' }}
+        run: sudo apt-get update && sudo apt-get install -y clang llvm
+
+      - name: Resolve target package dependencies
+        working-directory: ${{ inputs.package-root }}
+        run: dart pub get
+
+      - name: Activate local `package:dash_fuzz`
+        if: ${{ inputs.local_debug }}
+        run: dart pub global activate -s path pkgs/dash_fuzz
+
+      - name: Activate `package:dash_fuzz` from dart-lang/ecosystem
+        if: ${{ !inputs.local_debug }}
+        run: dart pub global activate -s git https://github.com/dart-lang/ecosystem.git --git-ref main --git-path pkgs/dash_fuzz
+
+      - name: Run dash_fuzz
+        working-directory: ${{ inputs.package-root }}
+        run: |
+          dart pub global run dash_fuzz run \
+            --package-root=. \
+            --target="${{ inputs.target }}" \
+            --mode="${{ inputs.mode }}" \
+            --runs="${{ inputs.runs }}" \
+            --max-len="${{ inputs.max-len }}" \
+            --max-total-time="${{ inputs.max-total-time }}"
