@@ -10,7 +10,17 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:path/path.dart' as p;
+
+/// Metadata for a single AST-instrumented control-flow or comparison site.
+typedef FuzzSiteEntry = ({
+  int id,
+  String file,
+  int line,
+  int column,
+  String kind,
+});
 
 enum _EditKind {
   /// Inserted at the end of an inner node (innermost first).
@@ -61,10 +71,27 @@ class AstInstrumentor {
   int comparesInserted = 0;
   int switchesInserted = 0;
 
-  int _allocId() {
+  /// Every AST site instrumented across one or more [instrumentSource] calls.
+  final List<FuzzSiteEntry> sites = [];
+
+  int _allocSite({
+    required int offset,
+    required String kind,
+    required LineInfo lineInfo,
+    required String filePath,
+  }) {
     final id = (_nextId * 40503) & 0xFFFF;
     _nextId++;
-    return id == 0 ? 1 : id;
+    final nonZeroId = id == 0 ? 1 : id;
+    final loc = lineInfo.getLocation(offset);
+    sites.add((
+      id: nonZeroId,
+      file: filePath,
+      line: loc.lineNumber,
+      column: loc.columnNumber,
+      kind: kind,
+    ));
+    return nonZeroId;
   }
 
   /// Instruments [source] with `$fuzzEdge`, `$fuzzEq`/`$fuzzLt`/etc., and
@@ -76,10 +103,15 @@ class AstInstrumentor {
     String source, {
     String runtimeImport = 'package:dash_fuzz/dash_fuzz.dart',
     bool addImport = true,
+    String filePath = '<memory>',
   }) {
     final parseResult = parseString(content: source, throwIfDiagnostics: false);
     final unit = parseResult.unit;
-    final visitor = _InstrumentVisitor(this);
+    final visitor = _InstrumentVisitor(
+      this,
+      filePath: filePath,
+      lineInfo: parseResult.lineInfo,
+    );
     unit.accept(visitor);
 
     final edits = visitor.edits..sort();
@@ -120,9 +152,15 @@ class AstInstrumentor {
 
 class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   final AstInstrumentor owner;
+  final String filePath;
+  final LineInfo lineInfo;
   final List<_SourceEdit> edits = [];
 
-  _InstrumentVisitor(this.owner);
+  _InstrumentVisitor(
+    this.owner, {
+    required this.filePath,
+    required this.lineInfo,
+  });
 
   int _depth(AstNode node) {
     var d = 0;
@@ -163,7 +201,12 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
       leaf.thisOrAncestorMatching((n) => identical(n, target)) != null;
 
   void _wrapStatementWithEdge(Statement stmt) {
-    final id = owner._allocId();
+    final id = owner._allocSite(
+      offset: stmt.offset,
+      kind: 'branch',
+      lineInfo: lineInfo,
+      filePath: filePath,
+    );
     owner.edgesInserted++;
     final d = _depth(stmt);
     edits.add(
@@ -189,7 +232,12 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitBlock(Block node) {
     if (!_inConstOrNonInstrumentableContext(node)) {
-      final id = owner._allocId();
+      final id = owner._allocSite(
+        offset: node.leftBracket.offset,
+        kind: 'block',
+        lineInfo: lineInfo,
+        filePath: filePath,
+      );
       owner.edgesInserted++;
       edits.add(
         _SourceEdit(
@@ -239,7 +287,12 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         final caseSource = _switchMemberCaseSource(member);
         if (caseSource != null) caseExprs.add(caseSource);
         if (member.statements.isNotEmpty) {
-          final edgeId = owner._allocId();
+          final edgeId = owner._allocSite(
+            offset: member.offset,
+            kind: 'switch_case',
+            lineInfo: lineInfo,
+            filePath: filePath,
+          );
           owner.edgesInserted++;
           edits.add(
             _SourceEdit(
@@ -253,7 +306,12 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         }
       }
       if (caseExprs.isNotEmpty) {
-        final switchId = owner._allocId();
+        final switchId = owner._allocSite(
+          offset: node.offset,
+          kind: 'switch',
+          lineInfo: lineInfo,
+          filePath: filePath,
+        );
         owner.switchesInserted++;
         final expr = node.expression;
         final d = _depth(expr);
@@ -305,7 +363,12 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         ? null
         : _operatorHelper(node.operator.type);
     if (helper != null) {
-      final id = owner._allocId();
+      final id = owner._allocSite(
+        offset: node.operator.offset,
+        kind: 'cmp',
+        lineInfo: lineInfo,
+        filePath: filePath,
+      );
       owner.comparesInserted++;
       final d = _depth(node);
       edits.add(
@@ -344,6 +407,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
 typedef OverlayResult = ({
   String packageName,
   String overlayPackageConfigPath,
+  String edgeManifestPath,
   String instrumentedLibDir,
   int filesInstrumented,
   int edgesInserted,
@@ -390,6 +454,12 @@ class PackageOverlayInstrumentor {
       runtimeImport: runtimeImport,
     );
 
+    final edgeManifestPath = _writeEdgeManifest(
+      dashFuzzDir: dashFuzzDir,
+      packageName: packageName,
+      sites: instrumentor.sites,
+    );
+
     final overlayConfigPath = await _writeOverlayPackageConfig(
       rootDir: rootDir,
       packageName: packageName,
@@ -400,12 +470,38 @@ class PackageOverlayInstrumentor {
     return (
       packageName: packageName,
       overlayPackageConfigPath: overlayConfigPath,
+      edgeManifestPath: edgeManifestPath,
       instrumentedLibDir: instrumentedLibDir,
       filesInstrumented: filesInstrumented,
       edgesInserted: instrumentor.edgesInserted,
       comparesInserted: instrumentor.comparesInserted,
       switchesInserted: instrumentor.switchesInserted,
     );
+  }
+
+  static String _writeEdgeManifest({
+    required String dashFuzzDir,
+    required String packageName,
+    required List<FuzzSiteEntry> sites,
+  }) {
+    final manifestPath = p.join(dashFuzzDir, 'edge_manifest.json');
+    final payload = <String, Object?>{
+      'package': packageName,
+      'totalSites': sites.length,
+      'sites': [
+        for (final s in sites)
+          {
+            'id': s.id,
+            'file': s.file,
+            'line': s.line,
+            'column': s.column,
+            'kind': s.kind,
+          },
+      ],
+    };
+    File(manifestPath)
+        .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(payload));
+    return manifestPath;
   }
 
   static String _extractPackageName(String pubspecContent) {
@@ -425,17 +521,21 @@ class PackageOverlayInstrumentor {
     required AstInstrumentor instrumentor,
     required String runtimeImport,
   }) {
+    final files =
+        sourceLibDir.listSync(recursive: true).whereType<File>().toList()
+          ..sort((a, b) => a.path.compareTo(b.path));
     var count = 0;
-    for (final entity in sourceLibDir.listSync(recursive: true)) {
-      if (entity is! File) continue;
+    for (final entity in files) {
       final relPath = p.relative(entity.path, from: sourceLibDir.path);
       final destPath = p.join(instrumentedLibDir, relPath);
       Directory(p.dirname(destPath)).createSync(recursive: true);
       if (relPath.endsWith('.dart')) {
         final source = entity.readAsStringSync();
+        final posixRel = p.posix.joinAll(['lib', ...p.split(relPath)]);
         final out = instrumentor.instrumentSource(
           source,
           runtimeImport: runtimeImport,
+          filePath: posixRel,
         );
         File(destPath).writeAsStringSync(out);
         count++;

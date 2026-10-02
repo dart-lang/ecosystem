@@ -5,11 +5,25 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <utility>
 
 using DartFuzzCallback = int (*)(const uint8_t* Data, size_t Size);
 static DartFuzzCallback g_dart_callback = nullptr;
+static const uint8_t* g_site_hits = nullptr;
+static size_t g_site_hits_size = 0;
+static bool g_atexit_registered = false;
+
+static void FlushSiteHitsAtExit() {
+  if (g_site_hits == nullptr || g_site_hits_size == 0) return;
+  const char* path = std::getenv("DASH_FUZZ_SITE_HITS_PATH");
+  if (path == nullptr || path[0] == '\0') return;
+  FILE* fp = std::fopen(path, "wb");
+  if (fp == nullptr) return;
+  std::fwrite(g_site_hits, 1, g_site_hits_size, fp);
+  std::fclose(fp);
+}
 
 extern "C" {
 
@@ -64,6 +78,15 @@ uint8_t* AllocateCounters(size_t size) {
 
 void RegisterDartCounters(uint8_t* Start, size_t Size) {
   __sanitizer_cov_8bit_counters_init(Start, Start + Size);
+}
+
+void RegisterSiteHits(const uint8_t* Start, size_t Size) {
+  g_site_hits = Start;
+  g_site_hits_size = Size;
+  if (!g_atexit_registered) {
+    std::atexit(FlushSiteHitsAtExit);
+    g_atexit_registered = true;
+  }
 }
 
 void TraceCmp8(uint64_t Arg1, uint64_t Arg2) {

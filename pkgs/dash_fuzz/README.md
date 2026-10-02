@@ -64,3 +64,14 @@ dart run dash_fuzz run --mode=pure-dart --package-root=. --target=test/fuzz/my_f
   target Dart VM with `--old_gen_heap_size=1024` (1 GB) and passes
   `-rss_limit_mb=2048 -timeout=5` to `libFuzzer`, turning unbounded parser
   allocations or infinite loops into deterministic crash reproducers.
+
+## Per-File AST Coverage Reporting
+
+During AST instrumentation, `dash_fuzz` writes a deterministic site manifest to
+`.dart_tool/dash_fuzz/edge_manifest.json` mapping every instrumented branch,
+loop, switch case, and comparison site back to its source file, 1-based line
+and column, and syntax kind. At the end of each `dash_fuzz run` invocation
+(including `-max_total_time` exits and crash terminations), `dash_fuzz` prints
+a per-file AST site coverage table and writes
+`.dart_tool/dash_fuzz/coverage_report.json` listing exact uncovered line and
+column positions to guide corpus seeding and harness expansion.

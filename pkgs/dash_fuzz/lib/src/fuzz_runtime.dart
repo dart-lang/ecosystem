@@ -71,6 +71,13 @@ class FuzzRuntime {
   static const int _counterMask = numCounters - 1;
 
   static Uint8List covMap = Uint8List(numCounters);
+
+  /// Direct per-site hit bitmask indexed by bijective AST site ID (`0..65535`).
+  ///
+  /// Bit 0 (`0x1`) indicates an edge or comparison `true` branch was reached;
+  /// bit 1 (`0x2`) indicates a comparison `false` branch was reached.
+  static Uint8List siteHits = Uint8List(numCounters);
+
   static _TraceCmp8WithPcDart? _traceCmp8WithPc;
   static _TraceMemcmpDart? _traceMemcmp;
   static _StartFuzzerWithArgsDart? _startFuzzerWithArgs;
@@ -114,6 +121,7 @@ class FuzzRuntime {
 
     if (targetMode == FuzzMode.pureDart) {
       covMap = Uint8List(numCounters);
+      siteHits = Uint8List(numCounters);
       _s1View = Uint8List(_numSlots * _slotStride);
       _s2View = Uint8List(_numSlots * _slotStride);
       _traceCmp8WithPc = null;
@@ -133,6 +141,10 @@ class FuzzRuntime {
         .lookupFunction<_RegisterDartCountersC, _RegisterDartCountersDart>(
           'RegisterDartCounters',
         );
+    final registerSiteHits = lib
+        .lookupFunction<_RegisterDartCountersC, _RegisterDartCountersDart>(
+          'RegisterSiteHits',
+        );
     _traceCmp8WithPc = lib
         .lookupFunction<_TraceCmp8WithPcC, _TraceCmp8WithPcDart>(
           'TraceCmp8WithPc',
@@ -150,6 +162,15 @@ class FuzzRuntime {
     final covPtr = allocate(numCounters);
     covMap = covPtr.asTypedList(numCounters);
     registerDartCounters(covPtr, numCounters);
+
+    final siteHitsPtr = allocate(numCounters);
+    final nativeSiteHits = siteHitsPtr.asTypedList(numCounters);
+    // Preserve any hits recorded before init() completed.
+    for (var i = 0; i < numCounters; i++) {
+      nativeSiteHits[i] = siteHits[i];
+    }
+    siteHits = nativeSiteHits;
+    registerSiteHits(siteHitsPtr, numCounters);
 
     final s1Ptr = allocate(_numSlots * _slotStride);
     final s2Ptr = allocate(_numSlots * _slotStride);
@@ -205,6 +226,14 @@ class FuzzRuntime {
     }
   }
 
+  /// Writes [siteHits] to [outputPath] (or `DASH_FUZZ_SITE_HITS_PATH` if set).
+  static void flushSiteHits([String? outputPath]) {
+    final targetPath =
+        outputPath ?? Platform.environment['DASH_FUZZ_SITE_HITS_PATH'];
+    if (targetPath == null || targetPath.isEmpty) return;
+    File(targetPath).writeAsBytesSync(siteHits);
+  }
+
   /// Drives [target] using either native `libFuzzer` ([FuzzMode.cgf]) or the
   /// pure-Dart coverage-guided mutator ([FuzzMode.pureDart]).
   static int runDriver(
@@ -215,10 +244,14 @@ class FuzzRuntime {
   }) {
     final resolvedMode = mode ?? _resolveModeFromEnv();
     init(mode: resolvedMode, libraryPath: libraryPath);
-    if (resolvedMode == FuzzMode.pureDart) {
-      return _runPureDartDriver(target, fuzzerArgs: fuzzerArgs);
+    try {
+      if (resolvedMode == FuzzMode.pureDart) {
+        return _runPureDartDriver(target, fuzzerArgs: fuzzerArgs);
+      }
+      return _runNativeDriver(target, fuzzerArgs: fuzzerArgs);
+    } finally {
+      flushSiteHits();
     }
-    return _runNativeDriver(target, fuzzerArgs: fuzzerArgs);
   }
 
   static int _runNativeDriver(
@@ -233,7 +266,12 @@ class FuzzRuntime {
       // Copy input bytes out of libFuzzer's scratch buffer so retained slices
       // never point to freed or overwritten native memory.
       final copy = Uint8List.fromList(data.asTypedList(size));
-      return target(copy);
+      try {
+        return target(copy);
+      } on Object catch (e, st) {
+        flushSiteHits();
+        _reportUnhandledCrash(copy, e, st);
+      }
     }
 
     final callable = NativeCallable<DartFuzzCallbackC>.isolateLocal(
@@ -255,6 +293,31 @@ class FuzzRuntime {
     } finally {
       callable.close();
     }
+  }
+
+  static Never _reportUnhandledCrash(
+    Uint8List data,
+    Object error,
+    StackTrace st,
+  ) {
+    final hex = data
+        .map((b) => '0x${b.toRadixString(16).padLeft(2, '0')}')
+        .join(', ');
+    final printable = String.fromCharCodes(
+      data.map((b) => (b >= 32 && b < 127) ? b : 0x2E),
+    );
+    stderr
+      ..writeln('\n========================================================')
+      ..writeln('UNHANDLED EXCEPTION IN FUZZ TARGET!')
+      ..writeln('Input (${data.length} bytes): [$hex]')
+      ..writeln('ASCII preview: "$printable"')
+      ..writeln('Exception (${error.runtimeType}): $error')
+      ..writeln(
+        'Stack trace (top 8 frames):\n'
+        '${st.toString().split('\n').take(8).join('\n')}',
+      )
+      ..writeln('========================================================\n');
+    exit(77);
   }
 
   static int _runPureDartDriver(
@@ -388,6 +451,12 @@ class FuzzRuntime {
 /// Records an AST basic-block or branch edge transition.
 @pragma('vm:prefer-inline')
 void $fuzzEdge(int edgeId) {
+  FuzzRuntime.siteHits[edgeId & 0xFFFF] |= 1;
+  _fuzzTransition(edgeId);
+}
+
+@pragma('vm:prefer-inline')
+void _fuzzTransition(int edgeId) {
   FuzzRuntime._prevPrevEdge = FuzzRuntime._prevEdge;
   FuzzRuntime._prevEdge = edgeId;
   final ctxEdge = (edgeId ^ FuzzRuntime._loopContextId) & 0xFFFF;
@@ -414,7 +483,7 @@ void _traceByteLoop(int a, int b, int id) {
   final matched =
       (a == b) || ((a ^ b) == 0x20 && (a | 0x20) >= 0x61 && (a | 0x20) <= 0x7a);
   if (matched && FuzzRuntime._slotPrefixMatched[slot] == 1) {
-    $fuzzEdge((id + (idx + 1) * 257) & 0xFFFF);
+    _fuzzTransition((id + (idx + 1) * 257) & 0xFFFF);
   } else {
     FuzzRuntime._slotPrefixMatched[slot] = 0;
   }
@@ -501,7 +570,8 @@ void _traceCompareValues(
 
 @pragma('vm:prefer-inline')
 bool _finishEqCompare(Object? a, Object? b, int id, {required bool res}) {
-  $fuzzEdge(res ? id : ((id ^ 0x5555) & 0xFFFF));
+  FuzzRuntime.siteHits[id & 0xFFFF] |= res ? 1 : 2;
+  _fuzzTransition(res ? id : ((id ^ 0x5555) & 0xFFFF));
   _traceCompareValues(a, b, id);
   if (a is int && b is int) _traceByteLoop(a, b, id);
   return res;
@@ -509,7 +579,8 @@ bool _finishEqCompare(Object? a, Object? b, int id, {required bool res}) {
 
 @pragma('vm:prefer-inline')
 bool _finishRelCompare(Object? a, Object? b, int id, {required bool res}) {
-  $fuzzEdge(res ? id : ((id ^ 0x5555) & 0xFFFF));
+  FuzzRuntime.siteHits[id & 0xFFFF] |= res ? 1 : 2;
+  _fuzzTransition(res ? id : ((id ^ 0x5555) & 0xFFFF));
   _traceCompareValues(a, b, id, isRelational: true);
   return res;
 }
@@ -569,6 +640,7 @@ bool $fuzzGe(dynamic a, dynamic b, int id) =>
 /// Instrumented `^` helper.
 @pragma('vm:prefer-inline')
 int $fuzzXor(int a, int b, int id) {
+  FuzzRuntime.siteHits[id & 0xFFFF] |= 1;
   _traceCompareValues(a, b, id);
   _traceByteLoop(a, b, id);
   return a ^ b;

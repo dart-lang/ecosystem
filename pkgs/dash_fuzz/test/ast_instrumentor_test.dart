@@ -227,6 +227,32 @@ int _parsePart(int x) => x > 5 ? 1 : 0;
         endsWith('.dart_tool/dash_fuzz/instrumented'),
       );
       expect(dashFuzzEntry['packageUri'], equals('lib/'));
+
+      // edge_manifest.json records all sites and computes exact per-file stats.
+      final manifestJson = File(res.edgeManifestPath).readAsStringSync();
+      FuzzRuntime.siteHits.fillRange(0, FuzzRuntime.numCounters, 0);
+      final manifestMap = jsonDecode(manifestJson) as Map<String, Object?>;
+      final sites = (manifestMap['sites'] as List<Object?>)
+          .cast<Map<String, Object?>>();
+      expect(
+        sites.length,
+        equals(res.edgesInserted + res.comparesInserted + res.switchesInserted),
+      );
+
+      final firstId = sites.first['id'] as int;
+      $fuzzEdge(firstId);
+      final report = computeCoverageReport(
+        edgeManifestJson: manifestJson,
+        siteHits: FuzzRuntime.siteHits,
+      );
+      expect(report.packageName, equals('sample_pkg'));
+      expect(report.hitSites, equals(1));
+      expect(report.totalSites, equals(sites.length));
+      expect(report.files.map((f) => f.file), [
+        'lib/sample_pkg.dart',
+        'lib/src/part_file.dart',
+      ]);
+      expect(formatCoverageTable(report), contains('lib/sample_pkg.dart'));
     });
   });
 }

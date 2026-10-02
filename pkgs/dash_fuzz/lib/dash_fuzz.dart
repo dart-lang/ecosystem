@@ -10,6 +10,13 @@ export 'src/combinators.dart'
         fuzzBoundaryInts,
         verifyChunkSplitEquivalence,
         verifyNoUnescapedCrlf;
+export 'src/coverage_report.dart'
+    show
+        FileCoverageStat,
+        PackageCoverageReport,
+        computeCoverageReport,
+        coverageReportToJson,
+        formatCoverageTable;
 export 'src/fuzz_runtime.dart'
     show
         $fuzzEdge,
@@ -24,6 +31,10 @@ export 'src/fuzz_runtime.dart'
         FuzzMode,
         FuzzRuntime;
 export 'src/instrument_ast.dart'
-    show AstInstrumentor, OverlayResult, PackageOverlayInstrumentor;
+    show
+        AstInstrumentor,
+        FuzzSiteEntry,
+        OverlayResult,
+        PackageOverlayInstrumentor;
 export 'src/native_builder.dart'
     show NativeFuzzerBuilder, ToolchainMissingException;

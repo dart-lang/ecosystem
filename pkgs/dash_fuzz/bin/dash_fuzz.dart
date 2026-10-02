@@ -177,9 +177,15 @@ class _RunCommand extends Command<int> {
       '${overlay.switchesInserted} switches).',
     );
 
+    final dashFuzzDir = p.join(pkgRoot, '.dart_tool', 'dash_fuzz');
+    final siteHitsPath = p.join(dashFuzzDir, 'site_hits.bin');
+    final siteHitsFile = File(siteHitsPath);
+    if (siteHitsFile.existsSync()) {
+      siteHitsFile.deleteSync();
+    }
+
     String? libPath;
     if (!isPureDart) {
-      final dashFuzzDir = p.join(pkgRoot, '.dart_tool', 'dash_fuzz');
       libPath = await NativeFuzzerBuilder.buildSharedLibrary(
         outputDir: dashFuzzDir,
       );
@@ -212,10 +218,35 @@ class _RunCommand extends Command<int> {
       environment: {
         ...Platform.environment,
         'DASH_FUZZ_MODE': modeStr,
+        'DASH_FUZZ_SITE_HITS_PATH': siteHitsPath,
         'DASH_FUZZ_LIB_PATH': ?libPath,
       },
       mode: ProcessStartMode.inheritStdio,
     );
-    return proc.exitCode;
+    final code = await proc.exitCode;
+    _emitCoverageSummary(
+      dashFuzzDir: dashFuzzDir,
+      edgeManifestPath: overlay.edgeManifestPath,
+      siteHitsFile: siteHitsFile,
+    );
+    return code;
+  }
+
+  static void _emitCoverageSummary({
+    required String dashFuzzDir,
+    required String edgeManifestPath,
+    required File siteHitsFile,
+  }) {
+    final manifestFile = File(edgeManifestPath);
+    if (!siteHitsFile.existsSync() || !manifestFile.existsSync()) return;
+    final report = computeCoverageReport(
+      edgeManifestJson: manifestFile.readAsStringSync(),
+      siteHits: siteHitsFile.readAsBytesSync(),
+    );
+    final reportJsonPath = p.join(dashFuzzDir, 'coverage_report.json');
+    File(reportJsonPath).writeAsStringSync(coverageReportToJson(report));
+    stdout
+      ..write(formatCoverageTable(report))
+      ..writeln('Coverage report written to: $reportJsonPath');
   }
 }
