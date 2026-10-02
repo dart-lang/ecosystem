@@ -14,14 +14,35 @@ void main() {
   group('Track 1 Combinators & Oracles', () {
     test('verifyChunkSplitEquivalence passes for chunk-invariant parser', () {
       verifyChunkSplitEquivalence<List<int>>(
-        generateEncodedStream:
-            (rng) =>
-                List<int>.generate(rng.nextInt(30), (_) => rng.nextInt(256)),
+        generateEncodedStream: (rng) =>
+            List<int>.generate(rng.nextInt(30), (_) => rng.nextInt(256)),
         parseFull: (bytes) => bytes,
         parseChunked: (chunks) => [for (final c in chunks) ...c],
         iterations: 50,
       );
     });
+
+    test(
+      'verifyChunkSplitEquivalence terminates for maxStep == 1 and rejects < 1',
+      () {
+        verifyChunkSplitEquivalence<List<int>>(
+          generateEncodedStream: (_) => const [10, 20, 30, 40],
+          parseFull: (bytes) => bytes,
+          parseChunked: (chunks) => [for (final c in chunks) ...c],
+          iterations: 10,
+          maxStep: 1,
+        );
+        expect(
+          () => verifyChunkSplitEquivalence<List<int>>(
+            generateEncodedStream: (_) => const [1],
+            parseFull: (bytes) => bytes,
+            parseChunked: (chunks) => [for (final c in chunks) ...c],
+            maxStep: 0,
+          ),
+          throwsArgumentError,
+        );
+      },
+    );
 
     test(
       'verifyChunkSplitEquivalence throws StateError on chunk-boundary bug',

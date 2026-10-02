@@ -45,13 +45,12 @@ const List<String> fuzzBoundaryHexStrings = [
 ];
 
 /// Result of running a streaming parser inside [captureStreamZoneErrors].
-typedef StreamContractResult<T> =
-    ({
-      List<T> items,
-      Object? streamError,
-      Object? uncaughtZoneError,
-      bool completed,
-    });
+typedef StreamContractResult<T> = ({
+  List<T> items,
+  Object? streamError,
+  Object? uncaughtZoneError,
+  bool completed,
+});
 
 /// Verifies that a chunked or streaming parser produces identical output when a
 /// valid encoded byte stream is split across arbitrary chunk boundaries
@@ -68,6 +67,9 @@ void verifyChunkSplitEquivalence<T>({
   int maxStep = 7,
   int seed = 12345,
 }) {
+  if (maxStep < 1) {
+    throw ArgumentError.value(maxStep, 'maxStep', 'Must be >= 1');
+  }
   final rng = Random(seed);
   final cmp = equals ?? _defaultEquals;
   for (var iter = 0; iter < iterations; iter++) {
@@ -94,7 +96,10 @@ List<List<int>> _sliceIntoRandomChunks(
   final chunks = <List<int>>[];
   var offset = 0;
   while (offset < fullPayload.length) {
-    final step = rng.nextInt(maxStep);
+    if (rng.nextInt(8) == 0) {
+      chunks.add(const <int>[]);
+    }
+    final step = rng.nextInt(maxStep) + 1;
     final end = min(offset + step, fullPayload.length);
     chunks.add(fullPayload.sublist(offset, end));
     offset = end;

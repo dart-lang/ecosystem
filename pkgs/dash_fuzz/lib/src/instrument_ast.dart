@@ -139,22 +139,25 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  static bool _isNonInstrumentableAncestor(
-    AstNode current,
-    AstNode leaf,
-  ) => switch (current) {
-    VariableDeclarationList(:final isConst) => isConst,
-    InstanceCreationExpression(:final isConst) => isConst,
-    TypedLiteral(:final isConst) => isConst,
-    ConstructorDeclaration(:final constKeyword) => constKeyword != null,
-    Annotation() ||
-    ConstructorInitializer() ||
-    FormalParameter() ||
-    EnumConstantArguments() => true,
-    SwitchCase(:final expression) => _isInside(leaf, expression),
-    SwitchPatternCase(:final guardedPattern) => _isInside(leaf, guardedPattern),
-    _ => false,
-  };
+  static bool _isNonInstrumentableAncestor(AstNode current, AstNode leaf) =>
+      switch (current) {
+        VariableDeclarationList(:final isConst) => isConst,
+        InstanceCreationExpression(:final isConst) => isConst,
+        TypedLiteral(:final isConst) => isConst,
+        ConstructorDeclaration(:final constKeyword) => constKeyword != null,
+        Annotation() ||
+        ConstantPattern() ||
+        RelationalPattern() ||
+        ConstructorInitializer() ||
+        FormalParameter() ||
+        EnumConstantArguments() => true,
+        SwitchCase(:final expression) => _isInside(leaf, expression),
+        SwitchPatternCase(:final guardedPattern) => _isInside(
+          leaf,
+          guardedPattern.pattern,
+        ),
+        _ => false,
+      };
 
   static bool _isInside(AstNode leaf, AstNode target) =>
       leaf.thisOrAncestorMatching((n) => identical(n, target)) != null;
@@ -298,9 +301,9 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   void visitBinaryExpression(BinaryExpression node) {
     final helper =
         (_inConstOrNonInstrumentableContext(node) ||
-                _hasNullOrBoolLiteral(node))
-            ? null
-            : _operatorHelper(node.operator.type);
+            _hasNullOrBoolLiteral(node))
+        ? null
+        : _operatorHelper(node.operator.type);
     if (helper != null) {
       final id = owner._allocId();
       owner.comparesInserted++;
@@ -338,16 +341,15 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
 }
 
 /// Summary of a `.dart_tool/dash_fuzz/` package overlay instrumentation pass.
-typedef OverlayResult =
-    ({
-      String packageName,
-      String overlayPackageConfigPath,
-      String instrumentedLibDir,
-      int filesInstrumented,
-      int edgesInserted,
-      int comparesInserted,
-      int switchesInserted,
-    });
+typedef OverlayResult = ({
+  String packageName,
+  String overlayPackageConfigPath,
+  String instrumentedLibDir,
+  int filesInstrumented,
+  int edgesInserted,
+  int comparesInserted,
+  int switchesInserted,
+});
 
 /// Builds a non-destructive AST-instrumented copy of a target package's `lib/`
 /// directory inside `.dart_tool/dash_fuzz/instrumented/lib/` and writes an
@@ -454,8 +456,8 @@ class PackageOverlayInstrumentor {
     final rawJson =
         jsonDecode(pkgConfigFile.readAsStringSync()) as Map<String, Object?>;
     final configDir = p.dirname(pkgConfigFile.path);
-    final packages =
-        (rawJson['packages'] as List<Object?>).cast<Map<String, Object?>>();
+    final packages = (rawJson['packages'] as List<Object?>)
+        .cast<Map<String, Object?>>();
 
     final updatedPackages = <Map<String, Object?>>[];
     var hasDashFuzz = false;
@@ -480,7 +482,7 @@ class PackageOverlayInstrumentor {
         'name': 'dash_fuzz',
         'rootUri': p.toUri(dashFuzzRoot).toString(),
         'packageUri': 'lib/',
-        'languageVersion': '3.7',
+        'languageVersion': '3.13',
       });
     }
 
