@@ -16,43 +16,44 @@ typedef _AllocateCountersDart = Pointer<Uint8> Function(int size);
 /// C signature for the per-input callback invoked by `LLVMFuzzerTestOneInput`.
 typedef DartFuzzCallbackC = Int32 Function(Pointer<Uint8> data, Size size);
 
-typedef _StartFuzzerWithArgsC =
-    Int32 Function(
-      Pointer<NativeFunction<DartFuzzCallbackC>> callback,
-      Int32 argc,
-      Pointer<Pointer<Uint8>> argv,
-    );
-typedef _StartFuzzerWithArgsDart =
-    int Function(
-      Pointer<NativeFunction<DartFuzzCallbackC>> callback,
-      int argc,
-      Pointer<Pointer<Uint8>> argv,
-    );
+typedef _StartFuzzerWithArgsC = Int32 Function(
+  Pointer<NativeFunction<DartFuzzCallbackC>> callback,
+  Int32 argc,
+  Pointer<Pointer<Uint8>> argv,
+);
+typedef _StartFuzzerWithArgsDart = int Function(
+  Pointer<NativeFunction<DartFuzzCallbackC>> callback,
+  int argc,
+  Pointer<Pointer<Uint8>> argv,
+);
 
 typedef _RegisterDartCountersC = Void Function(Pointer<Uint8> start, Size size);
-typedef _RegisterDartCountersDart =
-    void Function(Pointer<Uint8> start, int size);
+typedef _RegisterDartCountersDart = void Function(
+  Pointer<Uint8> start,
+  int size,
+);
 
-typedef _TraceCmp8WithPcC =
-    Void Function(Uint64 arg1, Uint64 arg2, Uint64 fakePc);
+typedef _TraceCmp8WithPcC = Void Function(
+  Uint64 arg1,
+  Uint64 arg2,
+  Uint64 fakePc,
+);
 typedef _TraceCmp8WithPcDart = void Function(int arg1, int arg2, int fakePc);
 
-typedef _TraceMemcmpC =
-    Void Function(
-      Uint64 callerPc,
-      Pointer<Uint8> s1,
-      Pointer<Uint8> s2,
-      Size n,
-      Int32 result,
-    );
-typedef _TraceMemcmpDart =
-    void Function(
-      int callerPc,
-      Pointer<Uint8> s1,
-      Pointer<Uint8> s2,
-      int n,
-      int result,
-    );
+typedef _TraceMemcmpC = Void Function(
+  Uint64 callerPc,
+  Pointer<Uint8> s1,
+  Pointer<Uint8> s2,
+  Size n,
+  Int32 result,
+);
+typedef _TraceMemcmpDart = void Function(
+  int callerPc,
+  Pointer<Uint8> s1,
+  Pointer<Uint8> s2,
+  int n,
+  int result,
+);
 
 /// Execution mode for [FuzzRuntime.runDriver].
 enum FuzzMode {
@@ -241,10 +242,8 @@ class FuzzRuntime {
     );
     try {
       final allArgs = <String>['dart_fuzzer', ...fuzzerArgs];
-      final argvPtr =
-          allocate(
-            (allArgs.length + 1) * sizeOf<Pointer<Uint8>>(),
-          ).cast<Pointer<Uint8>>();
+      final argvPtr = allocate((allArgs.length + 1) * sizeOf<Pointer<Uint8>>())
+          .cast<Pointer<Uint8>>();
       for (var i = 0; i < allArgs.length; i++) {
         final bytes = utf8.encode(allArgs[i]);
         final strPtr = allocate(bytes.length + 1);
@@ -273,8 +272,9 @@ class FuzzRuntime {
 
     for (var i = 0; i < runs; i++) {
       final base = corpus[rng.nextInt(corpus.length)];
-      final mutated =
-          i < corpus.length ? base : _mutatePureDartInput(base, rng, maxLen);
+      final mutated = i < corpus.length
+          ? base
+          : _mutatePureDartInput(base, rng, maxLen);
       covMap.fillRange(0, numCounters, 0);
       _resetPerInputState();
       target(Uint8List.fromList(mutated));
@@ -529,8 +529,9 @@ bool $fuzzNe(Object? a, Object? b, int id) =>
 bool $fuzzLt(dynamic a, dynamic b, int id) {
   final slot = id & (FuzzRuntime._numSlots - 1);
   if (a == 0) {
-    final parentCtx =
-        (FuzzRuntime._lastLoopId != id) ? FuzzRuntime._loopContextId : 0;
+    final parentCtx = (FuzzRuntime._lastLoopId != id)
+        ? FuzzRuntime._loopContextId
+        : 0;
     FuzzRuntime._callerCtxForLoop[slot] =
         ((id ^ FuzzRuntime._prevPrevEdge ^ parentCtx) & 0xFFFF) | 1;
     for (var i = 0; i < FuzzRuntime._numSlots; i++) {
@@ -550,20 +551,20 @@ bool $fuzzLt(dynamic a, dynamic b, int id) {
 /// Instrumented `<=` helper.
 @pragma('vm:prefer-inline')
 bool $fuzzLe(dynamic a, dynamic b, int id) =>
-// ignore: avoid_dynamic_calls
-_finishRelCompare(a, b, id, res: (a <= b) as bool);
+    // ignore: avoid_dynamic_calls
+    _finishRelCompare(a, b, id, res: (a <= b) as bool);
 
 /// Instrumented `>` helper.
 @pragma('vm:prefer-inline')
 bool $fuzzGt(dynamic a, dynamic b, int id) =>
-// ignore: avoid_dynamic_calls
-_finishRelCompare(a, b, id, res: (a > b) as bool);
+    // ignore: avoid_dynamic_calls
+    _finishRelCompare(a, b, id, res: (a > b) as bool);
 
 /// Instrumented `>=` helper.
 @pragma('vm:prefer-inline')
 bool $fuzzGe(dynamic a, dynamic b, int id) =>
-// ignore: avoid_dynamic_calls
-_finishRelCompare(a, b, id, res: (a >= b) as bool);
+    // ignore: avoid_dynamic_calls
+    _finishRelCompare(a, b, id, res: (a >= b) as bool);
 
 /// Instrumented `^` helper.
 @pragma('vm:prefer-inline')

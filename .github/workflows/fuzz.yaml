@@ -81,11 +81,17 @@ jobs:
 
       - name: Run dash_fuzz
         working-directory: ${{ inputs.package-root }}
+        env:
+          FUZZ_TARGET: ${{ inputs.target }}
+          FUZZ_MODE: ${{ inputs.mode }}
+          FUZZ_RUNS: ${{ inputs.runs }}
+          FUZZ_MAX_LEN: ${{ inputs.max-len }}
+          FUZZ_MAX_TOTAL_TIME: ${{ inputs.max-total-time }}
         run: |
           dart pub global run dash_fuzz run \
             --package-root=. \
-            --target="${{ inputs.target }}" \
-            --mode="${{ inputs.mode }}" \
-            --runs="${{ inputs.runs }}" \
-            --max-len="${{ inputs.max-len }}" \
-            --max-total-time="${{ inputs.max-total-time }}"
+            --target="$FUZZ_TARGET" \
+            --mode="$FUZZ_MODE" \
+            --runs="$FUZZ_RUNS" \
+            --max-len="$FUZZ_MAX_LEN" \
+            --max-total-time="$FUZZ_MAX_TOTAL_TIME"

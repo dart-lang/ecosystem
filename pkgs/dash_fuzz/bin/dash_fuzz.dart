@@ -210,7 +210,7 @@ class _RunCommand extends Command<int> {
       environment: {
         ...Platform.environment,
         'DASH_FUZZ_MODE': modeStr,
-        if (libPath != null) 'DASH_FUZZ_LIB_PATH': libPath,
+        'DASH_FUZZ_LIB_PATH': ?libPath,
       },
       mode: ProcessStartMode.inheritStdio,
     );
