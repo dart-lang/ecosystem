@@ -7,6 +7,7 @@
 /pkgs/canary/                  @mosuem
 /pkgs/corpus/                  @mosuem
 /pkgs/dart_flutter_team_lints/ @natebosch
+/pkgs/dash_fuzz/               @kevmoo
 /pkgs/firehose/                @mosuem
 /pkgs/repo_manage/             @mosuem
 /pkgs/sdk_triage_bot/          @mosuem

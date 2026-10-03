@@ -1,0 +1,22 @@
+name: dash_fuzz
+description: Coverage-guided libFuzzer + dart:ffi AST instrumentor and pure-Dart parser fuzzing combinators.
+version: 0.1.0-wip
+repository: https://github.com/dart-lang/ecosystem/tree/main/pkgs/dash_fuzz
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+executables:
+  dash_fuzz:
+
+dependencies:
+  analyzer: '>=7.0.0 <10.0.0'
+  args: ^2.4.0
+  cli_util: ^0.6.0
+  path: ^1.9.0
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.0.0
+  test: ^1.25.0
+  test_descriptor: ^2.0.0

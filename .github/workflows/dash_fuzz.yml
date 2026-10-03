@@ -1,0 +1,55 @@
+name: package:dash_fuzz
+
+permissions: read-all
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dash_fuzz.yml'
+      - '.github/workflows/fuzz.yaml'
+      - 'pkgs/dash_fuzz/**'
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dash_fuzz.yml'
+      - '.github/workflows/fuzz.yaml'
+      - 'pkgs/dash_fuzz/**'
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+defaults:
+  run:
+    working-directory: pkgs/dash_fuzz
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ["3.13", dev]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Install clang and LLVM compiler-rt
+        run: sudo apt-get update && sudo apt-get install -y clang llvm
+
+      - run: dart pub get
+
+      - run: dart analyze --fatal-infos
+
+      - run: dart format --output=none --set-exit-if-changed .
+        if: ${{ matrix.sdk == 'dev' }}
+
+      - run: dart test
