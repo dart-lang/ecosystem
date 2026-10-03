@@ -252,6 +252,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     final unp = expr.unParenthesized;
     if (unp is RethrowExpression) return;
     if (unp is! ThrowExpression && _alwaysThrows(unp)) return;
+    if (unp is! ThrowExpression && _isInsideAssignmentRhs(expr)) return;
     if (preserveConditionFlow &&
         unp is! ThrowExpression &&
         _containsConditionFlowCheck(unp)) {
@@ -297,6 +298,17 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
       cases.isNotEmpty && cases.every((c) => _alwaysThrows(c.expression)),
     _ => false,
   };
+
+  static bool _isInsideAssignmentRhs(AstNode node) {
+    for (
+      var cur = node.parent;
+      cur != null && cur is! Statement && cur is! FunctionBody;
+      cur = cur.parent
+    ) {
+      if (cur is AssignmentExpression) return true;
+    }
+    return false;
+  }
 
   void _wrapConditionWithBool(Expression cond) {
     final unp = cond.unParenthesized;

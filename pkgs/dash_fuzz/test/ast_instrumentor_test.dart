@@ -317,6 +317,11 @@ bool checkBoolXor(bool a, bool b, List<(int?, bool)> items) {
   }
   return false;
 }
+
+int nullAwareAssignPromotion(int? position, RegExpMatch? match) {
+  position ??= match == null ? 0 : match.start;
+  return position + 1;
+}
 ''';
       final instrumentor = AstInstrumentor();
       final out = instrumentor.instrumentSource(sample);
@@ -351,6 +356,10 @@ bool checkBoolXor(bool a, bool b, List<(int?, bool)> items) {
       // `a ^ b` uses generic `$fuzzXor`.
       expect(out, contains(r'while (((x, ok) = items.first).$2)'));
       expect(out, contains(r'if ($fuzzXor(a, b, 52317))'));
+      // AssignmentExpression RHS ConditionalExpression arms stay unwrapped so
+      // downward context `int?` does not widen `$fuzzExpr<T>` and block LHS
+      // promotion to `int`.
+      expect(out, contains('position ??= match == null ? 0 : match.start;'));
 
       final parsed = parseString(content: out, throwIfDiagnostics: true);
       expect(parsed.errors, isEmpty);
