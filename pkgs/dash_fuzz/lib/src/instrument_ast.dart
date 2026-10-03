@@ -184,6 +184,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         TypedLiteral(:final isConst) => isConst,
         ConstructorDeclaration(:final constKeyword) => constKeyword != null,
         Annotation() ||
+        AssertStatement() ||
         ConstantPattern() ||
         RelationalPattern() ||
         ConstructorInitializer() ||

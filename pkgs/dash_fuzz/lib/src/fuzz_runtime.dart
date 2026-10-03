@@ -640,10 +640,11 @@ bool $fuzzGe(dynamic a, dynamic b, int id) =>
 /// Instrumented `^` helper.
 @pragma('vm:prefer-inline')
 int $fuzzXor(int a, int b, int id) {
-  FuzzRuntime.siteHits[id & 0xFFFF] |= 1;
+  final res = a ^ b;
+  FuzzRuntime.siteHits[id & 0xFFFF] |= res == 0 ? 1 : 2;
   _traceCompareValues(a, b, id);
   _traceByteLoop(a, b, id);
-  return a ^ b;
+  return res;
 }
 
 /// Instrumented `switch` expression wrapper.

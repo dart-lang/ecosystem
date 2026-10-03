@@ -134,6 +134,35 @@ int evalPattern(int x) {
         expect(parsed.errors, isEmpty);
       },
     );
+
+    test(
+      'skips instrumenting AssertStatement and records both bits in \$fuzzXor',
+      () {
+        const sample = '''
+int check(int a, int b) {
+  assert(a == b && a > 0);
+  return a ^ b;
+}
+''';
+        final instrumentor = AstInstrumentor();
+        final out = instrumentor.instrumentSource(sample);
+
+        expect(out, contains('assert(a == b && a > 0);'));
+        expect(out, isNot(contains(r'$fuzzEq')));
+        expect(out, isNot(contains(r'$fuzzGt')));
+        expect(out, contains(r'$fuzzXor(a, b,'));
+        expect(instrumentor.comparesInserted, equals(1));
+
+        final xorSiteId = instrumentor.sites
+            .singleWhere((s) => s.kind == 'cmp')
+            .id;
+        FuzzRuntime.siteHits[xorSiteId] = 0;
+        expect($fuzzXor(5, 5, xorSiteId), equals(0));
+        expect(FuzzRuntime.siteHits[xorSiteId], equals(1));
+        expect($fuzzXor(5, 3, xorSiteId), equals(6));
+        expect(FuzzRuntime.siteHits[xorSiteId], equals(3));
+      },
+    );
   });
 
   group('PackageOverlayInstrumentor', () {

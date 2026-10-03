@@ -209,6 +209,7 @@ class _RunCommand extends Command<int> {
     final proc = await Process.start(
       dartBin,
       [
+        '--enable-asserts',
         '--old_gen_heap_size=$heapLimitMb',
         '--packages=${overlay.overlayPackageConfigPath}',
         targetPath,
