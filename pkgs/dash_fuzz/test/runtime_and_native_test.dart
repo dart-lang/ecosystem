@@ -59,9 +59,17 @@ void main() {
         expect($fuzzGe(9, 9, 407), isTrue);
         expect($fuzzXor(0x41, 0x61, 505), equals(0x20));
         expect($fuzzSwitch('hdr', <Object?>['hdr', 'body'], 606), 'hdr');
+        expect($fuzzExpr(707, 'payload'), equals('payload'));
+        expect(FuzzRuntime.siteHits[707], equals(1));
+
+        FuzzRuntime.siteHits[808] = 0;
+        expect($fuzzBool(true, 808), isTrue);
+        expect(FuzzRuntime.siteHits[808], equals(1));
+        expect($fuzzBool(false, 808), isFalse);
+        expect(FuzzRuntime.siteHits[808], equals(3));
 
         final nonZero = FuzzRuntime.covMap.where((b) => b != 0).length;
-        expect(nonZero, greaterThanOrEqualTo(6));
+        expect(nonZero, greaterThanOrEqualTo(8));
 
         var foundMagic = false;
         FuzzRuntime.runDriver(

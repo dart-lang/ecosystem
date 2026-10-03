@@ -38,6 +38,7 @@ class _SourceEdit implements Comparable<_SourceEdit> {
   final int end;
   final _EditKind kind;
   final int depth;
+  final int seq;
   final String replacement;
 
   _SourceEdit({
@@ -45,6 +46,7 @@ class _SourceEdit implements Comparable<_SourceEdit> {
     required this.end,
     required this.kind,
     required this.depth,
+    required this.seq,
     required this.replacement,
   });
 
@@ -57,9 +59,13 @@ class _SourceEdit implements Comparable<_SourceEdit> {
     final cmpKind = kind.index.compareTo(other.kind.index);
     if (cmpKind != 0) return cmpKind;
     // Prefix edits order outermost first; others order innermost first.
-    return kind == _EditKind.prefix
+    final cmpDepth = kind == _EditKind.prefix
         ? depth.compareTo(other.depth)
         : other.depth.compareTo(depth);
+    if (cmpDepth != 0) return cmpDepth;
+    return kind == _EditKind.prefix
+        ? seq.compareTo(other.seq)
+        : other.seq.compareTo(seq);
   }
 }
 
@@ -155,6 +161,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   final String filePath;
   final LineInfo lineInfo;
   final List<_SourceEdit> edits = [];
+  int _nextSeq = 0;
 
   _InstrumentVisitor(
     this.owner, {
@@ -195,6 +202,10 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
           leaf,
           guardedPattern.pattern,
         ),
+        SwitchExpressionCase(:final guardedPattern) => _isInside(
+          leaf,
+          guardedPattern.pattern,
+        ),
         _ => false,
       };
 
@@ -210,12 +221,14 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     );
     owner.edgesInserted++;
     final d = _depth(stmt);
+    final seq = _nextSeq++;
     edits.add(
       _SourceEdit(
         start: stmt.offset,
         end: stmt.offset,
         kind: _EditKind.prefix,
         depth: d,
+        seq: seq,
         replacement: '{ \$fuzzEdge($id); ',
       ),
     );
@@ -225,9 +238,114 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         end: stmt.end,
         kind: _EditKind.suffix,
         depth: d,
+        seq: seq,
         replacement: ' }',
       ),
     );
+  }
+
+  void _wrapExprWithEdge(
+    Expression expr, {
+    String kind = 'branch',
+    bool preserveConditionFlow = false,
+  }) {
+    final unp = expr.unParenthesized;
+    if (unp is RethrowExpression) return;
+    if (unp is! ThrowExpression && _alwaysThrows(unp)) return;
+    if (preserveConditionFlow &&
+        unp is! ThrowExpression &&
+        _containsConditionFlowCheck(unp)) {
+      return;
+    }
+    final target = unp is ThrowExpression ? unp.expression : expr;
+    final id = owner._allocSite(
+      offset: expr.offset,
+      kind: kind,
+      lineInfo: lineInfo,
+      filePath: filePath,
+    );
+    owner.edgesInserted++;
+    final d = _depth(target);
+    final seq = _nextSeq++;
+    edits.add(
+      _SourceEdit(
+        start: target.offset,
+        end: target.offset,
+        kind: _EditKind.prefix,
+        depth: d,
+        seq: seq,
+        replacement: '\$fuzzExpr($id, ',
+      ),
+    );
+    edits.add(
+      _SourceEdit(
+        start: target.end,
+        end: target.end,
+        kind: _EditKind.suffix,
+        depth: d,
+        seq: seq,
+        replacement: ')',
+      ),
+    );
+  }
+
+  static bool _alwaysThrows(Expression expr) => switch (expr.unParenthesized) {
+    ThrowExpression() || RethrowExpression() => true,
+    ConditionalExpression(:final thenExpression, :final elseExpression) =>
+      _alwaysThrows(thenExpression) && _alwaysThrows(elseExpression),
+    SwitchExpression(:final cases) =>
+      cases.isNotEmpty && cases.every((c) => _alwaysThrows(c.expression)),
+    _ => false,
+  };
+
+  void _wrapConditionWithBool(Expression cond) {
+    final unp = cond.unParenthesized;
+    if (unp is BinaryExpression ||
+        unp is BooleanLiteral ||
+        _containsFlowSensitiveCheck(unp)) {
+      return;
+    }
+    final id = owner._allocSite(
+      offset: cond.offset,
+      kind: 'cmp',
+      lineInfo: lineInfo,
+      filePath: filePath,
+    );
+    owner.comparesInserted++;
+    final d = _depth(cond);
+    final seq = _nextSeq++;
+    edits.add(
+      _SourceEdit(
+        start: cond.offset,
+        end: cond.offset,
+        kind: _EditKind.prefix,
+        depth: d,
+        seq: seq,
+        replacement: r'$fuzzBool(',
+      ),
+    );
+    edits.add(
+      _SourceEdit(
+        start: cond.end,
+        end: cond.end,
+        kind: _EditKind.suffix,
+        depth: d,
+        seq: seq,
+        replacement: ', $id)',
+      ),
+    );
+  }
+
+  static bool _containsFlowSensitiveCheck(AstNode node) {
+    final finder = _FlowSensitiveFinder();
+    node.accept(finder);
+    return finder.found;
+  }
+
+  static bool _containsConditionFlowCheck(AstNode node) {
+    final finder = _ConditionFlowFinder();
+    node.accept(finder);
+    return finder.found;
   }
 
   @override
@@ -246,6 +364,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
           end: node.leftBracket.end,
           kind: _EditKind.prefix,
           depth: _depth(node),
+          seq: _nextSeq++,
           replacement: ' \$fuzzEdge($id);',
         ),
       );
@@ -256,6 +375,9 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitIfStatement(IfStatement node) {
     if (!_inConstOrNonInstrumentableContext(node)) {
+      if (node.caseClause == null) {
+        _wrapConditionWithBool(node.expression);
+      }
       final thenStmt = node.thenStatement;
       if (thenStmt is! Block) {
         _wrapStatementWithEdge(thenStmt);
@@ -266,6 +388,69 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitIfStatement(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    if (!_inConstOrNonInstrumentableContext(node)) {
+      if (node.forLoopParts case ForParts(:final condition?)) {
+        _wrapConditionWithBool(condition);
+      }
+      if (node.body is! Block) {
+        _wrapStatementWithEdge(node.body);
+      }
+    }
+    super.visitForStatement(node);
+  }
+
+  @override
+  void visitWhileStatement(WhileStatement node) {
+    if (!_inConstOrNonInstrumentableContext(node)) {
+      _wrapConditionWithBool(node.condition);
+      if (node.body is! Block) {
+        _wrapStatementWithEdge(node.body);
+      }
+    }
+    super.visitWhileStatement(node);
+  }
+
+  @override
+  void visitDoStatement(DoStatement node) {
+    if (!_inConstOrNonInstrumentableContext(node)) {
+      if (node.body is! Block) {
+        _wrapStatementWithEdge(node.body);
+      }
+      _wrapConditionWithBool(node.condition);
+    }
+    super.visitDoStatement(node);
+  }
+
+  @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    if (!_inConstOrNonInstrumentableContext(node)) {
+      _wrapConditionWithBool(node.condition);
+      _wrapExprWithEdge(node.thenExpression, preserveConditionFlow: true);
+      _wrapExprWithEdge(node.elseExpression, preserveConditionFlow: true);
+    }
+    super.visitConditionalExpression(node);
+  }
+
+  @override
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (!node.isAsynchronous && !_inConstOrNonInstrumentableContext(node)) {
+      _wrapExprWithEdge(node.expression, kind: 'block');
+    }
+    super.visitExpressionFunctionBody(node);
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    if (!_inConstOrNonInstrumentableContext(node)) {
+      for (final member in node.cases) {
+        _wrapExprWithEdge(member.expression, kind: 'switch_case');
+      }
+    }
+    super.visitSwitchExpression(node);
   }
 
   static String? _switchMemberCaseSource(SwitchMember member) =>
@@ -301,6 +486,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
               end: member.colon.end,
               kind: _EditKind.prefix,
               depth: _depth(member),
+              seq: _nextSeq++,
               replacement: ' \$fuzzEdge($edgeId);',
             ),
           );
@@ -316,12 +502,14 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         owner.switchesInserted++;
         final expr = node.expression;
         final d = _depth(expr);
+        final seq = _nextSeq++;
         edits.add(
           _SourceEdit(
             start: expr.offset,
             end: expr.offset,
             kind: _EditKind.prefix,
             depth: d,
+            seq: seq,
             replacement: '\$fuzzSwitch(',
           ),
         );
@@ -331,6 +519,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
             end: expr.end,
             kind: _EditKind.suffix,
             depth: d,
+            seq: seq,
             replacement: ', <Object?>[${caseExprs.join(', ')}], $switchId)',
           ),
         );
@@ -350,11 +539,14 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     _ => null,
   };
 
-  static bool _hasNullOrBoolLiteral(BinaryExpression node) =>
-      node.leftOperand is NullLiteral ||
-      node.rightOperand is NullLiteral ||
-      node.leftOperand is BooleanLiteral ||
-      node.rightOperand is BooleanLiteral;
+  static bool _hasNullOrBoolLiteral(BinaryExpression node) {
+    final left = node.leftOperand.unParenthesized;
+    final right = node.rightOperand.unParenthesized;
+    return left is NullLiteral ||
+        right is NullLiteral ||
+        left is BooleanLiteral ||
+        right is BooleanLiteral;
+  }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -372,12 +564,14 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
       );
       owner.comparesInserted++;
       final d = _depth(node);
+      final seq = _nextSeq++;
       edits.add(
         _SourceEdit(
           start: node.offset,
           end: node.offset,
           kind: _EditKind.prefix,
           depth: d,
+          seq: seq,
           replacement: '$helper(',
         ),
       );
@@ -387,6 +581,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
           end: node.rightOperand.offset,
           kind: _EditKind.replace,
           depth: d,
+          seq: seq,
           replacement: ', ',
         ),
       );
@@ -396,11 +591,47 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
           end: node.end,
           kind: _EditKind.suffix,
           depth: d,
+          seq: seq,
           replacement: ', $id)',
         ),
       );
     }
     super.visitBinaryExpression(node);
+  }
+}
+
+class _FlowSensitiveFinder extends GeneralizingAstVisitor<void> {
+  bool found = false;
+
+  @override
+  void visitNode(AstNode node) {
+    if (found) return;
+    if (node is IsExpression ||
+        node is AsExpression ||
+        node is NullLiteral ||
+        node is BooleanLiteral ||
+        node is AssignmentExpression ||
+        node is PatternAssignment ||
+        node is ThrowExpression ||
+        node is RethrowExpression) {
+      found = true;
+      return;
+    }
+    super.visitNode(node);
+  }
+}
+
+class _ConditionFlowFinder extends GeneralizingAstVisitor<void> {
+  bool found = false;
+
+  @override
+  void visitNode(AstNode node) {
+    if (found) return;
+    if (node is IsExpression || node is NullLiteral || node is BooleanLiteral) {
+      found = true;
+      return;
+    }
+    super.visitNode(node);
   }
 }
 

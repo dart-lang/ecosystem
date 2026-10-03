@@ -639,12 +639,23 @@ bool $fuzzGe(dynamic a, dynamic b, int id) =>
 
 /// Instrumented `^` helper.
 @pragma('vm:prefer-inline')
-int $fuzzXor(int a, int b, int id) {
-  final res = a ^ b;
-  FuzzRuntime.siteHits[id & 0xFFFF] |= res == 0 ? 1 : 2;
+T $fuzzXor<T>(T a, T b, int id) {
+  // ignore: avoid_dynamic_calls
+  final res = (a as dynamic) ^ b;
+  if (res is int) {
+    final isZero = res == 0;
+    FuzzRuntime.siteHits[id & 0xFFFF] |= isZero ? 1 : 2;
+    _fuzzTransition(isZero ? id : ((id ^ 0x5555) & 0xFFFF));
+  } else if (res is bool) {
+    FuzzRuntime.siteHits[id & 0xFFFF] |= res ? 1 : 2;
+    _fuzzTransition(res ? id : ((id ^ 0x5555) & 0xFFFF));
+  } else {
+    FuzzRuntime.siteHits[id & 0xFFFF] |= 1;
+    _fuzzTransition(id);
+  }
   _traceCompareValues(a, b, id);
-  _traceByteLoop(a, b, id);
-  return res;
+  if (a is int && b is int) _traceByteLoop(a, b, id);
+  return res as T;
 }
 
 /// Instrumented `switch` expression wrapper.
@@ -655,4 +666,19 @@ T $fuzzSwitch<T>(T value, List<Object?> cases, int id) {
     _traceCompareValues(value, cases[i], (id + i) & 0xFFFF);
   }
   return value;
+}
+
+/// Records an AST expression branch edge and returns [val].
+@pragma('vm:prefer-inline')
+T $fuzzExpr<T>(int id, T val) {
+  $fuzzEdge(id);
+  return val;
+}
+
+/// Instrumented boolean condition helper that tracks `TrueOnly` vs `FalseOnly`.
+@pragma('vm:prefer-inline')
+bool $fuzzBool(bool val, int id) {
+  FuzzRuntime.siteHits[id & 0xFFFF] |= val ? 1 : 2;
+  _fuzzTransition(val ? id : ((id ^ 0x5555) & 0xFFFF));
+  return val;
 }

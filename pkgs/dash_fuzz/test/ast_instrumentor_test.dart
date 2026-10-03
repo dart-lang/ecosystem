@@ -163,6 +163,205 @@ int check(int a, int b) {
         expect(FuzzRuntime.siteHits[xorSiteId], equals(3));
       },
     );
+
+    test(
+      'instruments SwitchExpression cases with \$fuzzExpr and unwraps throw',
+      () {
+        const sample = '''
+String describeCode(int code) => switch (code) {
+  200 => 'ok',
+  404 || 410 => 'missing',
+  var c when c >= 500 => 'server_error',
+  _ => throw ArgumentError.value(code, 'code'),
+};
+''';
+        final instrumentor = AstInstrumentor();
+        final out = instrumentor.instrumentSource(sample);
+
+        // The outer arrow body and the 3 non-throw case arms are wrapped with
+        // $fuzzExpr; the throw arm is unwrapped as `throw $fuzzExpr(id, ...)`.
+        expect(out, contains(r'=> $fuzzExpr('));
+        expect(out, contains(r"=> $fuzzExpr(15470, 'ok')"));
+        expect(out, contains(r"=> $fuzzExpr(55973, 'missing')"));
+        expect(
+          out,
+          contains(
+            r'var c when $fuzzGe(c, 500, 46410) => '
+            r"$fuzzExpr(30940, 'server_error')",
+          ),
+        );
+        expect(
+          out,
+          contains(
+            r"_ => throw $fuzzExpr(5907, ArgumentError.value(code, 'code'))",
+          ),
+        );
+
+        final parsed = parseString(content: out, throwIfDiagnostics: true);
+        expect(parsed.errors, isEmpty);
+        expect(instrumentor.edgesInserted, equals(5));
+        expect(instrumentor.comparesInserted, equals(1));
+      },
+    );
+
+    test('instruments ConditionalExpression and ExpressionFunctionBody with '
+        '\$fuzzExpr including nested shared-offset expressions', () {
+      const sample = '''
+int clampSign(int x, bool neg, bool zero) =>
+    zero ? 0 : neg ? -x : x;
+''';
+      final instrumentor = AstInstrumentor();
+      final out = instrumentor.instrumentSource(sample);
+
+      expect(out, contains(r'$fuzzBool(zero,'));
+      expect(out, contains(r'$fuzzBool(neg,'));
+      expect(out, contains(r'$fuzzExpr('));
+
+      final parsed = parseString(content: out, throwIfDiagnostics: true);
+      expect(parsed.errors, isEmpty);
+      // 1 arrow body + 2 outer ternary arms + 2 inner ternary arms = 5 edges.
+      expect(instrumentor.edgesInserted, equals(5));
+      // 2 non-binary conditions (`zero` and `neg`) = 2 cmp sites.
+      expect(instrumentor.comparesInserted, equals(2));
+    });
+
+    test('wraps non-binary conditions in \$fuzzBool while preserving type '
+        'promotions and boolean literals', () {
+      const sample = '''
+int scanItems(List<int> items, Object? maybeText) {
+  if (items.isEmpty) return 0;
+  if (maybeText is String) {
+    return maybeText.length;
+  }
+  if (!(maybeText != null)) {
+    return -1;
+  }
+  while (true) {
+    if (items.first.isEven) break;
+    return 1;
+  }
+  return 2;
+}
+''';
+      final instrumentor = AstInstrumentor();
+      final out = instrumentor.instrumentSource(sample);
+
+      expect(out, contains(r'if ($fuzzBool(items.isEmpty,'));
+      expect(out, contains(r'if ($fuzzBool(items.first.isEven,'));
+      // Type-promotion conditions (`is`, `!= null`) and `while (true)` must
+      // not be wrapped in $fuzzBool.
+      expect(out, contains('if (maybeText is String)'));
+      expect(out, contains('if (!(maybeText != null))'));
+      expect(out, contains('while (true)'));
+      expect(out, isNot(contains(r'$fuzzBool(true')));
+
+      final parsed = parseString(content: out, throwIfDiagnostics: true);
+      expect(parsed.errors, isEmpty);
+      expect(instrumentor.comparesInserted, equals(2));
+    });
+
+    test(
+      'wraps braceless for, while, and do loop bodies with \$fuzzEdge blocks',
+      () {
+        const sample = '''
+int sumUp(List<int> xs) {
+  var total = 0;
+  for (var i = 0; i < xs.length; i++) total += xs[i];
+  while (total > 100) total -= 10;
+  do total++; while (total < 10);
+  return total;
+}
+''';
+        final instrumentor = AstInstrumentor();
+        final out = instrumentor.instrumentSource(sample);
+
+        expect(out, contains(r'{ $fuzzEdge(15470); total += xs[i]; }'));
+        expect(out, contains(r'{ $fuzzEdge(30940); total -= 10; }'));
+        expect(out, contains(r'{ $fuzzEdge(46410); total++; }'));
+
+        final parsed = parseString(content: out, throwIfDiagnostics: true);
+        expect(parsed.errors, isEmpty);
+        // 1 function body + 3 braceless loop bodies = 4 edges.
+        expect(instrumentor.edgesInserted, equals(4));
+        // 3 binary loop conditions = 3 cmp sites.
+        expect(instrumentor.comparesInserted, equals(3));
+      },
+    );
+
+    test('preserves flow promotions in ConditionalExpression branches, unwraps '
+        'parenthesized throws, skips all-throwing outer wrappers and async=>, '
+        'and supports bool \$fuzzXor and PatternAssignment conditions', () {
+      const sample = '''
+Future<void> asyncVoidArrow(String msg) async => print(msg);
+
+int condPromotion(int? x, bool flag) {
+  if (flag ? x != null : false) {
+    return x;
+  }
+  if ((flag ? x is int : false) && x.isEven) {
+    return x;
+  }
+  return 0;
+}
+
+Never alwaysThrowsSwitch(int code) => switch (code) {
+  0 => throw StateError('0'),
+  _ => (throw ArgumentError('other')),
+};
+
+bool checkBoolXor(bool a, bool b, List<(int?, bool)> items) {
+  int? x;
+  var ok = false;
+  while (((x, ok) = items.first).\$2) {
+    if (a ^ b) return x != null;
+  }
+  return false;
+}
+''';
+      final instrumentor = AstInstrumentor();
+      final out = instrumentor.instrumentSource(sample);
+
+      // async => is not wrapped in $fuzzExpr to preserve void expressions.
+      expect(
+        out,
+        contains(
+          'Future<void> asyncVoidArrow(String msg) async => print(msg);',
+        ),
+      );
+      // ConditionalExpression branches with `!= null`, `is`, or `false` stay
+      // unwrapped so Dart flow-analysis type promotion is preserved.
+      expect(out, contains(r'if ($fuzzBool(flag, 15470) ? x != null : false)'));
+      expect(
+        out,
+        contains(
+          r'if (($fuzzBool(flag, 30940) ? x is int : false) && x.isEven)',
+        ),
+      );
+      // All-throwing SwitchExpression omits an unreachable outer $fuzzExpr
+      // while unwrapping parenthesized `(throw ...)` inside its arm.
+      expect(
+        out,
+        contains(r'Never alwaysThrowsSwitch(int code) => switch (code) {'),
+      );
+      expect(
+        out,
+        contains(r"_ => (throw $fuzzExpr(21377, ArgumentError('other')))"),
+      );
+      // PatternAssignment loop condition is not wrapped in $fuzzBool, and
+      // `a ^ b` uses generic `$fuzzXor`.
+      expect(out, contains(r'while (((x, ok) = items.first).$2)'));
+      expect(out, contains(r'if ($fuzzXor(a, b, 52317))'));
+
+      final parsed = parseString(content: out, throwIfDiagnostics: true);
+      expect(parsed.errors, isEmpty);
+
+      // Verify generic $fuzzXor on bool operands.
+      FuzzRuntime.siteHits[52317] = 0;
+      expect($fuzzXor(true, false, 52317), isTrue);
+      expect(FuzzRuntime.siteHits[52317], equals(1));
+      expect($fuzzXor(true, true, 52317), isFalse);
+      expect(FuzzRuntime.siteHits[52317], equals(3));
+    });
   });
 
   group('PackageOverlayInstrumentor', () {

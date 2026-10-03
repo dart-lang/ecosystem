@@ -19,8 +19,10 @@ export 'src/coverage_report.dart'
         formatCoverageTable;
 export 'src/fuzz_runtime.dart'
     show
+        $fuzzBool,
         $fuzzEdge,
         $fuzzEq,
+        $fuzzExpr,
         $fuzzGe,
         $fuzzGt,
         $fuzzLe,
