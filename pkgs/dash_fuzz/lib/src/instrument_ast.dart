@@ -554,7 +554,8 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   static bool _hasNullOrBoolLiteral(BinaryExpression node) {
     final left = node.leftOperand.unParenthesized;
     final right = node.rightOperand.unParenthesized;
-    return left is NullLiteral ||
+    return left is SuperExpression ||
+        left is NullLiteral ||
         right is NullLiteral ||
         left is BooleanLiteral ||
         right is BooleanLiteral;

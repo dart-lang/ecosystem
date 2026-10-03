@@ -322,6 +322,11 @@ int nullAwareAssignPromotion(int? position, RegExpMatch? match) {
   position ??= match == null ? 0 : match.start;
   return position + 1;
 }
+
+class _SubEq {
+  @override
+  bool operator ==(Object other) => super == other;
+}
 ''';
       final instrumentor = AstInstrumentor();
       final out = instrumentor.instrumentSource(sample);
@@ -360,6 +365,9 @@ int nullAwareAssignPromotion(int? position, RegExpMatch? match) {
       // downward context `int?` does not widen `$fuzzExpr<T>` and block LHS
       // promotion to `int`.
       expect(out, contains('position ??= match == null ? 0 : match.start;'));
+      // `super == other` is not rewritten into `$fuzzEq(super, other, id)`.
+      expect(out, contains('super == other'));
+      expect(out, isNot(contains(r'$fuzzEq(super,')));
 
       final parsed = parseString(content: out, throwIfDiagnostics: true);
       expect(parsed.errors, isEmpty);
