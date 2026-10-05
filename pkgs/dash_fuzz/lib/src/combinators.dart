@@ -111,7 +111,7 @@ bool _defaultEquals<T>(T a, T b) {
   if (a is List && b is List) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+      if (!_defaultEquals<Object?>(a[i], b[i])) return false;
     }
     return true;
   }
@@ -136,21 +136,25 @@ Future<StreamContractResult<T>> captureStreamZoneErrors<S, T>(
 
   await runZonedGuarded(
     () async {
-      final transformed = input.transform(transformer);
-      subscription = transformed.listen(
-        items.add,
-        onError: (Object error) {
-          streamError = error;
-          completed = true;
-          if (!doneCompleter.isCompleted) doneCompleter.complete();
-        },
-        onDone: () {
-          completed = true;
-          if (!doneCompleter.isCompleted) doneCompleter.complete();
-        },
-        cancelOnError: true,
-      );
-      await doneCompleter.future.timeout(timeout, onTimeout: () {});
+      try {
+        final transformed = input.transform(transformer);
+        subscription = transformed.listen(
+          items.add,
+          onError: (Object error) {
+            streamError = error;
+            completed = true;
+            if (!doneCompleter.isCompleted) doneCompleter.complete();
+          },
+          onDone: () {
+            completed = true;
+            if (!doneCompleter.isCompleted) doneCompleter.complete();
+          },
+          cancelOnError: true,
+        );
+        await doneCompleter.future.timeout(timeout, onTimeout: () {});
+      } finally {
+        await subscription?.cancel().timeout(timeout, onTimeout: () {});
+      }
     },
     (error, _) {
       uncaughtZoneError = error;
@@ -158,7 +162,6 @@ Future<StreamContractResult<T>> captureStreamZoneErrors<S, T>(
     },
   );
 
-  await subscription?.cancel();
   return (
     items: items,
     streamError: streamError,

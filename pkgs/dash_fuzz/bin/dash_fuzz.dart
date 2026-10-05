@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_util.dart';
 import 'package:dash_fuzz/dash_fuzz.dart';
+import 'package:dash_fuzz/src/instrument_ast.dart';
+import 'package:dash_fuzz/src/native_builder.dart';
 import 'package:path/path.dart' as p;
 
 Future<void> main(List<String> args) async {
@@ -158,12 +160,17 @@ class _RunCommand extends Command<int> {
   @override
   Future<int> run() async {
     final opts = argResults!;
-    final targetPath = p.normalize(p.absolute(opts['target'] as String));
-    if (!File(targetPath).existsSync()) {
-      usageException('Target script not found: $targetPath');
-    }
-
     final pkgRoot = p.normalize(p.absolute(opts['package-root'] as String));
+    final rawTarget = opts['target'] as String;
+    var targetPath = p.normalize(p.absolute(rawTarget));
+    if (!File(targetPath).existsSync()) {
+      final pkgRelative = p.normalize(p.join(pkgRoot, rawTarget));
+      if (File(pkgRelative).existsSync()) {
+        targetPath = pkgRelative;
+      } else {
+        usageException('Target script not found: $targetPath');
+      }
+    }
     final modeStr = opts['mode'] as String;
     final isPureDart = modeStr == 'pure-dart';
 

@@ -70,6 +70,24 @@ void main() {
     );
 
     test(
+      'verifyChunkSplitEquivalence compares nested List<List<int>> deeply',
+      () {
+        verifyChunkSplitEquivalence<List<List<int>>>(
+          generateEncodedStream: (_) => const [1, 2, 3, 4],
+          parseFull: (bytes) => [
+            bytes.sublist(0, 2).toList(),
+            bytes.sublist(2).toList(),
+          ],
+          parseChunked: (chunks) {
+            final flat = [for (final c in chunks) ...c];
+            return [flat.sublist(0, 2).toList(), flat.sublist(2).toList()];
+          },
+          iterations: 5,
+        );
+      },
+    );
+
+    test(
       'captureStreamZoneErrors catches uncaught zone throws and hung streams',
       () async {
         // Simulate MIME-1: a transformer whose onData throws synchronously into
@@ -88,6 +106,25 @@ void main() {
           brokenTransformer,
         );
         expect(result.uncaughtZoneError, isA<FormatException>());
+
+        // Simulate a stream transformer whose onCancel hangs indefinitely.
+        final hungCancelTransformer = StreamTransformer<List<int>, int>((
+          input,
+          cancelOnError,
+        ) {
+          late StreamController<int> controller;
+          controller = StreamController<int>(
+            onListen: () {},
+            onCancel: () => Completer<void>().future,
+          );
+          return controller.stream.listen(null);
+        });
+        final hungResult = await captureStreamZoneErrors<List<int>, int>(
+          Stream<List<int>>.value(const [1]),
+          hungCancelTransformer,
+          timeout: const Duration(milliseconds: 10),
+        );
+        expect(hungResult.completed, isFalse);
       },
     );
 

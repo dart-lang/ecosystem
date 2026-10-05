@@ -13,14 +13,9 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:path/path.dart' as p;
 
-/// Metadata for a single AST-instrumented control-flow or comparison site.
-typedef FuzzSiteEntry = ({
-  int id,
-  String file,
-  int line,
-  int column,
-  String kind,
-});
+import 'coverage_report.dart';
+
+export 'coverage_report.dart' show FuzzSiteEntry;
 
 enum _EditKind {
   /// Inserted at the end of an inner node (innermost first).
@@ -188,7 +183,9 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
       switch (current) {
         VariableDeclarationList(:final isConst) => isConst,
         InstanceCreationExpression(:final isConst) => isConst,
+        DotShorthandConstructorInvocation(:final isConst) => isConst,
         TypedLiteral(:final isConst) => isConst,
+        RecordLiteral(:final isConst) => isConst,
         ConstructorDeclaration(:final constKeyword) => constKeyword != null,
         Annotation() ||
         AssertStatement() ||
@@ -253,6 +250,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     if (unp is RethrowExpression) return;
     if (unp is! ThrowExpression && _alwaysThrows(unp)) return;
     if (unp is! ThrowExpression && _isInsideAssignmentRhs(expr)) return;
+    if (unp is! ThrowExpression && _isInVoidPermittingContext(expr)) return;
     if (preserveConditionFlow &&
         unp is! ThrowExpression &&
         _containsConditionFlowCheck(unp)) {
@@ -302,19 +300,77 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   static bool _isInsideAssignmentRhs(AstNode node) {
     for (
       var cur = node.parent;
-      cur != null && cur is! Statement && cur is! FunctionBody;
+      cur != null &&
+          cur is! Statement &&
+          cur is! FunctionDeclaration &&
+          cur is! MethodDeclaration;
       cur = cur.parent
     ) {
-      if (cur is AssignmentExpression) return true;
+      if (cur is AssignmentExpression ||
+          cur is VariableDeclaration ||
+          cur is PatternAssignment) {
+        return true;
+      }
     }
     return false;
   }
 
+  static bool _isInVoidPermittingContext(Expression expr) {
+    final unp = expr.unParenthesized;
+    if (unp is Literal ||
+        unp is BinaryExpression ||
+        unp is PrefixExpression ||
+        unp is IsExpression ||
+        unp is AsExpression ||
+        unp is SwitchExpression) {
+      return false;
+    }
+    AstNode? cur = expr;
+    while (cur != null) {
+      final parent = cur.parent;
+      if (parent is ParenthesizedExpression ||
+          parent is ConditionalExpression) {
+        cur = parent;
+        continue;
+      }
+      if (parent is ExpressionStatement || parent is ForParts) {
+        return true;
+      }
+      if (parent is ExpressionFunctionBody) {
+        return !_hasExplicitNonVoidReturnType(parent);
+      }
+      return false;
+    }
+    return false;
+  }
+
+  static bool _hasExplicitNonVoidReturnType(ExpressionFunctionBody body) {
+    if (body.isAsynchronous || body.isGenerator) return false;
+    final parent = body.parent;
+    final returnType = switch (parent) {
+      MethodDeclaration(:final returnType) => returnType,
+      FunctionExpression(parent: FunctionDeclaration(:final returnType)) =>
+        returnType,
+      _ => null,
+    };
+    if (returnType is NamedType) {
+      final name = returnType.name.lexeme;
+      return name != 'void' && name != 'dynamic' && name != 'FutureOr';
+    }
+    return returnType != null;
+  }
+
   void _wrapConditionWithBool(Expression cond) {
     final unp = cond.unParenthesized;
-    if (unp is BinaryExpression ||
-        unp is BooleanLiteral ||
-        _containsFlowSensitiveCheck(unp)) {
+    if (unp is BooleanLiteral || _containsFlowSensitiveCheck(unp)) {
+      return;
+    }
+    if (unp is BinaryExpression) {
+      final op = unp.operator.type;
+      if (op == TokenType.AMPERSAND_AMPERSAND || op == TokenType.BAR_BAR) {
+        _wrapConditionWithBool(unp.leftOperand);
+        _wrapConditionWithBool(unp.rightOperand);
+      }
       return;
     }
     final id = owner._allocSite(
@@ -363,8 +419,11 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitBlock(Block node) {
     if (!_inConstOrNonInstrumentableContext(node)) {
+      final siteOffset = node.statements.isNotEmpty
+          ? node.statements.first.offset
+          : node.leftBracket.offset;
       final id = owner._allocSite(
-        offset: node.leftBracket.offset,
+        offset: siteOffset,
         kind: 'block',
         lineInfo: lineInfo,
         filePath: filePath,
@@ -449,7 +508,8 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (!node.isAsynchronous && !_inConstOrNonInstrumentableContext(node)) {
+    if (_hasExplicitNonVoidReturnType(node) &&
+        !_inConstOrNonInstrumentableContext(node)) {
       _wrapExprWithEdge(node.expression, kind: 'block');
     }
     super.visitExpressionFunctionBody(node);
@@ -465,14 +525,27 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
     super.visitSwitchExpression(node);
   }
 
+  static bool _isDotShorthand(Expression expr) {
+    final unp = expr.unParenthesized;
+    return unp is DotShorthandInvocation ||
+        unp is DotShorthandPropertyAccess ||
+        unp is DotShorthandConstructorInvocation;
+  }
+
   static String? _switchMemberCaseSource(SwitchMember member) =>
       switch (member) {
-        SwitchCase(:final expression) => expression.toSource(),
+        SwitchCase(:final expression)
+            when expression.unParenthesized is! NullLiteral &&
+                !_isDotShorthand(expression) =>
+          expression.toSource(),
         SwitchPatternCase(
           guardedPattern: GuardedPattern(
             pattern: ConstantPattern(:final expression),
+            whenClause: null,
           ),
-        ) =>
+        )
+            when expression.unParenthesized is! NullLiteral &&
+                !_isDotShorthand(expression) =>
           expression.toSource(),
         _ => null,
       };
@@ -480,10 +553,17 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     if (!_inConstOrNonInstrumentableContext(node)) {
+      var canWrapScrutinee = !_isDotShorthand(node.expression);
       final caseExprs = <String>[];
       for (final member in node.members) {
-        final caseSource = _switchMemberCaseSource(member);
-        if (caseSource != null) caseExprs.add(caseSource);
+        if (member is! SwitchDefault) {
+          final caseSource = _switchMemberCaseSource(member);
+          if (caseSource != null) {
+            caseExprs.add(caseSource);
+          } else {
+            canWrapScrutinee = false;
+          }
+        }
         if (member.statements.isNotEmpty) {
           final edgeId = owner._allocSite(
             offset: member.offset,
@@ -504,7 +584,7 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
           );
         }
       }
-      if (caseExprs.isNotEmpty) {
+      if (canWrapScrutinee && caseExprs.isNotEmpty) {
         final switchId = owner._allocSite(
           offset: node.offset,
           kind: 'switch',
@@ -558,7 +638,9 @@ class _InstrumentVisitor extends RecursiveAstVisitor<void> {
         left is NullLiteral ||
         right is NullLiteral ||
         left is BooleanLiteral ||
-        right is BooleanLiteral;
+        right is BooleanLiteral ||
+        _isDotShorthand(left) ||
+        _isDotShorthand(right);
   }
 
   @override
@@ -708,7 +790,6 @@ class PackageOverlayInstrumentor {
     final overlayConfigPath = await _writeOverlayPackageConfig(
       rootDir: rootDir,
       packageName: packageName,
-      instrumentedRoot: instrumentedRoot,
       dashFuzzDir: dashFuzzDir,
     );
 
@@ -794,7 +875,6 @@ class PackageOverlayInstrumentor {
   static Future<String> _writeOverlayPackageConfig({
     required String rootDir,
     required String packageName,
-    required String instrumentedRoot,
     required String dashFuzzDir,
   }) async {
     final pkgConfigFile = _findPackageConfigFile(rootDir);
@@ -813,8 +893,8 @@ class PackageOverlayInstrumentor {
       if (name == packageName) {
         updatedPackages.add({
           ...entry,
-          'rootUri': p.toUri(instrumentedRoot).toString(),
-          'packageUri': 'lib/',
+          'rootUri': p.toUri(rootDir).toString(),
+          'packageUri': '.dart_tool/dash_fuzz/instrumented/lib/',
         });
       } else {
         updatedPackages.add(_absolutizePackageEntry(entry, configDir));

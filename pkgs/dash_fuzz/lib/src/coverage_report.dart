@@ -5,7 +5,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'instrument_ast.dart';
+/// Metadata for a single AST-instrumented control-flow or comparison site.
+typedef FuzzSiteEntry = ({
+  int id,
+  String file,
+  int line,
+  int column,
+  String kind,
+});
 
 /// Per-file AST site coverage statistics.
 typedef FileCoverageStat = ({
@@ -119,7 +126,7 @@ FileCoverageStat _computeFileStat(
       totalCompares++;
       if (isHit) hitCompares++;
       if ((mask & 0x3) == 0x3) bothBranchCompares++;
-    } else {
+    } else if (site.kind != 'switch') {
       totalEdges++;
       if (isHit) hitEdges++;
     }

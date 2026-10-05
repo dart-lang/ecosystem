@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:dash_fuzz/dash_fuzz.dart';
+import 'package:dash_fuzz/src/instrument_ast.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
@@ -379,10 +380,97 @@ class _SubEq {
       expect($fuzzXor(true, true, 52317), isFalse);
       expect(FuzzRuntime.siteHits[52317], equals(3));
     });
+
+    test(
+      'preserves const RecordLiteral, VariableDeclaration & switch promotions, '
+      'dot shorthands, void/FutureOr<void> arrow bodies, and instruments '
+      '&& / || boolean clauses',
+      () {
+        const sample = '''
+import 'dart:async';
+
+enum _Color { red, blue }
+
+const (bool, int) kRecord = const (1 == 1, 2 ^ 3);
+
+FutureOr<void> syncFutureOrVoid(String s) => print(s);
+
+void runClosure(String s) {
+  Future.sync(() => print(s));
+}
+
+int promoteVarDeclAndSwitch(int? a, int? b, Object c, bool flag, _Color col) {
+  int? promoted = flag ? 10 : 20;
+  var total = promoted + 1;
+  switch (a) {
+    case null:
+      return 0;
+    default:
+      total += a + 1;
+  }
+  switch (c) {
+    case int():
+      total += c + 1;
+    default:
+      break;
+  }
+  if (col == .red) {
+    return total;
+  }
+  switch (col) {
+    case .blue:
+      return total + 1;
+    default:
+      break;
+  }
+  if (total.isEven && total.isFinite) {
+    return total + (b ?? 0);
+  }
+  return total;
+}
+''';
+        final instrumentor = AstInstrumentor();
+        final out = instrumentor.instrumentSource(sample);
+
+        // 1. const RecordLiteral must not be instrumented.
+        expect(out, contains('const (1 == 1, 2 ^ 3)'));
+        // 2. FutureOr<void> and closure => print(s) must not be wrapped in
+        // $fuzzExpr.
+        expect(
+          out,
+          contains('FutureOr<void> syncFutureOrVoid(String s) => print(s);'),
+        );
+        expect(out, contains('Future.sync(() => print(s));'));
+        // 3. VariableDeclaration initializer ternary arms stay unwrapped so
+        // `promoted` promotes from `int?` to `int`.
+        expect(
+          out,
+          contains(r'int? promoted = $fuzzBool(flag, 55973) ? 10 : 20;'),
+        );
+        // 4. `switch (a)` with `case null:` and `switch (c)` with `case int():`
+        // stay unwrapped so `a` and `c` promote in case bodies.
+        expect(out, contains('switch (a)'));
+        expect(out, isNot(contains(r'$fuzzSwitch(a,')));
+        expect(out, contains('switch (c)'));
+        expect(out, isNot(contains(r'$fuzzSwitch(c,')));
+        // 5. Dot shorthands (`col == .red` and `case .blue:`) stay unwrapped so
+        // their context type is preserved.
+        expect(out, contains('col == .red'));
+        expect(out, isNot(contains(r'$fuzzEq(col, .red')));
+        expect(out, isNot(contains(r'$fuzzSwitch(col,')));
+        // 6. `&&` boolean sub-clauses are individually wrapped with $fuzzBool.
+        expect(out, contains(r'$fuzzBool(total.isEven,'));
+        expect(out, contains(r'$fuzzBool(total.isFinite,'));
+
+        final parsed = parseString(content: out, throwIfDiagnostics: true);
+        expect(parsed.errors, isEmpty);
+      },
+    );
   });
 
   group('PackageOverlayInstrumentor', () {
-    test('creates non-destructive .dart_tool/dash_fuzz/ overlay for multi-file package', () async {
+    test('creates non-destructive .dart_tool/dash_fuzz/ overlay and runs '
+        'target without analyzer dependency', () async {
       await d.dir('sample_pkg', [
         d.file('pubspec.yaml', '''
 name: sample_pkg
@@ -412,8 +500,15 @@ library sample_pkg;
 part 'src/part_file.dart';
 
 int parseRoot(int x) {
-  if (x == 10) return _parsePart(x);
-  return 0;
+  if (x == 10) {
+    return _parsePart(x);
+  }
+  switch (x) {
+    case 1:
+      return 1;
+    default:
+      return 0;
+  }
 }
 '''),
           d.dir('src', [
@@ -423,6 +518,15 @@ part of '../sample_pkg.dart';
 int _parsePart(int x) => x > 5 ? 1 : 0;
 '''),
           ]),
+        ]),
+        d.dir('test', [
+          d.file('smoke_target.dart', '''
+import 'package:sample_pkg/sample_pkg.dart';
+
+void main() {
+  if (parseRoot(10) != 1) throw StateError('unexpected');
+}
+'''),
         ]),
       ]).create();
 
@@ -438,6 +542,7 @@ int _parsePart(int x) => x > 5 ? 1 : 0;
       expect(res.filesInstrumented, equals(2));
       expect(res.edgesInserted, greaterThan(0));
       expect(res.comparesInserted, equals(2));
+      expect(res.switchesInserted, equals(1));
 
       // Original source in lib/ must remain 100% untouched.
       expect(
@@ -455,7 +560,8 @@ int _parsePart(int x) => x > 5 ? 1 : 0;
       expect(instPart, isNot(contains('import ')));
       expect(instPart, contains(r'$fuzzGt(x, 5,'));
 
-      // Overlay package_config.json remaps sample_pkg and injects dash_fuzz.
+      // Overlay package_config.json preserves sample_pkg rootUri and remaps
+      // packageUri to .dart_tool/dash_fuzz/instrumented/lib/.
       final overlayJson = jsonDecode(
         File(res.overlayPackageConfigPath).readAsStringSync(),
       ) as Map<String, Object?>;
@@ -469,11 +575,24 @@ int _parsePart(int x) => x > 5 ? 1 : 0;
       );
       expect(
         sampleEntry['rootUri'] as String,
-        endsWith('.dart_tool/dash_fuzz/instrumented'),
+        equals(p.toUri(pkgRoot).toString()),
+      );
+      expect(
+        sampleEntry['packageUri'],
+        equals('.dart_tool/dash_fuzz/instrumented/lib/'),
       );
       expect(dashFuzzEntry['packageUri'], equals('lib/'));
 
-      // edge_manifest.json records all sites and computes exact per-file stats.
+      // Verify child Dart VM compiles and executes test/smoke_target.dart
+      // using the overlay package_config.json without package:analyzer.
+      final vmRes = await Process.run(Platform.resolvedExecutable, [
+        '--packages=${res.overlayPackageConfigPath}',
+        p.join(pkgRoot, 'test', 'smoke_target.dart'),
+      ], workingDirectory: pkgRoot);
+      expect(vmRes.exitCode, equals(0), reason: '${vmRes.stderr}');
+
+      // edge_manifest.json records all sites and computes exact per-file stats,
+      // including K&R block lines and totalEdges == edgesInserted.
       final manifestJson = File(res.edgeManifestPath).readAsStringSync();
       FuzzRuntime.siteHits.fillRange(0, FuzzRuntime.numCounters, 0);
       final manifestMap = jsonDecode(manifestJson) as Map<String, Object?>;
@@ -493,6 +612,9 @@ int _parsePart(int x) => x > 5 ? 1 : 0;
       expect(report.packageName, equals('sample_pkg'));
       expect(report.hitSites, equals(1));
       expect(report.totalSites, equals(sites.length));
+      expect(report.totalEdges, equals(res.edgesInserted));
+      expect(report.totalCompares, equals(res.comparesInserted));
+      expect(report.files.first.uncoveredLines, contains(7));
       expect(report.files.map((f) => f.file), [
         'lib/sample_pkg.dart',
         'lib/src/part_file.dart',

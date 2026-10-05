@@ -85,11 +85,14 @@ class FuzzRuntime {
 
   static const int _numSlots = 16;
   static const int _slotStride = 16;
+  static const int _scratchBytesLen = (_numSlots + 1) * _slotStride;
 
+  static Pointer<Uint8>? _covPtr;
+  static Pointer<Uint8>? _siteHitsPtr;
   static Pointer<Uint8>? _s1Ptr;
   static Pointer<Uint8>? _s2Ptr;
-  static Uint8List _s1View = Uint8List(_numSlots * _slotStride);
-  static Uint8List _s2View = Uint8List(_numSlots * _slotStride);
+  static Uint8List _s1View = Uint8List(_scratchBytesLen);
+  static Uint8List _s2View = Uint8List(_scratchBytesLen);
   static final Int32List _slotIds = Int32List(_numSlots);
   static final Int32List _slotLens = Int32List(_numSlots);
   static final Uint8List _slotPrefixMatched = Uint8List(_numSlots);
@@ -121,9 +124,11 @@ class FuzzRuntime {
 
     if (targetMode == FuzzMode.pureDart) {
       covMap = Uint8List(numCounters);
-      siteHits = Uint8List(numCounters);
-      _s1View = Uint8List(_numSlots * _slotStride);
-      _s2View = Uint8List(_numSlots * _slotStride);
+      if (_siteHitsPtr == null) {
+        siteHits = Uint8List(numCounters);
+      }
+      _s1View = Uint8List(_scratchBytesLen);
+      _s2View = Uint8List(_scratchBytesLen);
       _traceCmp8WithPc = null;
       _traceMemcmp = null;
       _initializedMode = FuzzMode.pureDart;
@@ -159,25 +164,31 @@ class FuzzRuntime {
           'StartFuzzerWithArgs',
         );
 
-    final covPtr = allocate(numCounters);
-    covMap = covPtr.asTypedList(numCounters);
-    registerDartCounters(covPtr, numCounters);
-
-    final siteHitsPtr = allocate(numCounters);
-    final nativeSiteHits = siteHitsPtr.asTypedList(numCounters);
-    // Preserve any hits recorded before init() completed.
-    for (var i = 0; i < numCounters; i++) {
-      nativeSiteHits[i] = siteHits[i];
+    var covPtr = _covPtr;
+    if (covPtr == null) {
+      covPtr = allocate(numCounters);
+      _covPtr = covPtr;
+      registerDartCounters(covPtr, numCounters);
     }
-    siteHits = nativeSiteHits;
-    registerSiteHits(siteHitsPtr, numCounters);
+    covMap = covPtr.asTypedList(numCounters);
 
-    final s1Ptr = allocate(_numSlots * _slotStride);
-    final s2Ptr = allocate(_numSlots * _slotStride);
-    _s1Ptr = s1Ptr;
-    _s2Ptr = s2Ptr;
-    _s1View = s1Ptr.asTypedList(_numSlots * _slotStride);
-    _s2View = s2Ptr.asTypedList(_numSlots * _slotStride);
+    var siteHitsPtr = _siteHitsPtr;
+    if (siteHitsPtr == null) {
+      siteHitsPtr = allocate(numCounters);
+      _siteHitsPtr = siteHitsPtr;
+      final nativeSiteHits = siteHitsPtr.asTypedList(numCounters);
+      // Preserve any hits recorded before init() completed.
+      for (var i = 0; i < numCounters; i++) {
+        nativeSiteHits[i] = siteHits[i];
+      }
+      siteHits = nativeSiteHits;
+      registerSiteHits(siteHitsPtr, numCounters);
+    }
+
+    final s1Ptr = _s1Ptr ??= allocate(_scratchBytesLen);
+    final s2Ptr = _s2Ptr ??= allocate(_scratchBytesLen);
+    _s1View = s1Ptr.asTypedList(_scratchBytesLen);
+    _s2View = s2Ptr.asTypedList(_scratchBytesLen);
     _initializedMode = FuzzMode.cgf;
   }
 
@@ -324,41 +335,91 @@ class FuzzRuntime {
     int Function(Uint8List data) target, {
     required List<String> fuzzerArgs,
   }) {
-    final (:runs, :maxLen) = _parsePureDartFlags(fuzzerArgs);
+    final (:runs, :maxLen, :maxTotalTime, :corpusPaths) = _parsePureDartFlags(
+      fuzzerArgs,
+    );
     final rng = Random(1337);
     final globalMaxMap = Uint8List(numCounters);
     final corpus = <Uint8List>[
       Uint8List(0),
+      ..._loadSeedCorpusFiles(corpusPaths),
       for (final hex in fuzzBoundaryHexStrings)
         Uint8List.fromList(ascii.encode('$hex\r\n')),
     ];
+    final initialCorpusLen = corpus.length;
+    final stopwatch = maxTotalTime > 0 ? (Stopwatch()..start()) : null;
 
     for (var i = 0; i < runs; i++) {
-      final base = corpus[rng.nextInt(corpus.length)];
-      final mutated = i < corpus.length
-          ? base
-          : _mutatePureDartInput(base, rng, maxLen);
+      if (stopwatch != null &&
+          stopwatch.elapsedMilliseconds >= maxTotalTime * 1000) {
+        break;
+      }
+      final isInitialSeed = i < initialCorpusLen;
+      final mutated = isInitialSeed
+          ? corpus[i]
+          : _mutatePureDartInput(
+              corpus[rng.nextInt(corpus.length)],
+              rng,
+              maxLen,
+            );
       covMap.fillRange(0, numCounters, 0);
       _resetPerInputState();
-      target(Uint8List.fromList(mutated));
-      if (_mergeCoverage(covMap, globalMaxMap)) {
+      final copy = Uint8List.fromList(mutated);
+      try {
+        target(copy);
+      } on Object catch (e, st) {
+        flushSiteHits();
+        _reportUnhandledCrash(copy, e, st);
+      }
+      if (_mergeCoverage(covMap, globalMaxMap) && !isInitialSeed) {
         corpus.add(mutated);
       }
     }
     return 0;
   }
 
-  static ({int runs, int maxLen}) _parsePureDartFlags(List<String> args) {
+  static List<Uint8List> _loadSeedCorpusFiles(List<String> paths) {
+    final seeds = <Uint8List>[];
+    for (final rawPath in paths) {
+      final type = FileSystemEntity.typeSync(rawPath);
+      if (type == FileSystemEntityType.file) {
+        seeds.add(File(rawPath).readAsBytesSync());
+      } else if (type == FileSystemEntityType.directory) {
+        final files = Directory(rawPath).listSync().whereType<File>().toList()
+          ..sort((a, b) => a.path.compareTo(b.path));
+        for (final file in files) {
+          seeds.add(file.readAsBytesSync());
+        }
+      }
+    }
+    return seeds;
+  }
+
+  static ({int runs, int maxLen, int maxTotalTime, List<String> corpusPaths})
+  _parsePureDartFlags(List<String> args) {
     var runs = 50000;
     var maxLen = 64;
+    var maxTotalTime = 0;
+    final corpusPaths = <String>[];
     for (final arg in args) {
       if (arg.startsWith('-runs=')) {
         runs = int.tryParse(arg.substring('-runs='.length)) ?? runs;
       } else if (arg.startsWith('-max_len=')) {
         maxLen = int.tryParse(arg.substring('-max_len='.length)) ?? maxLen;
+      } else if (arg.startsWith('-max_total_time=')) {
+        maxTotalTime =
+            int.tryParse(arg.substring('-max_total_time='.length)) ??
+            maxTotalTime;
+      } else if (!arg.startsWith('-')) {
+        corpusPaths.add(arg);
       }
     }
-    return (runs: runs, maxLen: maxLen);
+    return (
+      runs: runs,
+      maxLen: maxLen,
+      maxTotalTime: maxTotalTime,
+      corpusPaths: corpusPaths,
+    );
   }
 
   static bool _mergeCoverage(Uint8List current, Uint8List globalMax) {
@@ -402,7 +463,8 @@ class FuzzRuntime {
         }
       }
     } else {
-      final val = _torcIntsB[rng.nextInt(_torcSize)];
+      final idx = rng.nextInt(_torcSize);
+      final val = rng.nextBool() ? _torcIntsA[idx] : _torcIntsB[idx];
       final bd = ByteData(8)..setInt64(0, val, Endian.little);
       final bytes = bd.buffer.asUint8List();
       final pos = list.isEmpty ? 0 : rng.nextInt(list.length);
@@ -441,8 +503,12 @@ class FuzzRuntime {
       nativeMemcmp(id, s1Ptr, s2Ptr, n, cmpResult);
       return;
     }
-    final slot = (_torcBytesCursor++) & (_torcSize - 1);
-    _torcBytes[slot] = Uint8List.fromList(
+    final slot1 = (_torcBytesCursor++) & (_torcSize - 1);
+    _torcBytes[slot1] = Uint8List.fromList(
+      _s1View.sublist(s2Offset, s2Offset + n),
+    );
+    final slot2 = (_torcBytesCursor++) & (_torcSize - 1);
+    _torcBytes[slot2] = Uint8List.fromList(
       _s2View.sublist(s2Offset, s2Offset + n),
     );
   }
@@ -518,26 +584,33 @@ void _traceByteSequence(
   int len2,
   int Function(int) byteAt1,
   int Function(int) byteAt2,
-  int id,
-  int cmpResult,
-) {
+  int id, {
+  int? knownDiff,
+}) {
   if (len1 != len2) {
     FuzzRuntime._recordCompare8(len1, len2, id ^ 0x100);
   }
   final maxLen = len1 > len2 ? len1 : len2;
   if (maxLen <= 1) return;
   final n = maxLen > 16 ? 16 : maxLen;
+  const base = FuzzRuntime._numSlots * FuzzRuntime._slotStride;
+  var diff = len1 != len2 ? 1 : 0;
   for (var i = 0; i < n; i++) {
-    FuzzRuntime._s1View[i] = i < len1 ? (byteAt1(i) & 0xFF) : 0;
-    FuzzRuntime._s2View[i] = i < len2 ? (byteAt2(i) & 0xFF) : 0;
+    final b1 = i < len1 ? (byteAt1(i) & 0xFF) : 0;
+    final b2 = i < len2 ? (byteAt2(i) & 0xFF) : 0;
+    if (b1 != b2) diff = 1;
+    FuzzRuntime._s1View[base + i] = b1;
+    FuzzRuntime._s2View[base + i] = b2;
   }
+  final s1Ptr = FuzzRuntime._s1Ptr;
+  final s2Ptr = FuzzRuntime._s2Ptr;
   FuzzRuntime._recordMemcmp(
     id,
-    FuzzRuntime._s1Ptr,
-    FuzzRuntime._s2Ptr,
-    0,
+    s1Ptr != null ? s1Ptr + base : null,
+    s2Ptr != null ? s2Ptr + base : null,
+    base,
     n,
-    cmpResult,
+    knownDiff ?? diff,
   );
 }
 
@@ -559,12 +632,12 @@ void _traceCompareValues(
       a.codeUnitAt,
       b.codeUnitAt,
       id,
-      a == b ? 0 : 1,
+      knownDiff: a == b ? 0 : 1,
     );
     return;
   }
   if (a is List<int> && b is List<int>) {
-    _traceByteSequence(a.length, b.length, (i) => a[i], (i) => b[i], id, 0);
+    _traceByteSequence(a.length, b.length, (i) => a[i], (i) => b[i], id);
   }
 }
 

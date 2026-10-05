@@ -13,6 +13,7 @@ export 'src/combinators.dart'
 export 'src/coverage_report.dart'
     show
         FileCoverageStat,
+        FuzzSiteEntry,
         PackageCoverageReport,
         computeCoverageReport,
         coverageReportToJson,
@@ -32,11 +33,3 @@ export 'src/fuzz_runtime.dart'
         $fuzzXor,
         FuzzMode,
         FuzzRuntime;
-export 'src/instrument_ast.dart'
-    show
-        AstInstrumentor,
-        FuzzSiteEntry,
-        OverlayResult,
-        PackageOverlayInstrumentor;
-export 'src/native_builder.dart'
-    show NativeFuzzerBuilder, ToolchainMissingException;

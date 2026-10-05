@@ -20,7 +20,7 @@ class ToolchainMissingException implements Exception {
       'LLVM libFuzzer (compiler-rt).\n'
       'Details: $details\n\n'
       'Install clang/LLVM:\n'
-      '  • Ubuntu/Debian: sudo apt-get install -y clang llvm\n'
+      '  • Ubuntu/Debian: sudo apt-get install -y clang llvm libclang-rt-dev\n'
       '  • macOS (Homebrew): brew install llvm && '
       'export PATH="\$(brew --prefix llvm)/bin:\$PATH"\n\n'
       'Or explicitly re-run using the pure-Dart engine without clang++:\n'
@@ -32,6 +32,7 @@ class ToolchainMissingException implements Exception {
 class NativeFuzzerBuilder {
   static const List<String> _clangCandidates = [
     'clang++',
+    'clang++-21',
     'clang++-20',
     'clang++-19',
     'clang++-18',
@@ -47,18 +48,24 @@ class NativeFuzzerBuilder {
     'libclang_rt.fuzzer_no_main_osx.a',
   ];
 
-  /// Resolves the `clang++` executable from `CLANG_CXX` or `PATH`, or returns
-  /// `null` if none is installed.
+  /// Resolves the `clang++` executable from `CLANG_CXX` or `PATH`, preferring
+  /// a toolchain that provides `libclang_rt.fuzzer_no_main`, or returns `null`
+  /// if none is installed.
   static String? findClangExecutable({Map<String, String>? environment}) {
     final env = environment ?? Platform.environment;
     final explicit = env['CLANG_CXX'];
     if (explicit != null && explicit.isNotEmpty) {
       return _isRunnableCompiler(explicit) ? explicit : null;
     }
+    String? firstRunnable;
     for (final candidate in _clangCandidates) {
-      if (_isRunnableCompiler(candidate)) return candidate;
+      if (!_isRunnableCompiler(candidate)) continue;
+      firstRunnable ??= candidate;
+      if (_locateFuzzerNoMainArchive(candidate) != null) {
+        return candidate;
+      }
     }
-    return null;
+    return firstRunnable;
   }
 
   static bool _isRunnableCompiler(String executable) {
@@ -154,18 +161,6 @@ class NativeFuzzerBuilder {
     required String outPath,
     required String? archivePath,
   }) {
-    if (Platform.isMacOS) {
-      return [
-        '-O2',
-        '-std=c++17',
-        '-dynamiclib',
-        '-fPIC',
-        srcPath,
-        if (archivePath != null) archivePath else '-fsanitize=fuzzer-no-main',
-        '-o',
-        outPath,
-      ];
-    }
     if (archivePath == null) {
       throw const ToolchainMissingException(
         'Could not locate libclang_rt.fuzzer_no_main archive via '
@@ -175,7 +170,7 @@ class NativeFuzzerBuilder {
     return [
       '-O2',
       '-std=c++17',
-      '-shared',
+      if (Platform.isMacOS) '-dynamiclib' else '-shared',
       '-fPIC',
       srcPath,
       archivePath,
