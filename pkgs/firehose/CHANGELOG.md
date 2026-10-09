@@ -1,6 +1,7 @@
 ## 0.13.2-wip
 
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
+- Disable publish release links in the PR comment while the PR is open, and automatically enable them and update the column header to `Publish` once the PR is merged.
 - Remove obsolete `validate()` and `publish()` methods from `Firehose` and
   delete the `firehose` CLI executable (`bin/firehose.dart`).
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
