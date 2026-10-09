@@ -110,6 +110,52 @@ void main() {
         equals('* 1 already published.\n* 1 WIP (no publish necessary).'),
       );
     });
+
+    test('renders tag with hidden release URI comment when linkTag is false',
+        () {
+      final uri = Uri.parse(
+          'https://github.com/dart-lang/labs/releases/new?tag=pkg_1-v1.0.0');
+      final results = VerificationResults()
+        ..addResult(Result.success(
+          pkgA,
+          '**ready to publish**',
+          gitTag: 'pkg_1-v1.0.0',
+          publishReleaseUri: uri,
+          isAffected: true,
+        ));
+
+      final markdown = results.describeAsMarkdown();
+      expect(
+        markdown,
+        contains(
+          '| `pkg_1-v1.0.0` '
+          '<!-- https://github.com/dart-lang/labs/releases/new?tag=pkg_1-v1.0.0 --> |',
+        ),
+      );
+      expect(markdown, isNot(contains('[`pkg_1-v1.0.0`]')));
+    });
+
+    test('renders clickable tag link when linkTag is true', () {
+      final uri = Uri.parse(
+          'https://github.com/dart-lang/labs/releases/new?tag=pkg_1-v1.0.0');
+      final results = VerificationResults()
+        ..addResult(Result.success(
+          pkgA,
+          '**ready to publish**',
+          gitTag: 'pkg_1-v1.0.0',
+          publishReleaseUri: uri,
+          isAffected: true,
+        ));
+
+      final markdown = results.describeAsMarkdown(linkTag: true);
+      expect(
+        markdown,
+        contains(
+          '| [`pkg_1-v1.0.0`]'
+          '(https://github.com/dart-lang/labs/releases/new?tag=pkg_1-v1.0.0) |',
+        ),
+      );
+    });
   });
 
   group('Firehose.verify with LocalGithubApi', () {
