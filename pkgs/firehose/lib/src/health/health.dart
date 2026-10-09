@@ -29,6 +29,7 @@ const dependency_validatorHash = '7582a808960d2170800bfbd7a83526619ce300ce';
 
 enum Check {
   publish('Publish', 'publish'),
+  roll('Package Roll', 'roll'),
   changelog('Changelog Entry', 'changelog'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
@@ -171,7 +172,63 @@ class Health {
         Check.leaking => leakingCheck,
         Check.unuseddependencies => unusedDependenciesCheck,
         Check.publish => publishCheck,
+        Check.roll => rollCheck,
       };
+
+  static bool isRollConfirmed(String body, String packageName) {
+    final confirmedPattern = RegExp(
+      r'\bCONFIRMED_PACKAGE_ROLL\s*=\s*true\b',
+      caseSensitive: false,
+    );
+    final rolledToPattern = RegExp(
+      r'\bROLLED_TO(?:_' + RegExp.escape(packageName) + r')?\s*=\s*\S+',
+      caseSensitive: false,
+    );
+    return confirmedPattern.hasMatch(body) || rolledToPattern.hasMatch(body);
+  }
+
+  Future<HealthCheckResult> rollCheck() async {
+    final filesInPR = await listFilesInPRorAll();
+    final packages = packagesContaining(filesInPR, ignore: ignored);
+    final body = await github.pullrequestBody();
+    final pub = Pub();
+    final unconfirmedPackages = <Package>[];
+
+    try {
+      for (final package in packages) {
+        final version = package.pubspec.version;
+        if (version == null || version.wip) continue;
+        final changelogVersion = package.changelog.latestVersion;
+        if (version.toString() != changelogVersion) continue;
+        if (await pub.hasPublishedVersion(package.name, version.toString())) {
+          continue;
+        }
+        if (!isRollConfirmed(body, package.name)) {
+          unconfirmedPackages.add(package);
+        }
+      }
+    } finally {
+      pub.close();
+    }
+
+    if (unconfirmedPackages.isEmpty) {
+      return HealthCheckResult(Check.roll, Severity.success, null);
+    }
+
+    final markdownResult = '''
+| Package | Version | Status |
+| :--- | ---: | :--- |
+${unconfirmedPackages.map((p) => '| package:${p.name} | ${p.version} | Missing roll confirmation |').join('\n')}
+
+Packages developed under `dart-lang` should be [rolled to google3 and the Dart SDK](https://github.com/dart-lang/sdk/blob/main/docs/External-Package-Maintenance.md#publishing-a-package) before publishing. Add `CONFIRMED_PACKAGE_ROLL=true` or `ROLLED_TO=<sha>` to the PR description once rolled.
+''';
+
+    return HealthCheckResult(
+      Check.roll,
+      Severity.warning,
+      markdownResult,
+    );
+  }
 
   Future<HealthCheckResult> publishCheck() async {
     final firehose = Firehose(

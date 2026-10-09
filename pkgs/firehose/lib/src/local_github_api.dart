@@ -11,10 +11,12 @@ import '../firehose.dart';
 
 class LocalGithubApi implements GithubApi {
   final Iterable<GitFile> files;
+  final String body;
 
   LocalGithubApi({
     required this.prLabels,
     required this.files,
+    this.body = 'Test body',
   });
 
   @override
@@ -77,7 +79,7 @@ class LocalGithubApi implements GithubApi {
   final List<String> prLabels;
 
   @override
-  Future<String> pullrequestBody() async => 'Test body';
+  Future<String> pullrequestBody() async => body;
 
   @override
   String? get refName => throw UnimplementedError();
