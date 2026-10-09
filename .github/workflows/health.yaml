@@ -61,18 +61,18 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
-        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish,roll"
+        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish,roll"
         type: string
         required: false
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish,roll"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
-        default: "license,coverage,breaking,leaking,unused-dependencies,publish"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish,roll"
+        default: "license,coverage,breaking,leaking,unused-dependencies,publish,roll"
         type: string
         required: false
       local_debug:
@@ -127,6 +127,11 @@ on:
         type: string
       ignore_publish:
         description: A glob describing which packages to ignore for the publish check.
+        default: ''
+        required: false
+        type: string
+      ignore_roll:
+        description: A glob describing which packages to ignore for the roll check.
         default: ''
         required: false
         type: string
@@ -214,7 +219,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: changelog
-      order: '02'
+      order: '03'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -232,7 +237,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: license
-      order: '06'
+      order: '07'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -252,7 +257,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: coverage
-      order: '08'
+      order: '09'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       coverage_web: ${{ inputs.coverage_web }}
@@ -272,7 +277,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: breaking
-      order: '03'
+      order: '04'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -290,7 +295,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: do-not-submit
-      order: '07'
+      order: '08'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -308,7 +313,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: leaking
-      order: '04'
+      order: '05'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -326,7 +331,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: unused-dependencies
-      order: '05'
+      order: '06'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -353,8 +358,26 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
+  roll:
+    if: ${{ contains(inputs.checks, 'roll') }}
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: roll
+      order: '02'
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_roll: ${{ inputs.ignore_roll }}
+      ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
+
   comment:
-    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish]
+    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish, roll]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:

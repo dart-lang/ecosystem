@@ -8,6 +8,7 @@ library;
 import 'dart:io';
 
 import 'package:firehose/firehose.dart';
+import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
 import 'package:test/test.dart';
 
@@ -137,6 +138,38 @@ void main() {
       expect(
         unaffectedResults.map((r) => r.package.name),
         containsAll(['package2', 'package3', 'package4', 'package5']),
+      );
+    });
+  });
+
+  group('Health.isRollConfirmed', () {
+    test('recognizes CONFIRMED_PACKAGE_ROLL=true', () {
+      expect(
+        Health.isRollConfirmed(
+            'Ready to release\nCONFIRMED_PACKAGE_ROLL=true', 'foo'),
+        isTrue,
+      );
+    });
+
+    test('recognizes ROLLED_TO and ROLLED_TO_<pkg>', () {
+      expect(
+        Health.isRollConfirmed('ROLLED_TO=abc1234', 'foo'),
+        isTrue,
+      );
+      expect(
+        Health.isRollConfirmed('ROLLED_TO_foo=abc1234', 'foo'),
+        isTrue,
+      );
+      expect(
+        Health.isRollConfirmed('ROLLED_TO_bar=abc1234', 'foo'),
+        isFalse,
+      );
+    });
+
+    test('returns false when roll confirmation is absent', () {
+      expect(
+        Health.isRollConfirmed('Normal PR description', 'foo'),
+        isFalse,
       );
     });
   });

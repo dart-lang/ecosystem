@@ -70,6 +70,10 @@ on:
         default: ''
         required: false
         type: string
+      ignore_roll:
+        default: ''
+        required: false
+        type: string
       ignore_packages:
         default: ''
         required: false
@@ -200,6 +204,7 @@ jobs:
           INPUTS_IGNORE_DONOTSUBMIT: ${{ inputs.ignore_donotsubmit }}
           INPUTS_IGNORE_UNUSEDDEPENDENCIES: ${{ inputs.ignore_unuseddependencies }}
           INPUTS_IGNORE_PUBLISH: ${{ inputs.ignore_publish }}
+          INPUTS_IGNORE_ROLL: ${{ inputs.ignore_roll }}
           INPUTS_EXPERIMENTS: ${{ inputs.experiments }}
           INPUTS_HEALTH_YAML_NAME: ${{ inputs.health_yaml_name }}
           INPUTS_LICENSE: ${{ inputs.license }}
@@ -227,6 +232,7 @@ jobs:
             --ignore_donotsubmit "${INPUTS_IGNORE_DONOTSUBMIT}" \
             --ignore_unuseddependencies "${INPUTS_IGNORE_UNUSEDDEPENDENCIES}" \
             --ignore_publish "${INPUTS_IGNORE_PUBLISH}" \
+            --ignore_roll "${INPUTS_IGNORE_ROLL}" \
             --experiments "${INPUTS_EXPERIMENTS}" \
             --health_yaml_name "${INPUTS_HEALTH_YAML_NAME}" \
             --no-local \
