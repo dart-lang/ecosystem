@@ -8,7 +8,7 @@ name: Health
 # on:
 #   pull_request:
 #     branches: [ main ]
-#     types: [opened, synchronize, reopened, labeled, unlabeled]
+#     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
 # jobs:
 #   health:
 #     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
@@ -173,7 +173,7 @@ jobs:
       pull-requests: write
     # Because this workflow is called by other workflows, we need to make sure
     # we only run this when the PR is in the current repo.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
       - name: Install firehose (internal)
@@ -212,7 +212,7 @@ jobs:
             });
 
   changelog:
-    if: ${{ contains(inputs.checks, 'changelog') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'changelog') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -230,7 +230,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   license:
-    if: ${{ contains(inputs.checks, 'license') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'license') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -250,7 +250,7 @@ jobs:
       license_test_string: ${{ inputs.license_test_string }}
 
   coverage:
-    if: ${{ contains(inputs.checks, 'coverage') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'coverage') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -270,7 +270,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   breaking:
-    if: ${{ contains(inputs.checks, 'breaking') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'breaking') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -288,7 +288,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   do-not-submit:
-    if: ${{ contains(inputs.checks, 'do-not-submit') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'do-not-submit') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -306,7 +306,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   leaking:
-    if: ${{ contains(inputs.checks, 'leaking') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'leaking') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -324,7 +324,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   unused-dependencies:
-    if: ${{ contains(inputs.checks, 'unused-dependencies') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'unused-dependencies') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -341,7 +341,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   publish:
-    if: ${{ contains(inputs.checks, 'publish') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'publish') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -359,7 +359,7 @@ jobs:
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
   roll:
-    if: ${{ contains(inputs.checks, 'roll') }}
+    if: ${{ github.event.action != 'closed' && contains(inputs.checks, 'roll') }}
     permissions:
       pull-requests: write
     uses: ./.github/workflows/health_base.yaml
@@ -378,7 +378,7 @@ jobs:
 
   comment:
     needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish, roll]
-    if: always()
+    if: ${{ always() && github.event.action != 'closed' }}
     # These permissions are required for us to create comments on PRs.
     permissions:
       pull-requests: write
@@ -432,6 +432,73 @@ jobs:
           STEPS_FC_OUTPUTS_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
  
       - name: Upload folder with number and markdown
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: output
+          path: output/
+
+  enable-publish:
+    if: ${{ github.event.action == 'closed' && github.event.pull_request.merged == true && contains(inputs.checks, 'publish') }}
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable publish links in PR comment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number,
+            });
+            const existingComment = comments.find(c =>
+              c.user &&
+              c.user.login === 'github-actions[bot]' &&
+              c.body &&
+              c.body.includes('## PR Health')
+            );
+            if (!existingComment) {
+              console.log('No PR Health comment found.');
+              return;
+            }
+            const updatedBody = existingComment.body
+              .replace(
+                /<details>\s*<summary>\s*<strong>Publish<\/strong>/,
+                '<details open>\n<summary>\n<strong>Publish</strong>'
+              )
+              .replace(
+                '| Package | Version | Status | Publish tag (post-merge) |',
+                '| Package | Version | Status | Publish |'
+              )
+              .replace(
+                /`([^`]+)` <!-- (https:\/\/[^\s]+) -->/g,
+                '[`$1`]($2)'
+              );
+            if (updatedBody === existingComment.body) {
+              console.log('No publish links to update.');
+              return;
+            }
+            fs.mkdirSync('output', { recursive: true });
+            fs.writeFileSync('output/comment.md', updatedBody);
+            fs.writeFileSync('output/commentId', String(existingComment.id));
+            fs.writeFileSync('output/issueNumber', String(issue_number));
+
+            if (context.payload.pull_request.head.repo &&
+                context.payload.pull_request.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: updatedBody,
+              });
+            }
+
+      - name: Upload folder with number and markdown
+        if: ${{ hashFiles('output/comment.md') != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: output
