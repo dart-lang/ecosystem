@@ -172,7 +172,7 @@ name: Health
 on:
   pull_request:
     branches: [ main ]
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
 jobs:
   health:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
