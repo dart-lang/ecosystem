@@ -17,7 +17,8 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     if: >
-      github.event.workflow_run.event == 'pull_request'
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'skipped'
     continue-on-error: true
     steps:
 
@@ -35,6 +36,10 @@ jobs:
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "output"
             })[0];
+            if (!matchArtifact) {
+              console.log('No output artifact found.');
+              return;
+            }
             var download = await github.rest.actions.downloadArtifact({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -43,7 +48,10 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{ github.workspace }}/comment.zip', Buffer.from(download.data));
-      - run: unzip comment.zip
+      - run: |
+          if [ -f comment.zip ]; then
+            unzip comment.zip
+          fi
 
       - name: 'Print the comment'
         run: |
@@ -60,6 +68,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             var fs = require('fs');
+            if (!fs.existsSync('./comment.md') && !fs.existsSync('./commentId')) {
+              console.log('No comment files found. Skipping.');
+              return;
+            }
 
             const prs = context.payload.workflow_run ? context.payload.workflow_run.pull_requests : [];
             let issue_number = prs.length > 0 ? prs[0].number : (context.issue ? context.issue.number : null);
