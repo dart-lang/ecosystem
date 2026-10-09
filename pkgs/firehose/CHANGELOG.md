@@ -1,6 +1,7 @@
 ## 0.13.2-wip
 
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
+- Add `roll` health check to verify `CONFIRMED_PACKAGE_ROLL=true` or `ROLLED_TO=<sha>` is present in the PR description when preparing a package for publishing.
 - Remove obsolete `validate()` and `publish()` methods from `Firehose` and
   delete the `firehose` CLI executable (`bin/firehose.dart`).
 - Print the links to create GitHub releases at the end of the `publish.yaml`
