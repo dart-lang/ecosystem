@@ -5,6 +5,7 @@
 - Verify that `CHANGELOG.md` updates in PRs modify the top version section,
   anchor the `pubspec.yaml` changelog check to the package root (`#405`), and
   stop requiring changelog entries for `README.md` edits.
+- Support `use-flutter` option in `groundskeeper` workflow to allow tidying Flutter packages.
 - Log full `dart_apitool` failure output to the workflow log instead of dumping
   multi-line stack traces into the PR health comment Markdown table.
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.

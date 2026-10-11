@@ -214,6 +214,39 @@ void main() {
           .firstWhere((r) => r.package.name == 'package1');
       expect(pkg1Labeled.severity, Severity.info);
       expect(pkg1Labeled.message, Result.alreadyPublishedMessage);
+
+      final singlePkgDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => singlePkgDir.deleteSync(recursive: true));
+      File('${singlePkgDir.path}/pubspec.yaml').writeAsStringSync('''
+name: single_pkg
+version: 1.0.0
+environment:
+  sdk: ^3.0.0
+''');
+      File('${singlePkgDir.path}/CHANGELOG.md').writeAsStringSync('''
+## 1.0.0
+
+- Initial release.
+''');
+      final singleFirehose = Firehose(singlePkgDir, false, []);
+      final singlePub = _FakePub(publishedVersions: {('single_pkg', '1.0.0')});
+      final workflowOnlyGithub = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            '.github/workflows/publish.yaml',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+      );
+      final workflowResults =
+          await singleFirehose.verify(workflowOnlyGithub, pub: singlePub);
+      expect(workflowResults.results.single.severity, Severity.info);
+      expect(
+        workflowResults.results.single.message,
+        Result.alreadyPublishedMessage,
+      );
     });
   });
 

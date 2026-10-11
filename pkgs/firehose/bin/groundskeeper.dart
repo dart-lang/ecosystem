@@ -4,13 +4,17 @@
 
 import 'dart:io';
 import 'package:args/args.dart';
-import 'package:firehose/firehose.dart';
 import 'package:path/path.dart' as path;
 
 void main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('format', defaultsTo: 'true', allowed: ['true', 'false'])
-    ..addOption('fix', defaultsTo: 'true', allowed: ['true', 'false']);
+    ..addOption('fix', defaultsTo: 'true', allowed: ['true', 'false'])
+    ..addOption(
+      'use-flutter',
+      defaultsTo: 'false',
+      allowed: ['true', 'false'],
+    );
 
   final argResults = parser.parse(args);
 
@@ -18,10 +22,12 @@ void main(List<String> args) async {
   final pkgPath = targetDirectory.path;
   final runFormat = argResults['format'] != 'false';
   final runFix = argResults['fix'] != 'false';
+  final useFlutter = argResults['use-flutter'] == 'true';
 
   print('Target Directory: ${targetDirectory.absolute.path}');
   print('Run format: $runFormat');
   print('Run fix: $runFix');
+  print('Use Flutter: $useFlutter');
 
   final pubspecFile = File(path.join(targetDirectory.path, 'pubspec.yaml'));
   final isPackage = pubspecFile.existsSync();
@@ -33,15 +39,10 @@ Error: Run fix is enabled, but no pubspec.yaml found in ${targetDirectory.path}'
   }
 
   if (isPackage) {
-    final repo = Repository(targetDirectory);
-    final pkg = Package(targetDirectory, repo);
+    final tool = useFlutter ? 'flutter' : 'dart';
 
-    // Detect if it is a Flutter package
-    final isFlutter = pkg.pubspec.dependencies.containsKey('flutter') ||
-        pkg.pubspec.devDependencies.containsKey('flutter');
-    final tool = isFlutter ? 'flutter' : 'dart';
-
-    print('Tidying package in $pkgPath (${isFlutter ? 'Flutter' : 'Dart'})...');
+    print(
+        'Tidying package in $pkgPath (${useFlutter ? 'Flutter' : 'Dart'})...');
 
     print('  Running $tool pub get...');
     final pubGetResult =

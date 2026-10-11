@@ -109,31 +109,34 @@ class Changelog {
     if (firstHeaderLine == null) return true;
 
     var sawHunk = false;
+    var inDeletedSection = false;
     var currentNewLine = 0;
     for (final line in patch.split('\n')) {
       final match = _hunkHeaderRegex.firstMatch(line);
       if (match != null) {
         sawHunk = true;
+        inDeletedSection = false;
         currentNewLine = int.parse(match.group(1)!);
         continue;
       }
       if (!sawHunk) continue;
-      if (line.startsWith('+') && !line.startsWith('+++')) {
+      if (line.startsWith('+')) {
+        inDeletedSection = false;
         if (currentNewLine >= firstHeaderLine &&
             currentNewLine < secondHeaderLine) {
           return true;
         }
         currentNewLine++;
-      } else if (line.startsWith('-') && !line.startsWith('---')) {
-        final isDeletedSectionHeader =
-            line.substring(1).startsWith(_headerLinePrefix);
-        if (currentNewLine >= firstHeaderLine &&
-            (currentNewLine < secondHeaderLine ||
-                (currentNewLine == secondHeaderLine &&
-                    !isDeletedSectionHeader))) {
+      } else if (line.startsWith('-')) {
+        if (line.substring(1).startsWith(_headerLinePrefix)) {
+          inDeletedSection = true;
+        } else if (!inDeletedSection &&
+            currentNewLine >= firstHeaderLine &&
+            currentNewLine <= secondHeaderLine) {
           return true;
         }
       } else if (line.startsWith(' ')) {
+        inDeletedSection = false;
         currentNewLine++;
       }
     }

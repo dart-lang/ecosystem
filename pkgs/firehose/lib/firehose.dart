@@ -166,10 +166,12 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       if (await pubClient.hasPublishedVersion(package.name, pubspecVersion)) {
         final hasNonChangelogChanges = packageFiles != null &&
             packageFiles.any(
-              (f) => !path.equals(
-                f.pathInRepository,
-                package.changelog.file.path,
-              ),
+              (f) =>
+                  !path.equals(
+                    f.pathInRepository,
+                    package.changelog.file.path,
+                  ) &&
+                  !path.split(f.filename).contains('.github'),
             );
         if (hasNonChangelogChanges &&
             !github.prLabels.contains(_ignoreWarningsLabel)) {

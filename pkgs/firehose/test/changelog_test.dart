@@ -196,6 +196,29 @@ void main() {
 '''),
           isFalse,
         );
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -1,4 +1,3 @@
+ ## 0.3.7+1
+ 
+----
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+'''),
+          isTrue,
+        );
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -3,6 +3,2 @@
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+ 
+-## 0.3.7-old
+-
+-- Deleted historical entry.
+-
+ ## 0.3.7
+'''),
+          isFalse,
+        );
       });
     });
 
