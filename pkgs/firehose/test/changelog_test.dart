@@ -233,8 +233,8 @@ void main() {
     });
 
     test(
-        'collectPackagesWithoutChangelogChanges flags historical-only changelog patch',
-        () {
+        'collectPackagesWithoutChangelogChanges flags historical-only '
+        'changelog patch', () {
       final testDir = Directory.systemTemp.createTempSync();
       addTearDown(() => testDir.deleteSync(recursive: true));
       final pkgDir = Directory('${testDir.path}/pkgs/pkg_a')

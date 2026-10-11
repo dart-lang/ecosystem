@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/local_github_api.dart';
+import 'package:firehose/src/pub.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -141,8 +142,8 @@ void main() {
     });
 
     test(
-        'fails when a modified package has an already-published version on pub.dev',
-        () async {
+        'fails when a modified package has an already-published version '
+        'on pub.dev', () async {
       final testDir = Directory('test_data/test_repo');
       final firehose = Firehose(testDir, false, []);
       final pub = _FakePub(publishedVersions: {
@@ -173,8 +174,8 @@ void main() {
     });
 
     test(
-        'allows standalone CHANGELOG.md fix or publish-ignore-warnings on already-published version',
-        () async {
+        'allows standalone CHANGELOG.md fix or publish-ignore-warnings '
+        'on already-published version', () async {
       final testDir = Directory('test_data/test_repo');
       final firehose = Firehose(testDir, false, []);
       final pub = _FakePub(publishedVersions: {

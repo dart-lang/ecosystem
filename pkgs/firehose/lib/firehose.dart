@@ -15,7 +15,6 @@ import 'src/utils.dart';
 
 export 'src/changelog.dart' show Changelog;
 export 'src/github.dart' show FileStatus, GitFile, GithubApi;
-export 'src/pub.dart' show Pub;
 export 'src/repo.dart' show Package, Repository;
 export 'src/utils.dart' show Severity;
 
