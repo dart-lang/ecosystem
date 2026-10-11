@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as path;
 
 import 'src/github.dart';
 import 'src/pub.dart';
@@ -14,6 +15,7 @@ import 'src/utils.dart';
 
 export 'src/changelog.dart' show Changelog;
 export 'src/github.dart' show FileStatus, GitFile, GithubApi;
+export 'src/pub.dart' show Pub;
 export 'src/repo.dart' show Package, Repository;
 export 'src/utils.dart' show Severity;
 
@@ -108,7 +110,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     github.close();
   }
 
-  Future<VerificationResults> verify(GithubApi github) async {
+  Future<VerificationResults> verify(GithubApi github, {Pub? pub}) async {
     final repo = Repository(directory);
     final packages = repo.locatePackages(ignore: ignoredPackages);
 
@@ -118,13 +120,14 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     );
     final relevantFiles = filesInPR?.where((f) => f.status.isRelevant).toList();
 
-    final pub = Pub();
+    final pubClient = pub ?? Pub();
 
     final results = VerificationResults();
 
     for (final package in packages) {
-      final isAffected = relevantFiles == null ||
-          relevantFiles.any((f) => f.isInPackage(package));
+      final packageFiles =
+          relevantFiles?.where((f) => f.isInPackage(package)).toList();
+      final isAffected = packageFiles == null || packageFiles.isNotEmpty;
 
       final repoTag = repo.calculateRepoTag(package, tagPrefix: tagPrefix);
 
@@ -161,14 +164,34 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
         continue;
       }
 
-      if (await pub.hasPublishedVersion(package.name, pubspecVersion)) {
-        final result = Result.info(
-          package,
-          Result.alreadyPublishedMessage,
-          isAffected: isAffected,
-        );
-        print(result);
-        results.addResult(result);
+      if (await pubClient.hasPublishedVersion(package.name, pubspecVersion)) {
+        final hasNonChangelogChanges = packageFiles != null &&
+            packageFiles.any(
+              (f) => !path.equals(
+                f.pathInRepository,
+                package.changelog.file.path,
+              ),
+            );
+        if (hasNonChangelogChanges &&
+            !github.prLabels.contains(_ignoreWarningsLabel)) {
+          final result = Result.fail(
+            package,
+            'version $pubspecVersion is already published at pub.dev; '
+            'bump to a `-wip` version (or add the `$_ignoreWarningsLabel` '
+            'label to ignore)',
+            isAffected: isAffected,
+          );
+          print(result);
+          results.addResult(result);
+        } else {
+          final result = Result.info(
+            package,
+            Result.alreadyPublishedMessage,
+            isAffected: isAffected,
+          );
+          print(result);
+          results.addResult(result);
+        }
       } else if (package.pubspec.version!.wip) {
         final result = Result.info(
           package,
@@ -214,7 +237,9 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       }
     }
 
-    pub.close();
+    if (pub == null) {
+      pubClient.close();
+    }
 
     return results;
   }

@@ -145,6 +145,7 @@ class GithubApi {
                 prFile.filename!,
                 FileStatus.fromString(prFile.status!),
                 directory,
+                patch: prFile.patch,
               ))
           .where((file) =>
               ignoredFiles.none((glob) => glob.matches(file.filename)))
@@ -193,13 +194,14 @@ class GitFile {
   final String filename;
   final FileStatus status;
   final Directory directory;
+  final String? patch;
 
   bool isInPackage(Package package) =>
       path.isWithin(package.directory.path, pathInRepository);
 
   String get pathInRepository => path.join(directory.path, filename);
 
-  GitFile(this.filename, this.status, this.directory);
+  GitFile(this.filename, this.status, this.directory, {this.patch});
 
   @override
   String toString() => '$filename: $status';

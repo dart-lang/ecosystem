@@ -11,6 +11,6 @@
 Changes to files need to be [accounted for](https://github.com/dart-lang/ecosystem/wiki/Changelog) in their respective changelogs.
 
 
-This check can be disabled by tagging the PR with `skip-changelog-check`.
+This check can be disabled by tagging the PR with `skip-changelog-check` (for example, for non-user-visible changes when the package version is already at `-wip`).
 </details>
 

@@ -654,6 +654,10 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
         Severity.error => true,
       };
 
+      final skipNote = result.check == Check.changelog
+          ? ' (for example, for non-user-visible changes when the package '
+              'version is already at `-wip`)'
+          : '';
       markdownSummary = '''
 <details${expand ? ' open' : ''}>
 <summary>
@@ -662,7 +666,7 @@ This check for [test coverage](https://github.com/dart-lang/ecosystem/wiki/Test-
 
 $markdown
 
-This check can be disabled by tagging the PR with `skip-${result.check.displayName}-check`.
+This check can be disabled by tagging the PR with `skip-${result.check.displayName}-check`$skipNote.
 </details>
 
 ''';

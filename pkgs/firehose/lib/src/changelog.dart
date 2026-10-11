@@ -82,6 +82,63 @@ class Changelog {
   }
 
   String get describeLatestChanges => latestChangeEntries.join('\n');
+
+  static final _hunkHeaderRegex =
+      RegExp(r'^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@');
+
+  /// Returns whether [patch] (a unified diff for this changelog file) adds or
+  /// removes at least one line within the top `## ...` section.
+  ///
+  /// Returns `true` if [patch] is `null`, empty, contains no hunk headers, or
+  /// if the changelog has no sections yet.
+  bool patchTouchesLatestSection(String? patch) {
+    if (patch == null || patch.isEmpty || !exists) return true;
+    final lines = file.readAsLinesSync();
+    int? firstHeaderLine;
+    var secondHeaderLine = lines.length + 1;
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith(_headerLinePrefix)) {
+        if (firstHeaderLine == null) {
+          firstHeaderLine = i + 1;
+        } else {
+          secondHeaderLine = i + 1;
+          break;
+        }
+      }
+    }
+    if (firstHeaderLine == null) return true;
+
+    var sawHunk = false;
+    var currentNewLine = 0;
+    for (final line in patch.split('\n')) {
+      final match = _hunkHeaderRegex.firstMatch(line);
+      if (match != null) {
+        sawHunk = true;
+        currentNewLine = int.parse(match.group(1)!);
+        continue;
+      }
+      if (!sawHunk) continue;
+      if (line.startsWith('+') && !line.startsWith('+++')) {
+        if (currentNewLine >= firstHeaderLine &&
+            currentNewLine < secondHeaderLine) {
+          return true;
+        }
+        currentNewLine++;
+      } else if (line.startsWith('-') && !line.startsWith('---')) {
+        final isDeletedSectionHeader =
+            line.substring(1).startsWith(_headerLinePrefix);
+        if (currentNewLine >= firstHeaderLine &&
+            (currentNewLine < secondHeaderLine ||
+                (currentNewLine == secondHeaderLine &&
+                    !isDeletedSectionHeader))) {
+          return true;
+        }
+      } else if (line.startsWith(' ')) {
+        currentNewLine++;
+      }
+    }
+    return !sawHunk;
+  }
 }
 
 class _Section {
