@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:firehose/firehose.dart';
 import 'package:firehose/src/local_github_api.dart';
+import 'package:firehose/src/pub.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -139,6 +140,114 @@ void main() {
         containsAll(['package2', 'package3', 'package4', 'package5']),
       );
     });
+
+    test(
+        'fails when a modified package has an already-published version '
+        'on pub.dev', () async {
+      final testDir = Directory('test_data/test_repo');
+      final firehose = Firehose(testDir, false, []);
+      final pub = _FakePub(publishedVersions: {
+        ('package1', '1.0.0'),
+        ('package2', '1.0.0'),
+      });
+      final github = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pkgs/package1/lib/package1.dart',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+
+      final results = await firehose.verify(github, pub: pub);
+      final pkg1Result =
+          results.results.firstWhere((r) => r.package.name == 'package1');
+      final pkg2Result =
+          results.results.firstWhere((r) => r.package.name == 'package2');
+
+      expect(pkg1Result.severity, Severity.error);
+      expect(pkg1Result.message, contains('bump to a `-wip` version'));
+      expect(pkg2Result.severity, Severity.info);
+      expect(pkg2Result.message, Result.alreadyPublishedMessage);
+    });
+
+    test(
+        'allows standalone CHANGELOG.md fix or publish-ignore-warnings '
+        'on already-published version', () async {
+      final testDir = Directory('test_data/test_repo');
+      final firehose = Firehose(testDir, false, []);
+      final pub = _FakePub(publishedVersions: {
+        ('package1', '1.0.0'),
+        ('package2', '1.0.0'),
+      });
+      final changelogOnlyGithub = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pkgs/package1/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+      final changelogOnlyResults =
+          await firehose.verify(changelogOnlyGithub, pub: pub);
+      final pkg1ChangelogOnly = changelogOnlyResults.results
+          .firstWhere((r) => r.package.name == 'package1');
+      expect(pkg1ChangelogOnly.severity, Severity.info);
+      expect(pkg1ChangelogOnly.message, Result.alreadyPublishedMessage);
+
+      final labeledGithub = LocalGithubApi(
+        prLabels: ['publish-ignore-warnings'],
+        files: [
+          GitFile(
+            'pkgs/package1/lib/package1.dart',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+      final labeledResults = await firehose.verify(labeledGithub, pub: pub);
+      final pkg1Labeled = labeledResults.results
+          .firstWhere((r) => r.package.name == 'package1');
+      expect(pkg1Labeled.severity, Severity.info);
+      expect(pkg1Labeled.message, Result.alreadyPublishedMessage);
+
+      final singlePkgDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => singlePkgDir.deleteSync(recursive: true));
+      File('${singlePkgDir.path}/pubspec.yaml').writeAsStringSync('''
+name: single_pkg
+version: 1.0.0
+environment:
+  sdk: ^3.0.0
+''');
+      File('${singlePkgDir.path}/CHANGELOG.md').writeAsStringSync('''
+## 1.0.0
+
+- Initial release.
+''');
+      final singleFirehose = Firehose(singlePkgDir, false, []);
+      final singlePub = _FakePub(publishedVersions: {('single_pkg', '1.0.0')});
+      final workflowOnlyGithub = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            '.github/workflows/publish.yaml',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+      );
+      final workflowResults =
+          await singleFirehose.verify(workflowOnlyGithub, pub: singlePub);
+      expect(workflowResults.results.single.severity, Severity.info);
+      expect(
+        workflowResults.results.single.message,
+        Result.alreadyPublishedMessage,
+      );
+    });
   });
 
   group('bin/comment.dart CLI', () {
@@ -161,4 +270,14 @@ void main() {
       expect(result.stderr, contains('Invalid comment ID'));
     });
   });
+}
+
+class _FakePub extends Pub {
+  final Set<(String, String)> publishedVersions;
+
+  _FakePub({required this.publishedVersions});
+
+  @override
+  Future<bool> hasPublishedVersion(String name, String version) async =>
+      publishedVersions.contains((name, version));
 }

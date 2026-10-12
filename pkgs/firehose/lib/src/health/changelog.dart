@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
@@ -92,12 +93,16 @@ List<Package> collectPackagesWithoutChangelogChanges(
   Directory directory,
 ) {
   print('Collecting packages without changed changelogs:');
-  final packagesWithoutChangedChangelog = packages
-      .where((package) => package.changelog.exists)
-      .where((package) => !files
-          .map((e) => e.pathInRepository)
-          .contains(package.changelog.file.path))
-      .toList();
+  final packagesWithoutChangedChangelog =
+      packages.where((package) => package.changelog.exists).where((package) {
+    final changelogFile = files.firstWhereOrNull(
+      (e) => path.equals(e.pathInRepository, package.changelog.file.path),
+    );
+    if (changelogFile == null) return true;
+    return !package.changelog.patchTouchesLatestSection(
+      changelogFile.patch,
+    );
+  }).toList();
   print('Done, found ${packagesWithoutChangedChangelog.length} packages.');
   return packagesWithoutChangedChangelog;
 }
@@ -108,7 +113,6 @@ bool fileNeedsEntryInChangelog(Package package, String file, Directory d) {
   final isInPackage = path.isWithin(directory, file);
   final isInLib = path.isWithin(path.join(directory, 'lib'), file);
   final isInBin = path.isWithin(path.join(directory, 'bin'), file);
-  final isPubspec = file.endsWith('pubspec.yaml');
-  final isReadme = file.endsWith('README.md');
-  return isInPackage && (isInLib || isInBin || isPubspec || isReadme);
+  final isPubspec = path.equals(path.join(directory, 'pubspec.yaml'), file);
+  return isInPackage && (isInLib || isInBin || isPubspec);
 }

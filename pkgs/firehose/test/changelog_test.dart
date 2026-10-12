@@ -8,6 +8,9 @@ library;
 import 'dart:io';
 
 import 'package:firehose/src/changelog.dart';
+import 'package:firehose/src/github.dart';
+import 'package:firehose/src/health/changelog.dart';
+import 'package:firehose/src/repo.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -166,6 +169,149 @@ void main() {
         final entries = changelog.latestChangeEntries;
         expect(entries, isEmpty);
       });
+    });
+
+    test('patchTouchesLatestSection detects top section vs historical edits',
+        () {
+      withChangelog(_defaultContents, (file) {
+        final changelog = Changelog(file);
+        expect(changelog.patchTouchesLatestSection(null), isTrue);
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -1,3 +1,4 @@
+ ## 0.3.7+1
+ 
++- New top-section entry.
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+'''),
+          isTrue,
+        );
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -5,3 +5,4 @@
+ ## 0.3.7
+ 
+ - Provide feedback about publishing status as PR comments.
++- Stranded historical entry.
+'''),
+          isFalse,
+        );
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -1,4 +1,3 @@
+ ## 0.3.7+1
+ 
+----
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+'''),
+          isTrue,
+        );
+        expect(
+          changelog.patchTouchesLatestSection('''
+@@ -3,6 +3,2 @@
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+ 
+-## 0.3.7-old
+-
+-- Deleted historical entry.
+-
+ ## 0.3.7
+'''),
+          isFalse,
+        );
+      });
+    });
+
+    test(
+        'fileNeedsEntryInChangelog checks root pubspec only and ignores README',
+        () {
+      final testDir = Directory('test_data/test_repo');
+      final repo = Repository(testDir);
+      final pkg = Package(Directory('test_data/test_repo/pkgs/package1'), repo);
+
+      expect(
+        fileNeedsEntryInChangelog(pkg, 'pkgs/package1/pubspec.yaml', testDir),
+        isTrue,
+      );
+      expect(
+        fileNeedsEntryInChangelog(
+          pkg,
+          'pkgs/package1/example/pubspec.yaml',
+          testDir,
+        ),
+        isFalse,
+      );
+      expect(
+        fileNeedsEntryInChangelog(pkg, 'pkgs/package1/README.md', testDir),
+        isFalse,
+      );
+      expect(
+        fileNeedsEntryInChangelog(
+          pkg,
+          'pkgs/package1/lib/package1.dart',
+          testDir,
+        ),
+        isTrue,
+      );
+    });
+
+    test(
+        'collectPackagesWithoutChangelogChanges flags historical-only '
+        'changelog patch', () {
+      final testDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => testDir.deleteSync(recursive: true));
+      final pkgDir = Directory('${testDir.path}/pkgs/pkg_a')
+        ..createSync(recursive: true);
+      File('${pkgDir.path}/pubspec.yaml').writeAsStringSync('''
+name: pkg_a
+version: 1.1.0-wip
+environment:
+  sdk: ^3.0.0
+''');
+      File('${pkgDir.path}/CHANGELOG.md').writeAsStringSync(_defaultContents);
+      final repo = Repository(testDir);
+      final pkg = Package(pkgDir, repo);
+
+      final missingWhenHistoricalOnly = collectPackagesWithoutChangelogChanges(
+        [pkg],
+        [
+          GitFile(
+            'pkgs/pkg_a/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+            patch: '''
+@@ -5,3 +5,4 @@
+ ## 0.3.7
+ 
+ - Provide feedback about publishing status as PR comments.
++- Stranded historical entry.
+''',
+          ),
+        ],
+        testDir,
+      );
+      expect(missingWhenHistoricalOnly, [pkg]);
+
+      final missingWhenTopSectionUpdated =
+          collectPackagesWithoutChangelogChanges(
+        [pkg],
+        [
+          GitFile(
+            'pkgs/pkg_a/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+            patch: '''
+@@ -1,3 +1,4 @@
+ ## 0.3.7+1
+ 
++- Added top section entry.
+ - Fix an issue in the `.github/workflows/publish.yaml` workflow file.
+''',
+          ),
+        ],
+        testDir,
+      );
+      expect(missingWhenTopSectionUpdated, isEmpty);
     });
   });
 }
