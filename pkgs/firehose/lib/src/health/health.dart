@@ -28,13 +28,14 @@ const dart_apitoolHash = '6d710709e5d51bab52ecd911c84a3264e5277a69';
 const dependency_validatorHash = '7582a808960d2170800bfbd7a83526619ce300ce';
 
 enum Check {
-  license('License Headers', 'license'),
+  publish('Publish', 'publish'),
   changelog('Changelog Entry', 'changelog'),
-  coverage('Coverage', 'coverage'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
+  unuseddependencies('Unused Dependencies', 'unused-dependencies'),
+  license('License Headers', 'license'),
   donotsubmit('Do Not Submit', 'do-not-submit'),
-  unuseddependencies('Unused Dependencies', 'unused-dependencies');
+  coverage('Coverage', 'coverage');
 
   final String tag;
 
@@ -169,7 +170,37 @@ class Health {
         Check.donotsubmit => doNotSubmitCheck,
         Check.leaking => leakingCheck,
         Check.unuseddependencies => unusedDependenciesCheck,
+        Check.publish => publishCheck,
       };
+
+  Future<HealthCheckResult> publishCheck() async {
+    final firehose = Firehose(
+      directory,
+      flutterPackageGlobs.isNotEmpty,
+      ignored,
+    );
+    final results = await firehose.verify(github);
+    final markdownResult = results.visibleResults.isEmpty
+        ? '''
+${results.describeAsMarkdown()}
+
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+'''
+        : '''
+| Package | Version | Status | Publish tag (post-merge) |
+| :--- | ---: | :--- | ---: |
+${results.describeAsMarkdown()}
+
+Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automation.
+''';
+
+    return HealthCheckResult(
+      Check.publish,
+      results.severity,
+      markdownResult,
+    );
+  }
+
   Future<HealthCheckResult> unusedDependenciesCheck() async {
     final filesInPR = await listFilesInPRorAll();
     final flutterPackages =
