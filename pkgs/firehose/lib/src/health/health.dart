@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
@@ -86,13 +87,8 @@ class Health {
             .where((element) => element.isNotEmpty)
             .firstOrNull;
 
-    final dartExecutables =
-        (Process.runSync('which', ['-a', 'dart']).stdout as String)
-            .split('\n')
-            .where((element) => element.isNotEmpty);
-    dartExecutable = dartExecutables
-        .sortedBy((path) => path.contains('flutter').toString())
-        .first;
+    dartExecutable = cli_util.dartExecutable ??
+        (throw StateError('Could not locate a Dart executable.'));
   }
 
   static List<Glob> toGlobs(List<String> ignoredPackages) =>

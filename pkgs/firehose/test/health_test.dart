@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
@@ -135,6 +136,22 @@ Future<void> main() async {
       r'Error line 1 Error line 2 \| with pipe Error line 3|'
       ':warning:',
     );
+  });
+
+  test('Health resolves dartExecutable via package:cli_util', () {
+    final health = FakeHealth(
+      directory,
+      Check.license,
+      [],
+      [],
+      false,
+      [],
+      const {},
+      [],
+      fakeGithubApi([]),
+      [],
+    );
+    expect(health.dartExecutable, cli_util.dartExecutable);
   });
 }
 
