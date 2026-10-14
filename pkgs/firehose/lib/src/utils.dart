@@ -43,10 +43,9 @@ Future<CommandResult> runCommand(
         ..writeln(line))
       .asFuture<void>();
 
-  final code = await process.exitCode;
   // Wait for all output to be written so that it isn't interleaved with any
   // output from the caller after this returns.
-  await Future.wait([stdoutDone, stderrDone]);
+  final (code, _, _) = await (process.exitCode, stdoutDone, stderrDone).wait;
 
   return CommandResult(
     code: code,
