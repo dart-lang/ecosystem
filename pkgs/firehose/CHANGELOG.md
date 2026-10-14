@@ -1,5 +1,6 @@
 ## 0.13.2-wip
 
+- Resolve `dartExecutable` in `Health` via `package:cli_util` (`^0.6.0`) instead of shelling out to `which -a dart`.
 - Fail `Firehose.verify` when a PR modifies files in a package whose `pubspec.yaml`
   version is already published on `pub.dev` without bumping to `-wip`.
 - Verify that `CHANGELOG.md` updates in PRs modify the top version section,
