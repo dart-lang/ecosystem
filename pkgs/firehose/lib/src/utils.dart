@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,7 +26,7 @@ Future<CommandResult> runCommand(
 
   final buffer = StringBuffer();
 
-  process.stdout
+  final stdoutDone = process.stdout
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((line) {
@@ -33,20 +34,40 @@ Future<CommandResult> runCommand(
     stdout
       ..write('  ')
       ..writeln(line);
-  });
-  process.stderr
+  }).asFuture<void>();
+  final stderrDone = process.stderr
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .listen((line) => stderr
         ..write('  ')
-        ..writeln(line));
+        ..writeln(line))
+      .asFuture<void>();
 
-  final code = await process.exitCode;
+  // Wait for all output to be written so that it isn't interleaved with any
+  // output from the caller after this returns.
+  final (code, _, _) = await (process.exitCode, stdoutDone, stderrDone).wait;
 
   return CommandResult(
     code: code,
     stdout: buffer.toString(),
   );
+}
+
+/// Runs [body] with any output it prints inside a collapsible group in the
+/// GitHub Actions log.
+///
+/// The group is shown with [title], and is collapsed by default. GitHub
+/// Actions does not support nested groups, so [body] should not call
+/// [inLogGroup].
+///
+/// See https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#grouping-log-lines.
+Future<T> inLogGroup<T>(String title, FutureOr<T> Function() body) async {
+  print('::group::${title.replaceAll('\n', ' ')}');
+  try {
+    return await body();
+  } finally {
+    print('::endgroup::');
+  }
 }
 
 class CommandResult {

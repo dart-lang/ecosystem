@@ -1,5 +1,12 @@
 ## 0.13.2-wip
 
+- Print the links to create GitHub releases at the end of the `publish.yaml`
+  validation log so they are available when the PR comment can't be written.
+- Group the `publish.yaml` log output into collapsible sections for package
+  discovery, each package's validation, and the PR comment.
+- Search the file system for packages at most once per `Repository`. This
+  stops the validation log from repeating `Found package at ...` lines for
+  every package.
 - Fail `Firehose.verify` when a PR modifies files in a package whose `pubspec.yaml`
   version is already published on `pub.dev` without bumping to `-wip`.
 - Verify that `CHANGELOG.md` updates in PRs modify the top version section,

@@ -73,34 +73,41 @@ Documentation at https://github.com/dart-lang/ecosystem/wiki/Publishing-automati
 ''';
     github.appendStepSummary(markdownTable);
 
-    final existingCommentId = await allowFailure(
-      github.findCommentId(
-        user: _githubActionsUser,
-        searchTerm: _publishBotTag,
-      ),
-      logError: print,
-    );
+    await inLogGroup('Preparing PR comment', () async {
+      final existingCommentId = await allowFailure(
+        github.findCommentId(
+          user: _githubActionsUser,
+          searchTerm: _publishBotTag,
+        ),
+        logError: print,
+      );
 
-    if (existingCommentId != null) {
-      final idFile = File('./output/commentId');
-      print('''
+      if (existingCommentId != null) {
+        final idFile = File('./output/commentId');
+        print('''
 Saving existing comment id $existingCommentId to file ${idFile.path}''');
-      await idFile.create(recursive: true);
-      await idFile.writeAsString(existingCommentId.toString());
-    }
+        await idFile.create(recursive: true);
+        await idFile.writeAsString(existingCommentId.toString());
+      }
 
-    if (results.hasSuccess || existingCommentId != null) {
-      final description =
-          results.hasSuccess ? '$_publishBotDescription\n\n' : '';
-      final commentText = '$_publishBotTag\n\n'
-          '$description'
-          '$markdownTable';
+      if (results.hasSuccess || existingCommentId != null) {
+        final description =
+            results.hasSuccess ? '$_publishBotDescription\n\n' : '';
+        final commentText = '$_publishBotTag\n\n'
+            '$description'
+            '$markdownTable';
 
-      final commentFile = File('./output/comment.md');
-      print('Saving comment markdown to file ${commentFile.path}');
-      await commentFile.create(recursive: true);
-      await commentFile.writeAsString(commentText);
-    }
+        final commentFile = File('./output/comment.md');
+        print('Saving comment markdown to file ${commentFile.path}');
+        await commentFile.create(recursive: true);
+        await commentFile.writeAsString(commentText);
+      }
+    });
+
+    // Print the release links last, outside of any group, so they are easy to
+    // find in the log even if the PR comment can't be written.
+    print('');
+    print(results.describeForLog());
 
     if (results.hasError && exitCode == 0) {
       exitCode = 1;
@@ -111,7 +118,10 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
   Future<VerificationResults> verify(GithubApi github, {Pub? pub}) async {
     final repo = Repository(directory);
-    final packages = repo.locatePackages(ignore: ignoredPackages);
+    final packages = await inLogGroup(
+      'Locating packages',
+      () => repo.locatePackages(ignore: ignoredPackages),
+    );
 
     final filesInPR = await allowFailure(
       github.listFilesForPR(directory, ignoredPackages),
@@ -128,114 +138,22 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
           relevantFiles?.where((f) => f.isInPackage(package)).toList();
       final isAffected = packageFiles == null || packageFiles.isNotEmpty;
 
-      final repoTag = repo.calculateRepoTag(package, tagPrefix: tagPrefix);
-
-      print('');
-      print('Validating $package:${package.name}');
-
-      print('pubspec:');
-      final pubspecVersion = package.pubspec.version?.toString();
-      if (pubspecVersion == null) {
-        final result = Result.fail(
-          package,
-          "no version specified (perhaps you need a' publish_to: none' entry?)",
-          isAffected: isAffected,
-        );
-        print(result);
-        results.addResult(result);
-        continue;
-      }
-      print('  - version: $pubspecVersion');
-
-      final changelogVersion = package.changelog.latestVersion;
-      print('changelog:');
-      print(package.changelog.describeLatestChanges.trimRight());
-
-      if (pubspecVersion != changelogVersion) {
-        final result = Result.fail(
-          package,
-          'pubspec version ($pubspecVersion) and changelog ($changelogVersion) '
-          "don't agree",
-          isAffected: isAffected,
-        );
-        print(result);
-        results.addResult(result);
-        continue;
-      }
-
-      if (await pubClient.hasPublishedVersion(package.name, pubspecVersion)) {
-        final hasNonChangelogChanges = packageFiles != null &&
-            packageFiles.any(
-              (f) =>
-                  !path.equals(
-                    f.pathInRepository,
-                    package.changelog.file.path,
-                  ) &&
-                  !path.split(f.filename).contains('.github'),
-            );
-        if (hasNonChangelogChanges &&
-            !github.prLabels.contains(_ignoreWarningsLabel)) {
-          final result = Result.fail(
+      final result = await inLogGroup(
+        'Validating package:${package.name} ${package.version}',
+        () async {
+          final result = await _verifyPackage(
             package,
-            'version $pubspecVersion is already published at pub.dev; '
-            'bump to a `-wip` version (or add the `$_ignoreWarningsLabel` '
-            'label to ignore)',
+            repo,
+            github,
+            pubClient,
+            packageFiles: packageFiles,
             isAffected: isAffected,
           );
           print(result);
-          results.addResult(result);
-        } else {
-          final result = Result.info(
-            package,
-            Result.alreadyPublishedMessage,
-            isAffected: isAffected,
-          );
-          print(result);
-          results.addResult(result);
-        }
-      } else if (package.pubspec.version!.wip) {
-        final result = Result.info(
-          package,
-          Result.wipMessage,
-          isAffected: isAffected,
-        );
-        print(result);
-        results.addResult(result);
-      } else {
-        const preReleaseText =
-            'consider publishing the package as a pre-release instead';
-
-        final result = await _runPublish(package, dryRun: true, force: false);
-
-        final hasPreReleaseText = result.stdout.contains(preReleaseText);
-        final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
-        final ignoreWarnings = hasPreReleaseText || hasWarningsLabel;
-
-        if (result.code != 0 && !ignoreWarnings) {
-          exitCode = result.code;
-          final message =
-              'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
-              'label to ignore';
-          github.notice(message: message);
-          results.addResult(
-            Result.fail(package, message, isAffected: isAffected),
-          );
-        } else {
-          final result = Result.success(
-            package,
-            '**ready to publish**',
-            gitTag: repoTag,
-            publishReleaseUri: repo.calculateReleaseUri(
-              package,
-              github,
-              tagPrefix: tagPrefix,
-            ),
-            isAffected: isAffected,
-          );
-          print(result);
-          results.addResult(result);
-        }
-      }
+          return result;
+        },
+      );
+      results.addResult(result);
     }
 
     if (pub == null) {
@@ -243,6 +161,108 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     }
 
     return results;
+  }
+
+  /// Validates a single [package] and returns the result.
+  ///
+  /// The [packageFiles] are the files in [package] modified by the PR, or
+  /// `null` if the files in the PR could not be determined.
+  Future<Result> _verifyPackage(
+    Package package,
+    Repository repo,
+    GithubApi github,
+    Pub pubClient, {
+    required List<GitFile>? packageFiles,
+    required bool isAffected,
+  }) async {
+    print('pubspec:');
+    final pubspecVersion = package.pubspec.version?.toString();
+    if (pubspecVersion == null) {
+      return Result.fail(
+        package,
+        "no version specified (perhaps you need a' publish_to: none' entry?)",
+        isAffected: isAffected,
+      );
+    }
+    print('  - version: $pubspecVersion');
+
+    final changelogVersion = package.changelog.latestVersion;
+    print('changelog:');
+    print(package.changelog.describeLatestChanges.trimRight());
+
+    if (pubspecVersion != changelogVersion) {
+      return Result.fail(
+        package,
+        'pubspec version ($pubspecVersion) and changelog ($changelogVersion) '
+        "don't agree",
+        isAffected: isAffected,
+      );
+    }
+
+    if (await pubClient.hasPublishedVersion(package.name, pubspecVersion)) {
+      final hasNonChangelogChanges = packageFiles != null &&
+          packageFiles.any(
+            (f) =>
+                !path.equals(
+                  f.pathInRepository,
+                  package.changelog.file.path,
+                ) &&
+                !path.split(f.filename).contains('.github'),
+          );
+      if (hasNonChangelogChanges &&
+          !github.prLabels.contains(_ignoreWarningsLabel)) {
+        return Result.fail(
+          package,
+          'version $pubspecVersion is already published at pub.dev; '
+          'bump to a `-wip` version (or add the `$_ignoreWarningsLabel` '
+          'label to ignore)',
+          isAffected: isAffected,
+        );
+      }
+      return Result.info(
+        package,
+        Result.alreadyPublishedMessage,
+        isAffected: isAffected,
+      );
+    }
+
+    if (package.pubspec.version!.wip) {
+      return Result.info(
+        package,
+        Result.wipMessage,
+        isAffected: isAffected,
+      );
+    }
+
+    const preReleaseText =
+        'consider publishing the package as a pre-release instead';
+
+    final result = await _runPublish(package, dryRun: true, force: false);
+
+    final hasPreReleaseText = result.stdout.contains(preReleaseText);
+    final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
+    final ignoreWarnings = hasPreReleaseText || hasWarningsLabel;
+
+    if (result.code != 0 && !ignoreWarnings) {
+      exitCode = result.code;
+      final message =
+          'pub publish dry-run failed; add the `$_ignoreWarningsLabel` '
+          'label to ignore';
+      github.notice(message: message);
+      return Result.fail(package, message, isAffected: isAffected);
+    }
+
+    return Result.success(
+      package,
+      '**ready to publish**',
+      gitTag: repo.calculateRepoTag(package, tagPrefix: tagPrefix),
+      publishReleaseUri: repo.calculateReleaseUri(
+        package,
+        github,
+        tagPrefix: tagPrefix,
+      ),
+      isAffected: isAffected,
+    );
   }
 
   /// Publish the indicated package in the repository.
@@ -276,12 +296,15 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     print('');
 
     final repo = Repository();
-    final packages = repo.locatePackages();
-    print('');
-    print('Repository packages:');
-    for (final package in packages) {
-      print('  $package');
-    }
+    final packages = await inLogGroup('Locating packages', () {
+      final packages = repo.locatePackages();
+      print('');
+      print('Repository packages:');
+      for (final package in packages) {
+        print('  $package');
+      }
+      return packages;
+    });
     print('');
 
     // Find package to publish.
@@ -420,6 +443,45 @@ class VerificationResults {
         buffer.writeln();
       }
       buffer.write(summaryLines.join('\n'));
+    }
+
+    return buffer.toString().trimRight();
+  }
+
+  /// A plain text description of the results which need action, for the end
+  /// of the workflow log.
+  ///
+  /// Lists any errors, and the links to create a GitHub release for each
+  /// package which is ready to publish.
+  String describeForLog() {
+    final buffer = StringBuffer();
+
+    final errors = results.where((r) => r.severity == Severity.error);
+    if (errors.isNotEmpty) {
+      buffer.writeln('Packages with errors:');
+      for (final r in errors) {
+        buffer.writeln('  package:${r.package.name} ${r.package.version}: '
+            '${r.message}');
+      }
+      buffer.writeln();
+    }
+
+    final ready = results.where((r) => r.severity == Severity.success);
+    if (ready.isEmpty) {
+      buffer.writeln('No packages are ready to publish.');
+    } else {
+      buffer
+        ..writeln('Packages ready to publish:')
+        ..writeln(_publishBotDescription)
+        ..writeln();
+      for (final r in ready) {
+        final tag = r.gitTag == null ? '' : ' (${r.gitTag})';
+        buffer.writeln('  package:${r.package.name} ${r.package.version}$tag');
+        final publishReleaseUri = r.publishReleaseUri;
+        if (publishReleaseUri != null) {
+          buffer.writeln('    $publishReleaseUri');
+        }
+      }
     }
 
     return buffer.toString().trimRight();

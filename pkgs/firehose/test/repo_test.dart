@@ -11,6 +11,8 @@ import 'dart:isolate';
 import 'package:firehose/src/github.dart';
 import 'package:firehose/src/repo.dart';
 import 'package:github/github.dart' show RepositorySlug;
+import 'package:glob/glob.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -120,4 +122,74 @@ void main() {
           ]));
     });
   });
+
+  group('package discovery', () {
+    late Directory repoDir;
+
+    setUp(() {
+      repoDir = Directory.systemTemp.createTempSync('firehose_repo_test');
+      _writePackage(repoDir, 'pkgs/pkg_a');
+      _writePackage(repoDir, 'pkgs/pkg_b', publishTo: 'none');
+    });
+
+    tearDown(() => repoDir.deleteSync(recursive: true));
+
+    test('searches the file system only once', () {
+      final repo = Repository(repoDir);
+      final first = repo.locatePackages();
+      final firstAll = repo.locatePackages(includeUnpublished: true);
+      _writePackage(repoDir, 'pkgs/pkg_c');
+
+      expect(repo.locatePackages(), orderedEquals(first));
+      expect(
+        repo.locatePackages(includeUnpublished: true),
+        orderedEquals(firstAll),
+      );
+      expect(repo.isSinglePackageRepo, isFalse);
+      expect(Repository(repoDir).locatePackages().map((p) => p.name),
+          ['pkg_a', 'pkg_c']);
+    });
+
+    test('filters do not affect later results', () {
+      final repo = Repository(repoDir);
+      expect(repo.locatePackages(includeUnpublished: true).map((p) => p.name),
+          ['pkg_a', 'pkg_b']);
+      expect(
+        repo.locatePackages(
+          includeUnpublished: true,
+          ignore: [Glob('pkgs/pkg_a')],
+        ).map((p) => p.name),
+        ['pkg_b'],
+      );
+      expect(
+        repo.locatePackages(
+          includeUnpublished: true,
+          only: [Glob('pkgs/pkg_a')],
+        ).map((p) => p.name),
+        ['pkg_a'],
+      );
+      expect(repo.locatePackages(includeUnpublished: true).map((p) => p.name),
+          ['pkg_a', 'pkg_b']);
+      expect(repo.locatePackages().map((p) => p.name), ['pkg_a']);
+    });
+  });
+}
+
+void _writePackage(Directory repoDir, String relativePath,
+    {String? publishTo}) {
+  final dir = Directory(path.join(repoDir.path, relativePath))
+    ..createSync(recursive: true);
+  final name = path.basename(relativePath);
+  File(path.join(dir.path, 'pubspec.yaml')).writeAsStringSync('''
+name: $name
+version: 1.0.0
+${publishTo == null ? '' : 'publish_to: $publishTo'}
+environment:
+  sdk: ^3.0.0
+''');
+  File(path.join(dir.path, 'CHANGELOG.md')).writeAsStringSync('''
+## 1.0.0
+
+- Initial release.
+''');
 }

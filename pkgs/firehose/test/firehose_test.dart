@@ -5,6 +5,7 @@
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firehose/firehose.dart';
@@ -111,9 +112,94 @@ void main() {
         equals('* 1 already published.\n* 1 WIP (no publish necessary).'),
       );
     });
+
+    test('log description lists release links and errors', () {
+      final releaseUri = Uri.parse(
+          'https://github.com/dart-lang/ecosystem/releases/new?tag=pkg_1-v1.0.0');
+      final results = VerificationResults()
+        ..addResult(Result.success(
+          pkgA,
+          '**ready to publish**',
+          gitTag: 'pkg_1-v1.0.0',
+          publishReleaseUri: releaseUri,
+        ))
+        ..addResult(Result.fail(pkgB, 'version mismatch'))
+        ..addResult(Result.info(pkgC, Result.wipMessage, isAffected: true));
+
+      final log = results.describeForLog();
+      expect(log, contains('Packages with errors:'));
+      expect(
+          log, contains('  package:pkg_2 ${pkgB.version}: version mismatch'));
+      expect(log, contains('Packages ready to publish:'));
+      expect(log, contains('  package:pkg_1 ${pkgA.version} (pkg_1-v1.0.0)'));
+      expect(log, contains('    $releaseUri'));
+      expect(log, isNot(contains('package1')));
+      expect(log.trimRight(), endsWith('$releaseUri'));
+    });
+
+    test('log description with nothing ready to publish', () {
+      final results = VerificationResults()
+        ..addResult(Result.info(pkgA, Result.alreadyPublishedMessage))
+        ..addResult(Result.info(pkgB, Result.wipMessage));
+
+      expect(results.describeForLog(), 'No packages are ready to publish.');
+    });
   });
 
   group('Firehose.verify with LocalGithubApi', () {
+    test('locates packages once and groups the output per package', () async {
+      final testDir = Directory('test_data/test_repo');
+      final firehose = Firehose(testDir, false, []);
+      final pub = _FakePub(publishedVersions: {
+        ('package1', '1.0.0'),
+        ('package2', '1.0.0'),
+        ('package3', '1.0.0'),
+        ('package4', '1.2.0'),
+        ('package5', '1.2.0'),
+      });
+      final github = LocalGithubApi(prLabels: [], files: []);
+
+      final lines = <String>[];
+      await runZoned(
+        () => firehose.verify(github, pub: pub),
+        zoneSpecification: ZoneSpecification(
+          print: (_, __, ___, line) => lines.addAll(line.split('\n')),
+        ),
+      );
+
+      for (final name in ['package1', 'package2', 'package3']) {
+        expect(
+          lines.where((l) =>
+              l.startsWith('Found package at') && l.contains('pkgs/$name')),
+          hasLength(1),
+        );
+      }
+      expect(lines.first, '::group::Locating packages');
+      expect(
+        lines.where((l) => l.startsWith('::group::Validating')),
+        [
+          '::group::Validating package:package1 1.0.0',
+          '::group::Validating package:package2 1.0.0',
+          '::group::Validating package:package3 1.0.0',
+          '::group::Validating package:package4 1.2.0',
+          '::group::Validating package:package5 1.2.0',
+        ],
+      );
+
+      // Groups can't be nested; every group must be closed before the next
+      // one opens.
+      var inGroup = false;
+      for (final line in lines) {
+        if (line.startsWith('::group::')) {
+          expect(inGroup, isFalse, reason: 'Nested group at "$line"');
+          inGroup = true;
+        } else if (line == '::endgroup::') {
+          expect(inGroup, isTrue, reason: 'Unmatched ::endgroup::');
+          inGroup = false;
+        }
+      }
+      expect(inGroup, isFalse);
+    });
     test('filters packages based on PR file changes', () async {
       final testDir = Directory('test_data/test_repo');
       final firehose = Firehose(testDir, false, []);
