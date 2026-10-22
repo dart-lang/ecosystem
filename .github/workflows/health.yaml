@@ -61,18 +61,18 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
-        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
         type: string
         required: false
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
-        default: "license,coverage,breaking,leaking,unused-dependencies"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        default: "license,coverage,breaking,leaking,unused-dependencies,publish"
         type: string
         required: false
       local_debug:
@@ -125,6 +125,11 @@ on:
         default: ''
         required: false
         type: string
+      ignore_publish:
+        description: A glob describing which packages to ignore for the publish check.
+        default: ''
+        required: false
+        type: string
       ignore_packages:
         description: A glob describing which packages to ignore for all checks.
         default: ''
@@ -174,7 +179,9 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
       - name: Find Comment
         id: fc
         env:
@@ -207,6 +214,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: changelog
+      order: '02'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -224,6 +232,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: license
+      order: '06'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -243,6 +252,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: coverage
+      order: '08'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       coverage_web: ${{ inputs.coverage_web }}
@@ -262,6 +272,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: breaking
+      order: '03'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -279,6 +290,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: do-not-submit
+      order: '07'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -296,6 +308,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: leaking
+      order: '04'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -313,6 +326,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: unused-dependencies
+      order: '05'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -321,8 +335,26 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
+  publish:
+    if: ${{ contains(inputs.checks, 'publish') }}
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: publish
+      order: '01'
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_publish: ${{ inputs.ignore_publish }}
+      ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
+
   comment:
-    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies]
+    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:
@@ -340,7 +372,9 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
       - name: Download All Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -361,10 +395,12 @@ jobs:
         env:
           ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-         mkdir output
-         echo $'## PR Health\n\n' >> output/comment.md
-         find single-comments -name '*.md' -exec cat {} + >> output/comment.md
-         echo "$ISSUE_NUMBER" > output/issueNumber
+          mkdir -p output
+          echo $'## PR Health\n\n' >> output/comment.md
+          for file in $(find single-comments -name '*.md' | sort); do
+            cat "$file" >> output/comment.md
+          done
+          echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
