@@ -151,6 +151,36 @@ class GithubApi {
               ignoredFiles.none((glob) => glob.matches(file.filename)))
           .toList();
 
+  /// Lists the files modified between [baseRef] and [sha].
+  ///
+  /// Returns `null` if [baseRef] does not exist in the repository.
+  Future<List<GitFile>?> listFilesSinceRef(
+    Directory directory,
+    String baseRef, [
+    List<Glob> ignoredFiles = const [],
+  ]) async {
+    final headSha = sha ??
+        (throw StateError('GITHUB_SHA environment variable is not set.'));
+    try {
+      final comparison =
+          await _github.repositories.compareCommits(_slug, baseRef, headSha);
+      final files = comparison.files;
+      if (files == null) return null;
+      return files
+          .map((file) => GitFile(
+                file.name!,
+                FileStatus.fromString(file.status!),
+                directory,
+                patch: file.patch,
+              ))
+          .where((file) =>
+              ignoredFiles.none((glob) => glob.matches(file.filename)))
+          .toList();
+    } on GitHubError {
+      return null;
+    }
+  }
+
   /// Write a notice message to the github log.
   void notice({required String message, String? file, int? line, int? col}) {
     print(_formatMessage('notice', message, file, line, col));

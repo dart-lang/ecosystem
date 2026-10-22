@@ -369,6 +369,146 @@ environment:
     });
   });
 
+  group('Health.rollCheck with g3 branch', () {
+    test('warns when package has unsynced changes relative to g3 ref',
+        () async {
+      final testDir = Directory('test_data/test_repo');
+      final pub = _FakePub(publishedVersions: {});
+      final github = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/lib/package1.dart',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+      final health = Health(
+        testDir,
+        Check.roll,
+        [],
+        [],
+        false,
+        [],
+        {},
+        [],
+        github,
+        [],
+        healthYamlNames: {'health.yaml'},
+      );
+
+      final result = await health.rollCheck(pub: pub);
+      expect(result.severity, Severity.warning);
+      expect(
+        result.markdown,
+        contains(
+          '| package:package1 | 1.0.0 | '
+          'Has changes not yet synced to `g3` branch |',
+        ),
+      );
+    });
+
+    test(
+        'succeeds when g3 diff only contains pubspec.yaml and CHANGELOG.md '
+        'or roll is confirmed in PR body', () async {
+      final testDir = Directory('test_data/test_repo');
+      final pub = _FakePub(publishedVersions: {});
+      final syncedGithub = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+      final syncedHealth = Health(
+        testDir,
+        Check.roll,
+        [],
+        [],
+        false,
+        [],
+        {},
+        [],
+        syncedGithub,
+        [],
+        healthYamlNames: {'health.yaml'},
+      );
+
+      final syncedResult = await syncedHealth.rollCheck(pub: pub);
+      expect(syncedResult.severity, Severity.success);
+      expect(syncedResult.markdown, isNull);
+
+      final confirmedGithub = LocalGithubApi(
+        prLabels: [],
+        body: 'CONFIRMED_PACKAGE_ROLL=true',
+        files: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'pkgs/package1/lib/package1.dart',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+      final confirmedHealth = Health(
+        testDir,
+        Check.roll,
+        [],
+        [],
+        false,
+        [],
+        {},
+        [],
+        confirmedGithub,
+        [],
+        healthYamlNames: {'health.yaml'},
+      );
+
+      final confirmedResult = await confirmedHealth.rollCheck(pub: pub);
+      expect(confirmedResult.severity, Severity.success);
+      expect(confirmedResult.markdown, isNull);
+    });
+  });
+
   group('bin/comment.dart CLI', () {
     test('delete command exits with code 64 on missing or empty comment ID',
         () async {
