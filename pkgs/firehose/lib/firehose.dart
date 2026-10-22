@@ -216,7 +216,7 @@ class VerificationResults {
   Iterable<Result> get hiddenResults =>
       results.where((r) => !r.isVisibleInTable);
 
-  String describeAsMarkdown({bool withTag = true}) {
+  String describeAsMarkdown({bool withTag = true, bool linkTag = false}) {
     final buffer = StringBuffer();
     for (final r in visibleResults) {
       final sev = r.severity == Severity.error ? '(error) ' : '';
@@ -225,7 +225,9 @@ class VerificationResults {
         var tag = r.gitTag == null ? '' : '`${r.gitTag}`';
         final publishReleaseUri = r.publishReleaseUri;
         if (publishReleaseUri != null) {
-          tag = '[$tag]($publishReleaseUri)';
+          tag = linkTag
+              ? '[$tag]($publishReleaseUri)'
+              : '$tag <!-- $publishReleaseUri -->';
         }
 
         tagColumn = ' | $tag';
