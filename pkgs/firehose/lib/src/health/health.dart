@@ -187,12 +187,19 @@ class Health {
     return confirmedPattern.hasMatch(body) || rolledToPattern.hasMatch(body);
   }
 
-  Future<HealthCheckResult> rollCheck() async {
+  Future<HealthCheckResult> rollCheck({Pub? pub}) async {
     final filesInPR = await listFilesInPRorAll();
     final packages = packagesContaining(filesInPR, ignore: ignored);
     final body = await github.pullrequestBody();
-    final pub = Pub();
-    final unconfirmedPackages = <Package>[];
+    final pubClient = pub ?? Pub();
+    final unconfirmedPackages = <(Package, String)>[];
+
+    Future<List<GitFile>?>? g3FilesFuture;
+    Future<List<GitFile>?> getG3Files() =>
+        g3FilesFuture ??= allowFailure<List<GitFile>?>(
+          github.listFilesSinceRef(directory, 'g3', ignored),
+          logError: (e) => log('$e'),
+        );
 
     try {
       for (final package in packages) {
@@ -200,15 +207,37 @@ class Health {
         if (version == null || version.wip) continue;
         final changelogVersion = package.changelog.latestVersion;
         if (version.toString() != changelogVersion) continue;
-        if (await pub.hasPublishedVersion(package.name, version.toString())) {
+        if (await pubClient.hasPublishedVersion(
+            package.name, version.toString())) {
           continue;
         }
-        if (!isRollConfirmed(body, package.name)) {
-          unconfirmedPackages.add(package);
+        if (isRollConfirmed(body, package.name)) {
+          continue;
+        }
+        final g3Files = await getG3Files();
+        if (g3Files != null) {
+          final pubspecPath = path.join(package.directory.path, 'pubspec.yaml');
+          final hasUnsyncedG3Changes = g3Files.any(
+            (f) =>
+                f.status.isRelevant &&
+                f.isInPackage(package) &&
+                !path.equals(f.pathInRepository, pubspecPath) &&
+                !path.equals(f.pathInRepository, package.changelog.file.path) &&
+                !path.split(f.filename).contains('.github'),
+          );
+          if (hasUnsyncedG3Changes) {
+            unconfirmedPackages.add(
+              (package, 'Has changes not yet synced to `g3` branch'),
+            );
+          }
+        } else {
+          unconfirmedPackages.add((package, 'Missing roll confirmation'));
         }
       }
     } finally {
-      pub.close();
+      if (pub == null) {
+        pubClient.close();
+      }
     }
 
     if (unconfirmedPackages.isEmpty) {
@@ -218,7 +247,7 @@ class Health {
     final markdownResult = '''
 | Package | Version | Status |
 | :--- | ---: | :--- |
-${unconfirmedPackages.map((p) => '| package:${p.name} | ${p.version} | Missing roll confirmation |').join('\n')}
+${unconfirmedPackages.map((e) => '| package:${e.$1.name} | ${e.$1.version} | ${e.$2} |').join('\n')}
 
 Packages developed under `dart-lang` should be [rolled to google3 and the Dart SDK](https://github.com/dart-lang/sdk/blob/main/docs/External-Package-Maintenance.md#publishing-a-package) before publishing. Add `CONFIRMED_PACKAGE_ROLL=true` or `ROLLED_TO=<sha>` to the PR description once rolled.
 ''';
