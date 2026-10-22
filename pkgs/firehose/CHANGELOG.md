@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Fail `Firehose.verify` when a package ready to publish has changes not yet
+  synced to the `g3` branch (when a `g3` branch exists in the repository).
 - Print the links to create GitHub releases at the end of the `publish.yaml`
   validation log so they are available when the PR comment can't be written.
 - Group the `publish.yaml` log output into collapsible sections for package

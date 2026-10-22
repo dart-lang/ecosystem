@@ -131,6 +131,13 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
 
     final pubClient = pub ?? Pub();
 
+    Future<List<GitFile>?>? g3FilesFuture;
+    Future<List<GitFile>?> getG3Files() =>
+        g3FilesFuture ??= allowFailure<List<GitFile>?>(
+          github.listFilesSinceRef(directory, 'g3', ignoredPackages),
+          logError: print,
+        );
+
     final results = VerificationResults();
 
     for (final package in packages) {
@@ -146,6 +153,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
             repo,
             github,
             pubClient,
+            getG3Files: getG3Files,
             packageFiles: packageFiles,
             isAffected: isAffected,
           );
@@ -172,6 +180,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
     Repository repo,
     GithubApi github,
     Pub pubClient, {
+    required Future<List<GitFile>?> Function() getG3Files,
     required List<GitFile>? packageFiles,
     required bool isAffected,
   }) async {
@@ -199,6 +208,8 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       );
     }
 
+    final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
+
     if (await pubClient.hasPublishedVersion(package.name, pubspecVersion)) {
       final hasNonChangelogChanges = packageFiles != null &&
           packageFiles.any(
@@ -209,8 +220,7 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
                 ) &&
                 !path.split(f.filename).contains('.github'),
           );
-      if (hasNonChangelogChanges &&
-          !github.prLabels.contains(_ignoreWarningsLabel)) {
+      if (hasNonChangelogChanges && !hasWarningsLabel) {
         return Result.fail(
           package,
           'version $pubspecVersion is already published at pub.dev; '
@@ -234,13 +244,33 @@ Saving existing comment id $existingCommentId to file ${idFile.path}''');
       );
     }
 
+    final g3Files = await getG3Files();
+    if (g3Files != null && !hasWarningsLabel) {
+      final pubspecPath = path.join(package.directory.path, 'pubspec.yaml');
+      final hasUnsyncedG3Changes = g3Files.any(
+        (f) =>
+            f.status.isRelevant &&
+            f.isInPackage(package) &&
+            !path.equals(f.pathInRepository, pubspecPath) &&
+            !path.equals(f.pathInRepository, package.changelog.file.path) &&
+            !path.split(f.filename).contains('.github'),
+      );
+      if (hasUnsyncedG3Changes) {
+        return Result.fail(
+          package,
+          'package has changes not yet synced to google3 '
+          '(or add the `$_ignoreWarningsLabel` label to ignore)',
+          isAffected: isAffected,
+        );
+      }
+    }
+
     const preReleaseText =
         'consider publishing the package as a pre-release instead';
 
     final result = await _runPublish(package, dryRun: true, force: false);
 
     final hasPreReleaseText = result.stdout.contains(preReleaseText);
-    final hasWarningsLabel = github.prLabels.contains(_ignoreWarningsLabel);
     final ignoreWarnings = hasPreReleaseText || hasWarningsLabel;
 
     if (result.code != 0 && !ignoreWarnings) {

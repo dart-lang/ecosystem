@@ -334,6 +334,143 @@ environment:
         Result.alreadyPublishedMessage,
       );
     });
+
+    test(
+        'fails when a ready-to-publish package has unsynced changes '
+        'relative to g3 ref', () async {
+      final testDir = Directory('test_data/test_repo');
+      final firehose = Firehose(testDir, false, []);
+      final pub = _FakePub(publishedVersions: {
+        ('package2', '1.0.0'),
+        ('package3', '1.0.0'),
+        ('package4', '1.2.0'),
+        ('package5', '1.2.0'),
+      });
+      final github = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'pkgs/package1/pubspec.yaml',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/CHANGELOG.md',
+            FileStatus.modified,
+            testDir,
+          ),
+          GitFile(
+            'pkgs/package1/lib/package1.dart',
+            FileStatus.modified,
+            testDir,
+          ),
+        ],
+      );
+
+      final results = await firehose.verify(github, pub: pub);
+      final pkg1Result =
+          results.results.firstWhere((r) => r.package.name == 'package1');
+      final pkg2Result =
+          results.results.firstWhere((r) => r.package.name == 'package2');
+
+      expect(pkg1Result.severity, Severity.error);
+      expect(
+        pkg1Result.message,
+        contains('package has changes not yet synced to google3'),
+      );
+      expect(pkg2Result.severity, Severity.info);
+      expect(pkg2Result.message, Result.alreadyPublishedMessage);
+    });
+
+    test(
+        'allows publishing when g3 diff only contains pubspec.yaml '
+        'and CHANGELOG.md or publish-ignore-warnings label is set', () async {
+      final singlePkgDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => singlePkgDir.deleteSync(recursive: true));
+      File('${singlePkgDir.path}/pubspec.yaml').writeAsStringSync('''
+name: single_pkg
+description: A test package.
+version: 1.0.0
+repository: https://github.com/dart-lang/ecosystem
+environment:
+  sdk: ^3.0.0
+''');
+      File('${singlePkgDir.path}/CHANGELOG.md').writeAsStringSync('''
+## 1.0.0
+
+- Initial release.
+''');
+      File('${singlePkgDir.path}/README.md')
+          .writeAsStringSync('# single_pkg\n');
+      File('${singlePkgDir.path}/LICENSE').writeAsStringSync('BSD 3-Clause\n');
+
+      final firehose = Firehose(singlePkgDir, false, []);
+      final pub = _FakePub(publishedVersions: {});
+      final releasePrepOnlyGithub = LocalGithubApi(
+        prLabels: [],
+        files: [
+          GitFile(
+            'pubspec.yaml',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+          GitFile(
+            'CHANGELOG.md',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'pubspec.yaml',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+          GitFile(
+            'CHANGELOG.md',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+      );
+
+      final releasePrepResults =
+          await firehose.verify(releasePrepOnlyGithub, pub: pub);
+      expect(releasePrepResults.results.single.severity, Severity.success);
+
+      final labeledGithub = LocalGithubApi(
+        prLabels: ['publish-ignore-warnings'],
+        files: [
+          GitFile(
+            'pubspec.yaml',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+        refFiles: [
+          GitFile(
+            'lib/single_pkg.dart',
+            FileStatus.modified,
+            singlePkgDir,
+          ),
+        ],
+      );
+
+      final labeledResults = await firehose.verify(labeledGithub, pub: pub);
+      expect(labeledResults.results.single.severity, Severity.success);
+    });
   });
 
   group('bin/comment.dart CLI', () {
