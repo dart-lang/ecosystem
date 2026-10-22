@@ -269,7 +269,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
       }
     }
 
-    final changeForPackage = await runApiTool(packagesToCheck);
+    final changeForPackage = await runApiTool(packagesToCheck, filesInPR);
     return HealthCheckResult(
       Check.breaking,
       changeForPackage.values.any((element) => !element.versionIsFine)
@@ -285,8 +285,8 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
 
   Future<Map<Package, BreakingChange>> runApiTool(
     List<Package> packagesToCheck,
+    List<GitFile> filesInPR,
   ) async {
-    final filesInPR = await listFilesInPRorAll();
     final changeForPackage = <Package, BreakingChange>{};
 
     final flutterPackages =
