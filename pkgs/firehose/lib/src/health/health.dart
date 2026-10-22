@@ -193,17 +193,11 @@ class Health {
         logStdout: false,
       );
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/Workiva/dependency_validator.git'],
-          ...['--git-ref', dependency_validatorHash],
-        ],
-        logStdout: false,
+        'https://github.com/Workiva/dependency_validator.git',
+        dependency_validatorHash,
       );
 
       final (result, out, err) = runDashProcess(
@@ -299,17 +293,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       final tempDirectory = Directory.systemTemp.createTempSync();
       final reportPath = path.join(tempDirectory.path, 'report.json');
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', dart_apitoolHash],
-        ],
-        logStdout: false,
+        'https://github.com/bmw-tech/dart_apitool.git',
+        dart_apitoolHash,
       );
 
       final (_, _, err) = runDashProcess(
@@ -374,6 +362,33 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
     }
   }
 
+  final Set<(String, String)> _activatedGitPackages = {};
+
+  void activateGitPackage(
+    List<Package> flutterPackages,
+    Package package,
+    String gitUrl,
+    String gitRef,
+  ) {
+    final exec = executable(flutterPackages.any((p) => p.name == package.name));
+    if (_activatedGitPackages.add((exec, gitUrl))) {
+      runDashProcess(
+        flutterPackages,
+        package,
+        [
+          'pub',
+          'global',
+          'activate',
+          '-sgit',
+          gitUrl,
+          '--git-ref',
+          gitRef,
+        ],
+        logStdout: false,
+      );
+    }
+  }
+
   (ProcessResult, String, String) runDashProcess(
     List<Package> flutterPackages,
     Package package,
@@ -430,17 +445,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       final tempDirectory = Directory.systemTemp.createTempSync();
       final reportPath = path.join(tempDirectory.path, 'leaks.json');
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', dart_apitoolHash],
-        ],
-        logStdout: false,
+        'https://github.com/bmw-tech/dart_apitool.git',
+        dart_apitoolHash,
       );
 
       final arguments = [
