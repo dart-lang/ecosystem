@@ -11,10 +11,14 @@ import '../firehose.dart';
 
 class LocalGithubApi implements GithubApi {
   final Iterable<GitFile> files;
+  final Iterable<GitFile>? refFiles;
+  final String body;
 
   LocalGithubApi({
     required this.prLabels,
     required this.files,
+    this.refFiles,
+    this.body = 'Test body',
   });
 
   @override
@@ -65,6 +69,17 @@ class LocalGithubApi implements GithubApi {
           .toList();
 
   @override
+  Future<List<GitFile>?> listFilesSinceRef(
+    Directory directory,
+    String baseRef, [
+    List<Glob> ignoredFiles = const [],
+  ]) async =>
+      refFiles
+          ?.where((element) =>
+              ignoredFiles.none((p0) => p0.matches(element.filename)))
+          .toList();
+
+  @override
   void notice({required String message, String? file, int? line, int? col}) {}
 
   @override
@@ -77,7 +92,7 @@ class LocalGithubApi implements GithubApi {
   final List<String> prLabels;
 
   @override
-  Future<String> pullrequestBody() async => 'Test body';
+  Future<String> pullrequestBody() async => body;
 
   @override
   String? get refName => throw UnimplementedError();
