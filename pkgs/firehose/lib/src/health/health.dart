@@ -247,27 +247,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
   }
 
   Future<HealthCheckResult> breakingCheck() async {
-    final changeForPackage = await runApiTool();
-    return HealthCheckResult(
-      Check.breaking,
-      changeForPackage.values.any((element) => !element.versionIsFine)
-          ? Severity.warning
-          : Severity.info,
-      '''
-| Package | Change | Current Version | New Version | Needed Version | Looking good? |
-| :--- | :--- | ---: | ---: | ---: | ---: |
-${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
-''',
-    );
-  }
-
-  Future<Map<Package, BreakingChange>> runApiTool() async {
     final filesInPR = await listFilesInPRorAll();
-    final changeForPackage = <Package, BreakingChange>{};
-
-    final flutterPackages =
-        packagesContaining(filesInPR, only: flutterPackageGlobs);
-    log('This list of Flutter packages is $flutterPackages');
 
     final pool = Pool(10);
     final packages = packagesContaining(filesInPR, ignore: ignored);
@@ -288,6 +268,30 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
             'Skipping breaking changes check.');
       }
     }
+
+    final changeForPackage = await runApiTool(packagesToCheck);
+    return HealthCheckResult(
+      Check.breaking,
+      changeForPackage.values.any((element) => !element.versionIsFine)
+          ? Severity.warning
+          : Severity.info,
+      '''
+| Package | Change | Current Version | New Version | Needed Version | Looking good? |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
+''',
+    );
+  }
+
+  Future<Map<Package, BreakingChange>> runApiTool(
+    List<Package> packagesToCheck,
+  ) async {
+    final filesInPR = await listFilesInPRorAll();
+    final changeForPackage = <Package, BreakingChange>{};
+
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
+    log('This list of Flutter packages is $flutterPackages');
 
     for (final package in packagesToCheck) {
       log('Look for changes in $package');
@@ -548,16 +552,12 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       .any((file) => healthYamlNames.contains(path.basename(file.filename)));
 
   Future<HealthCheckResult> changelogCheck() async {
-    final changeForPackage = await runApiTool();
-    final packagesWithChanges = changeForPackage.entries
-        .where((e) => e.value.level != BreakingLevel.none)
-        .map((e) => e.key)
-        .toList();
     final filePaths = await packagesWithoutChangelog(
       github,
       ignored,
       directory,
-      packagesWithChanges: packagesWithChanges,
+      isPublished: isPublished,
+      runApiTool: runApiTool,
     );
 
     final markdownResult = '''

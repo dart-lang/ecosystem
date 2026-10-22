@@ -8,32 +8,58 @@ import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:pool/pool.dart';
+
 import '../github.dart';
 import '../repo.dart';
+import 'health.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   GithubApi github,
   List<Glob> ignored,
   Directory directory, {
-  required List<Package> packagesWithChanges,
+  required Future<bool> Function(Package) isPublished,
+  required Future<Map<Package, BreakingChange>> Function(List<Package>)
+      runApiTool,
 }) async {
+  final repo = Repository(directory);
+  final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
+
+  final pool = Pool(10);
+  final publishedResults = await pool.forEach<Package, (Package, bool)>(
+    packages,
+    (package) async {
+      final published = await isPublished(package);
+      return (package, published);
+    },
+  ).toList();
+
+  final publishedPackages = <Package>[];
+  for (final (package, published) in publishedResults) {
+    if (published) {
+      publishedPackages.add(package);
+    } else {
+      print('Package ${package.name} is not published yet. '
+          'Skipping changelog check.');
+    }
+  }
 
   final packagesWithoutChangedChangelog =
       collectPackagesWithoutChangelogChanges(
-    packagesWithChanges,
+    publishedPackages,
     files,
     directory,
   );
 
   print(
       'Collecting modified files without changelog entries in those packages:');
-  final packagesWithoutChangelogAndWithChanges = <Package, List<GitFile>>{};
+  final packagesWithChanges = <Package, List<GitFile>>{};
   for (final file in files) {
     for (final package in packagesWithoutChangedChangelog) {
       if (fileNeedsEntryInChangelog(package, file.filename, directory)) {
         print(file);
-        packagesWithoutChangelogAndWithChanges.update(
+        packagesWithChanges.update(
           package,
           (changedFiles) => [...changedFiles, file],
           ifAbsent: () => [file],
@@ -41,12 +67,18 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
       }
     }
   }
-  print('''
-Done, found ${packagesWithoutChangelogAndWithChanges.length} packages with a need for a changelog.''');
 
-  if (packagesWithoutChangelogAndWithChanges.isNotEmpty) {
+  final apiChanges = await runApiTool(packagesWithChanges.keys.toList());
+  packagesWithChanges.removeWhere(
+    (package, _) => apiChanges[package]?.level == BreakingLevel.none,
+  );
+
+  print('''
+Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
+
+  if (packagesWithChanges.isNotEmpty) {
     print('Packages requiring a changelog update:');
-    for (final package in packagesWithoutChangelogAndWithChanges.keys) {
+    for (final package in packagesWithChanges.keys) {
       final changelogPath =
           path.relative(package.changelog.file.path, from: directory.path);
       if (github.inGithubContext) {
@@ -61,7 +93,7 @@ Done, found ${packagesWithoutChangelogAndWithChanges.length} packages with a nee
     }
   }
 
-  return packagesWithoutChangelogAndWithChanges;
+  return packagesWithChanges;
 }
 
 List<Package> collectPackagesWithoutChangelogChanges(
