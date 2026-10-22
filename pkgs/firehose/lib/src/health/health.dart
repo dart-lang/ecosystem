@@ -247,6 +247,21 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
   }
 
   Future<HealthCheckResult> breakingCheck() async {
+    final changeForPackage = await runApiTool();
+    return HealthCheckResult(
+      Check.breaking,
+      changeForPackage.values.any((element) => !element.versionIsFine)
+          ? Severity.warning
+          : Severity.info,
+      '''
+| Package | Change | Current Version | New Version | Needed Version | Looking good? |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
+''',
+    );
+  }
+
+  Future<Map<Package, BreakingChange>> runApiTool() async {
     final filesInPR = await listFilesInPRorAll();
     final changeForPackage = <Package, BreakingChange>{};
 
@@ -341,17 +356,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         );
       }
     }
-    return HealthCheckResult(
-      Check.breaking,
-      changeForPackage.values.any((element) => !element.versionIsFine)
-          ? Severity.warning
-          : Severity.info,
-      '''
-| Package | Change | Current Version | New Version | Needed Version | Looking good? |
-| :--- | :--- | ---: | ---: | ---: | ---: |
-${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
-''',
-    );
+    return changeForPackage;
   }
 
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
@@ -543,11 +548,16 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       .any((file) => healthYamlNames.contains(path.basename(file.filename)));
 
   Future<HealthCheckResult> changelogCheck() async {
+    final changeForPackage = await runApiTool();
+    final packagesWithChanges = changeForPackage.entries
+        .where((e) => e.value.level != BreakingLevel.none)
+        .map((e) => e.key)
+        .toList();
     final filePaths = await packagesWithoutChangelog(
       github,
       ignored,
       directory,
-      isPublished: isPublished,
+      packagesWithChanges: packagesWithChanges,
     );
 
     final markdownResult = '''

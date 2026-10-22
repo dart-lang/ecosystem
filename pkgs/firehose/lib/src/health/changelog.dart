@@ -8,8 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:pool/pool.dart';
-
 import '../github.dart';
 import '../repo.dart';
 
@@ -17,46 +15,25 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   GithubApi github,
   List<Glob> ignored,
   Directory directory, {
-  required Future<bool> Function(Package) isPublished,
+  required List<Package> packagesWithChanges,
 }) async {
-  final repo = Repository(directory);
-  final packages = repo.locatePackages(ignore: ignored);
   final files = await github.listFilesForPR(directory, ignored);
-
-  final pool = Pool(10);
-  final publishedResults = await pool.forEach<Package, (Package, bool)>(
-    packages,
-    (package) async {
-      final published = await isPublished(package);
-      return (package, published);
-    },
-  ).toList();
-
-  final publishedPackages = <Package>[];
-  for (final (package, published) in publishedResults) {
-    if (published) {
-      publishedPackages.add(package);
-    } else {
-      print('Package ${package.name} is not published yet. '
-          'Skipping changelog check.');
-    }
-  }
 
   final packagesWithoutChangedChangelog =
       collectPackagesWithoutChangelogChanges(
-    publishedPackages,
+    packagesWithChanges,
     files,
     directory,
   );
 
   print(
       'Collecting modified files without changelog entries in those packages:');
-  final packagesWithChanges = <Package, List<GitFile>>{};
+  final packagesWithoutChangelogAndWithChanges = <Package, List<GitFile>>{};
   for (final file in files) {
     for (final package in packagesWithoutChangedChangelog) {
       if (fileNeedsEntryInChangelog(package, file.filename, directory)) {
         print(file);
-        packagesWithChanges.update(
+        packagesWithoutChangelogAndWithChanges.update(
           package,
           (changedFiles) => [...changedFiles, file],
           ifAbsent: () => [file],
@@ -65,11 +42,11 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
     }
   }
   print('''
-Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
+Done, found ${packagesWithoutChangelogAndWithChanges.length} packages with a need for a changelog.''');
 
-  if (packagesWithChanges.isNotEmpty) {
+  if (packagesWithoutChangelogAndWithChanges.isNotEmpty) {
     print('Packages requiring a changelog update:');
-    for (final package in packagesWithChanges.keys) {
+    for (final package in packagesWithoutChangelogAndWithChanges.keys) {
       final changelogPath =
           path.relative(package.changelog.file.path, from: directory.path);
       if (github.inGithubContext) {
@@ -84,7 +61,7 @@ Done, found ${packagesWithChanges.length} packages with a need for a changelog.'
     }
   }
 
-  return packagesWithChanges;
+  return packagesWithoutChangelogAndWithChanges;
 }
 
 List<Package> collectPackagesWithoutChangelogChanges(
