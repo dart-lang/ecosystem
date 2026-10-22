@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Only require changelog entries in the `changelog` health check when public API
+  changes are detected by `dart_apitool` (`#457`).
 - Print the links to create GitHub releases at the end of the `publish.yaml`
   validation log so they are available when the PR comment can't be written.
 - Group the `publish.yaml` log output into collapsible sections for package
