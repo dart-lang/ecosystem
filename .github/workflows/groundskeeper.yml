@@ -64,7 +64,7 @@ jobs:
     steps:
       - name: Generate Dart Bot Token
         id: generate-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510
         with:
           client-id: ${{ vars.ECOSYSTEM_BOT_CLIENT_ID }}
           private-key: ${{ secrets.ECOSYSTEM_BOT_PRIVATE_KEY }}
@@ -72,13 +72,13 @@ jobs:
           permission-pull-requests: write
 
       - name: Checkout caller repo
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           token: ${{ steps.generate-token.outputs.token }}
           persist-credentials: false
 
       - name: Checkout ecosystem (for tidy script)
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           repository: dart-lang/ecosystem
           path: .github/ecosystem-helper
@@ -90,7 +90,7 @@ jobs:
           channel: ${{ inputs.sdk == 'dev' && 'master' || inputs.sdk }}
           cache: true
 
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -136,7 +136,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.check_changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@653ba8b281fa5e1ee78ec20dda96cf9a79102c04
+        uses: peter-evans/create-pull-request@bd09a93810788ce61d2d5fb7d6b221b9b4a4aab7
         with:
           token: ${{ steps.generate-token.outputs.token }}
           committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
