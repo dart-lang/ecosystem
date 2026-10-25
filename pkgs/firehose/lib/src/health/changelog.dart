@@ -12,12 +12,17 @@ import 'package:pool/pool.dart';
 
 import '../github.dart';
 import '../repo.dart';
+import 'health.dart';
 
 Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
   GithubApi github,
   List<Glob> ignored,
   Directory directory, {
   required Future<bool> Function(Package) isPublished,
+  required Future<Map<Package, BreakingChange>> Function(
+    List<Package>,
+    List<GitFile>,
+  ) runApiTool,
 }) async {
   final repo = Repository(directory);
   final packages = repo.locatePackages(ignore: ignored);
@@ -64,6 +69,15 @@ Future<Map<Package, List<GitFile>>> packagesWithoutChangelog(
       }
     }
   }
+
+  if (packagesWithChanges.isNotEmpty) {
+    final apiChanges =
+        await runApiTool(packagesWithChanges.keys.toList(), files);
+    packagesWithChanges.removeWhere(
+      (package, _) => apiChanges[package]?.level == BreakingLevel.none,
+    );
+  }
+
   print('''
 Done, found ${packagesWithChanges.length} packages with a need for a changelog.''');
 

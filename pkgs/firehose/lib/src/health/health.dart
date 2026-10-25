@@ -193,17 +193,11 @@ class Health {
         logStdout: false,
       );
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/Workiva/dependency_validator.git'],
-          ...['--git-ref', dependency_validatorHash],
-        ],
-        logStdout: false,
+        'https://github.com/Workiva/dependency_validator.git',
+        dependency_validatorHash,
       );
 
       final (result, out, err) = runDashProcess(
@@ -248,11 +242,6 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
 
   Future<HealthCheckResult> breakingCheck() async {
     final filesInPR = await listFilesInPRorAll();
-    final changeForPackage = <Package, BreakingChange>{};
-
-    final flutterPackages =
-        packagesContaining(filesInPR, only: flutterPackageGlobs);
-    log('This list of Flutter packages is $flutterPackages');
 
     final pool = Pool(10);
     final packages = packagesContaining(filesInPR, ignore: ignored);
@@ -274,23 +263,41 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
       }
     }
 
+    final changeForPackage = await runApiTool(packagesToCheck, filesInPR);
+    return HealthCheckResult(
+      Check.breaking,
+      changeForPackage.values.any((element) => !element.versionIsFine)
+          ? Severity.warning
+          : Severity.info,
+      '''
+| Package | Change | Current Version | New Version | Needed Version | Looking good? |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
+''',
+    );
+  }
+
+  Future<Map<Package, BreakingChange>> runApiTool(
+    List<Package> packagesToCheck,
+    List<GitFile> filesInPR,
+  ) async {
+    final changeForPackage = <Package, BreakingChange>{};
+
+    final flutterPackages =
+        packagesContaining(filesInPR, only: flutterPackageGlobs);
+    log('This list of Flutter packages is $flutterPackages');
+
     for (final package in packagesToCheck) {
       log('Look for changes in $package');
       final absolutePath = package.directory.absolute.path;
       final tempDirectory = Directory.systemTemp.createTempSync();
       final reportPath = path.join(tempDirectory.path, 'report.json');
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', dart_apitoolHash],
-        ],
-        logStdout: false,
+        'https://github.com/bmw-tech/dart_apitool.git',
+        dart_apitoolHash,
       );
 
       final (_, _, err) = runDashProcess(
@@ -341,17 +348,7 @@ For details on how to fix these, see [dependency_validator](https://pub.dev/pack
         );
       }
     }
-    return HealthCheckResult(
-      Check.breaking,
-      changeForPackage.values.any((element) => !element.versionIsFine)
-          ? Severity.warning
-          : Severity.info,
-      '''
-| Package | Change | Current Version | New Version | Needed Version | Looking good? |
-| :--- | :--- | ---: | ---: | ---: | ---: |
-${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}|').join('\n')}
-''',
-    );
+    return changeForPackage;
   }
 
   String getCurrentVersionOfPackage(Package package) => 'pub://${package.name}';
@@ -362,6 +359,33 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       return await pub.isPublished(package.name);
     } finally {
       pub.close();
+    }
+  }
+
+  final Set<(String, String)> _activatedGitPackages = {};
+
+  void activateGitPackage(
+    List<Package> flutterPackages,
+    Package package,
+    String gitUrl,
+    String gitRef,
+  ) {
+    final exec = executable(flutterPackages.any((p) => p.name == package.name));
+    if (_activatedGitPackages.add((exec, gitUrl))) {
+      runDashProcess(
+        flutterPackages,
+        package,
+        [
+          'pub',
+          'global',
+          'activate',
+          '-sgit',
+          gitUrl,
+          '--git-ref',
+          gitRef,
+        ],
+        logStdout: false,
+      );
     }
   }
 
@@ -421,17 +445,11 @@ ${changeForPackage.entries.map((e) => '|${e.key.name}|${e.value.toMarkdownRow()}
       final tempDirectory = Directory.systemTemp.createTempSync();
       final reportPath = path.join(tempDirectory.path, 'leaks.json');
 
-      runDashProcess(
+      activateGitPackage(
         flutterPackages,
         package,
-        [
-          'pub',
-          'global',
-          'activate',
-          ...['-sgit', 'https://github.com/bmw-tech/dart_apitool.git'],
-          ...['--git-ref', dart_apitoolHash],
-        ],
-        logStdout: false,
+        'https://github.com/bmw-tech/dart_apitool.git',
+        dart_apitoolHash,
       );
 
       final arguments = [
@@ -548,6 +566,7 @@ ${unchangedFilesPaths.isNotEmpty ? unchangedMarkdown : ''}
       ignored,
       directory,
       isPublished: isPublished,
+      runApiTool: runApiTool,
     );
 
     final markdownResult = '''
