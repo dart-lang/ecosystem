@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 // Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -94,7 +97,7 @@ version: 1.0.0
       updateChangelog(changelogFile: changelogFile, message: 'New WIP change');
 
       expect(changelogFile.readAsStringSync(), '''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - New WIP change
 
@@ -105,7 +108,7 @@ version: 1.0.0
 
       expect(pubspecFile.readAsStringSync(), '''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
 ''');
     });
 
@@ -116,7 +119,7 @@ version: 1.0.0-wip
       final pubspecFile = File('${tempDir.path}/pubspec.yaml');
 
       changelogFile.writeAsStringSync('''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - WIP change
 
@@ -126,14 +129,14 @@ version: 1.0.0-wip
 ''');
       pubspecFile.writeAsStringSync('''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
 ''');
 
       updateChangelog(
           changelogFile: changelogFile, message: 'Another WIP change');
 
       expect(changelogFile.readAsStringSync(), '''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - WIP change
 - Another WIP change
@@ -145,7 +148,7 @@ version: 1.0.0-wip
 
       expect(pubspecFile.readAsStringSync(), '''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
 ''');
     });
   });
