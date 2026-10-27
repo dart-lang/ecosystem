@@ -13,8 +13,7 @@ String _incrementPatch(String version) {
   final parts = version.split('.');
   if (parts.length >= 3) {
     final patchStr = parts[2].split('-').first.split('+').first;
-    final patchNum = int.tryParse(patchStr);
-    if (patchNum != null) {
+    if (int.tryParse(patchStr) case final patchNum?) {
       final newPatchStr = (patchNum + 1).toString();
       parts[2] = parts[2].replaceFirst(patchStr, newPatchStr);
       return parts.join('.');
