@@ -185,6 +185,43 @@ name: my_package
 version: 1.2.4-wip
 ''');
     });
+
+    test('appends -wip to a published pre-release and coalesces follow-ups',
+        () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.2.3-alpha.3
+
+- Published alpha
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.2.3-alpha.3
+''');
+
+      updateChangelog(changelogFile: changelogFile, message: 'First fix');
+      updateChangelog(changelogFile: changelogFile, message: 'Second fix');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.2.3-alpha.3-wip
+
+- First fix
+- Second fix
+
+## 1.2.3-alpha.3
+
+- Published alpha
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.2.3-alpha.3-wip
+''');
+    });
   });
 }
 

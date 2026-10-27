@@ -6,18 +6,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'src/common.dart';
 
-String _incrementPatch(String version) {
-  final coreVersion = version.split('-').first.split('+').first;
-  final parts = coreVersion.split('.');
-  if (parts.length == 3) {
-    if (int.tryParse(parts[2]) case final patchNum?) {
-      return '${parts[0]}.${parts[1]}.${patchNum + 1}';
-    }
+extension on Version {
+  bool get isWip =>
+      isPreRelease &&
+      switch (preRelease.last) {
+        final String s => s == 'wip' || s.endsWith('-wip'),
+        _ => false,
+      };
+}
+
+Version _nextWipVersion(Version? current) {
+  if (current == null) return Version(0, 0, 1, pre: 'wip');
+  if (current.isPreRelease) {
+    return Version(
+      current.major,
+      current.minor,
+      current.patch,
+      pre: '${current.preRelease.join('.')}-wip',
+    );
   }
-  return version;
+  final next = current.nextPatch;
+  return Version(next.major, next.minor, next.patch, pre: 'wip');
 }
 
 void updatePubspecVersion(File pubspecFile, String newVersion) {
@@ -43,26 +56,25 @@ void updateChangelog({
 }) {
   final changelogContent = changelogFile.readAsStringSync();
   final lines = LineSplitter.split(changelogContent).toList();
-  String? currentVersion;
+  Version? currentVersion;
   var currentVersionLine = 0;
 
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i].trim();
     if (line.startsWith('## ')) {
-      final content = line.substring(3).trim();
-      final version = content.split(' ').first;
-      if (version.startsWith(RegExp(r'\d'))) {
-        currentVersion = version;
+      final token = line.substring(3).trim().split(' ').first;
+      try {
+        currentVersion = Version.parse(token);
         currentVersionLine = i;
         break;
+      } on FormatException {
+        // Ignore non-SemVer level-2 headings.
       }
     }
   }
 
-  final isWip = currentVersion != null && currentVersion.endsWith('-wip');
-
   final output = <String>[];
-  if (isWip) {
+  if (currentVersion != null && currentVersion.isWip) {
     var sectionEnd = lines.indexWhere(
             (line) => line.startsWith('## '), currentVersionLine + 1) -
         1;
@@ -75,9 +87,7 @@ void updateChangelog({
     output.addAll(lines.skip(sectionEnd));
     changelogFile.writeAsStringSync('${output.join('\n')}\n');
   } else {
-    final newVersion = currentVersion == null
-        ? '0.0.1-wip'
-        : '${_incrementPatch(currentVersion)}-wip';
+    final newVersion = _nextWipVersion(currentVersion).toString();
     output.addAll([
       '## $newVersion',
       '',
