@@ -9,6 +9,20 @@ import 'package:path/path.dart' as path;
 
 import 'src/common.dart';
 
+String _incrementPatch(String version) {
+  final parts = version.split('.');
+  if (parts.length >= 3) {
+    final patchStr = parts[2].split('-').first.split('+').first;
+    final patchNum = int.tryParse(patchStr);
+    if (patchNum != null) {
+      final newPatchStr = (patchNum + 1).toString();
+      parts[2] = parts[2].replaceFirst(patchStr, newPatchStr);
+      return parts.join('.');
+    }
+  }
+  return version;
+}
+
 void updatePubspecVersion(File pubspecFile, String newVersion) {
   final content = pubspecFile.readAsStringSync();
   final lines = LineSplitter.split(content).toList();
@@ -64,7 +78,7 @@ void updateChangelog({
     output.addAll(lines.skip(sectionEnd));
   } else {
     output.addAll([
-      '## $currentVersion-wip',
+      '## ${_incrementPatch(currentVersion)}-wip',
       '',
       '- $message',
       '',
@@ -75,7 +89,7 @@ void updateChangelog({
   changelogFile.writeAsStringSync('${output.join('\n')}\n');
 
   if (!isWip) {
-    final newVersion = '$currentVersion-wip';
+    final newVersion = '${_incrementPatch(currentVersion)}-wip';
     final changelogDir = path.dirname(changelogFile.path);
     final pubspecFile = File(path.join(changelogDir, 'pubspec.yaml'));
     if (pubspecFile.existsSync()) {
