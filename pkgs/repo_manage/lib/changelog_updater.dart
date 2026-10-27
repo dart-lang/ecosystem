@@ -85,7 +85,6 @@ void updateChangelog({
     output.addAll(lines.take(sectionEnd));
     output.add('- $message');
     output.addAll(lines.skip(sectionEnd));
-    changelogFile.writeAsStringSync('${output.join('\n')}\n');
   } else {
     final newVersion = _nextWipVersion(currentVersion).toString();
     output.addAll([
@@ -95,7 +94,6 @@ void updateChangelog({
       '',
       ...lines,
     ]);
-    changelogFile.writeAsStringSync('${output.join('\n')}\n');
 
     final changelogDir = path.dirname(changelogFile.path);
     final pubspecFile = File(path.join(changelogDir, 'pubspec.yaml'));
@@ -103,6 +101,8 @@ void updateChangelog({
       updatePubspecVersion(pubspecFile, newVersion);
     }
   }
+
+  changelogFile.writeAsStringSync('${output.join('\n')}\n');
 }
 
 class ChangelogUpdaterCommand extends ReportCommand {
