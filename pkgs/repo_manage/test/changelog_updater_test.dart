@@ -151,6 +151,40 @@ name: my_package
 version: 1.0.1-wip
 ''');
     });
+
+    test('strips build metadata when incrementing patch to WIP', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.2.3+build.4
+
+- Released version with build metadata
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.2.3+build.4
+''');
+
+      updateChangelog(changelogFile: changelogFile, message: 'Next change');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.2.4-wip
+
+- Next change
+
+## 1.2.3+build.4
+
+- Released version with build metadata
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.2.4-wip
+''');
+    });
   });
 }
 

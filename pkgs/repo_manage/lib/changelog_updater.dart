@@ -10,13 +10,11 @@ import 'package:path/path.dart' as path;
 import 'src/common.dart';
 
 String _incrementPatch(String version) {
-  final parts = version.split('.');
-  if (parts.length >= 3) {
-    final patchStr = parts[2].split('-').first.split('+').first;
-    if (int.tryParse(patchStr) case final patchNum?) {
-      final newPatchStr = (patchNum + 1).toString();
-      parts[2] = parts[2].replaceFirst(patchStr, newPatchStr);
-      return parts.join('.');
+  final coreVersion = version.split('-').first.split('+').first;
+  final parts = coreVersion.split('.');
+  if (parts.length == 3) {
+    if (int.tryParse(parts[2]) case final patchNum?) {
+      return '${parts[0]}.${parts[1]}.${patchNum + 1}';
     }
   }
   return version;
@@ -45,7 +43,7 @@ void updateChangelog({
 }) {
   final changelogContent = changelogFile.readAsStringSync();
   final lines = LineSplitter.split(changelogContent).toList();
-  var currentVersion = '0.0.1';
+  String? currentVersion;
   var currentVersionLine = 0;
 
   for (var i = 0; i < lines.length; i++) {
@@ -61,7 +59,7 @@ void updateChangelog({
     }
   }
 
-  final isWip = currentVersion.endsWith('-wip');
+  final isWip = currentVersion != null && currentVersion.endsWith('-wip');
 
   final output = <String>[];
   if (isWip) {
@@ -75,20 +73,20 @@ void updateChangelog({
     output.addAll(lines.take(sectionEnd));
     output.add('- $message');
     output.addAll(lines.skip(sectionEnd));
+    changelogFile.writeAsStringSync('${output.join('\n')}\n');
   } else {
+    final newVersion = currentVersion == null
+        ? '0.0.1-wip'
+        : '${_incrementPatch(currentVersion)}-wip';
     output.addAll([
-      '## ${_incrementPatch(currentVersion)}-wip',
+      '## $newVersion',
       '',
       '- $message',
       '',
       ...lines,
     ]);
-  }
+    changelogFile.writeAsStringSync('${output.join('\n')}\n');
 
-  changelogFile.writeAsStringSync('${output.join('\n')}\n');
-
-  if (!isWip) {
-    final newVersion = '${_incrementPatch(currentVersion)}-wip';
     final changelogDir = path.dirname(changelogFile.path);
     final pubspecFile = File(path.join(changelogDir, 'pubspec.yaml'));
     if (pubspecFile.existsSync()) {
