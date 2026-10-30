@@ -37,7 +37,7 @@ void main() {
         ..addResult(Result.info(pkgB, Result.alreadyPublishedMessage,
             isAffected: true));
 
-      expect(results.visibleResults.length, 2);
+      expect(results.visibleResults, hasLength(2));
       expect(results.hiddenResults, isEmpty);
 
       final markdown = results.describeAsMarkdown(withTag: false);
@@ -53,7 +53,7 @@ void main() {
             Result.success(pkgA, '**ready to publish**', isAffected: false))
         ..addResult(Result.fail(pkgB, 'version mismatch', isAffected: false));
 
-      expect(results.visibleResults.length, 2);
+      expect(results.visibleResults, hasLength(2));
       expect(results.hiddenResults, isEmpty);
 
       final markdown = results.describeAsMarkdown(withTag: false);
@@ -72,8 +72,8 @@ void main() {
         ..addResult(Result.info(pkgE, Result.alreadyPublishedMessage,
             isAffected: false));
 
-      expect(results.visibleResults.length, 2);
-      expect(results.hiddenResults.length, 3);
+      expect(results.visibleResults, hasLength(2));
+      expect(results.hiddenResults, hasLength(3));
 
       final markdown = results.describeAsMarkdown(withTag: false);
       expect(markdown, contains('| package:pkg_1 |'));
@@ -104,7 +104,7 @@ void main() {
         ..addResult(Result.info(pkgB, Result.wipMessage, isAffected: false));
 
       expect(results.visibleResults, isEmpty);
-      expect(results.hiddenResults.length, 2);
+      expect(results.hiddenResults, hasLength(2));
 
       final markdown = results.describeAsMarkdown(withTag: false);
       expect(

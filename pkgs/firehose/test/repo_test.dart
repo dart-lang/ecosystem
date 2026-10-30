@@ -33,7 +33,7 @@ void main() {
 
     test('isSinglePackageRepo', () {
       final result = packages.isSinglePackageRepo;
-      expect(result, false);
+      expect(result, isFalse);
     });
 
     test('locatePackages', () {
@@ -62,10 +62,21 @@ void main() {
       expect(releaseUri.path, '/${github.repoSlug}/releases/new');
 
       final queryParams = releaseUri.queryParameters;
-      expect(queryParams['tag'], packages.calculateRepoTag(package));
-      expect(queryParams['title'],
-          allOf(contains(package.name), contains(package.version.toString())));
-      expect(queryParams['body'], package.changelog.describeLatestChanges);
+      expect(
+        queryParams,
+        containsPair('tag', packages.calculateRepoTag(package)),
+      );
+      expect(
+        queryParams,
+        containsPair(
+          'title',
+          allOf(contains(package.name), contains(package.version.toString())),
+        ),
+      );
+      expect(
+        queryParams,
+        containsPair('body', package.changelog.describeLatestChanges),
+      );
     });
 
     test('github release link with custom prefix', () {
@@ -82,10 +93,13 @@ void main() {
 
       final queryParams = releaseUri.queryParameters;
       expect(
-        queryParams['tag'],
-        packages.calculateRepoTag(package, tagPrefix: ''),
+        queryParams,
+        containsPair('tag', packages.calculateRepoTag(package, tagPrefix: '')),
       );
-      expect(queryParams['tag'], '${package.name}-${package.pubspec.version}');
+      expect(
+        queryParams,
+        containsPair('tag', '${package.name}-${package.pubspec.version}'),
+      );
     });
   });
 
