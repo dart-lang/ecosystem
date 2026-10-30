@@ -83,8 +83,10 @@ class Report {
       case DartLibraryTarget(:final name):
         buf.writeln('https://api.dart.dev/dart-$name/dart-$name-library.html');
       case PackageTarget(:final name, :final description):
-        buf.writeln(description);
-        buf.writeln();
+        if (description != null) {
+          buf.writeln(description);
+          buf.writeln();
+        }
         buf.writeln('- pub page: https://pub.dev/packages/$name');
         buf.writeln('- docs: https://pub.dev/documentation/$name/latest/');
         buf.writeln(
