@@ -6,20 +6,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import 'src/common.dart';
 
-String _incrementPatch(String version) {
-  final parts = version.split('.');
-  if (parts.length >= 3) {
-    final patchStr = parts[2].split('-').first.split('+').first;
-    if (int.tryParse(patchStr) case final patchNum?) {
-      final newPatchStr = (patchNum + 1).toString();
-      parts[2] = parts[2].replaceFirst(patchStr, newPatchStr);
-      return parts.join('.');
-    }
+extension on Version {
+  bool get isWip =>
+      isPreRelease &&
+      switch (preRelease.last) {
+        final String s => s == 'wip' || s.endsWith('-wip'),
+        _ => false,
+      };
+}
+
+Version _nextWipVersion(Version? current) {
+  if (current == null) return Version(0, 0, 1, pre: 'wip');
+  if (current.isPreRelease) {
+    return Version(
+      current.major,
+      current.minor,
+      current.patch,
+      pre: '${current.preRelease.join('.')}-wip',
+    );
   }
-  return version;
+  final next = current.nextPatch;
+  return Version(next.major, next.minor, next.patch, pre: 'wip');
 }
 
 void updatePubspecVersion(File pubspecFile, String newVersion) {
@@ -45,26 +56,25 @@ void updateChangelog({
 }) {
   final changelogContent = changelogFile.readAsStringSync();
   final lines = LineSplitter.split(changelogContent).toList();
-  var currentVersion = '0.0.1';
+  Version? currentVersion;
   var currentVersionLine = 0;
 
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i].trim();
     if (line.startsWith('## ')) {
-      final content = line.substring(3).trim();
-      final version = content.split(' ').first;
-      if (version.startsWith(RegExp(r'\d'))) {
-        currentVersion = version;
+      final token = line.substring(3).trim().split(' ').first;
+      try {
+        currentVersion = Version.parse(token);
         currentVersionLine = i;
         break;
+      } on FormatException {
+        // Ignore non-SemVer level-2 headings.
       }
     }
   }
 
-  final isWip = currentVersion.endsWith('-wip');
-
   final output = <String>[];
-  if (isWip) {
+  if (currentVersion != null && currentVersion.isWip) {
     var sectionEnd = lines.indexWhere(
             (line) => line.startsWith('## '), currentVersionLine + 1) -
         1;
@@ -76,25 +86,23 @@ void updateChangelog({
     output.add('- $message');
     output.addAll(lines.skip(sectionEnd));
   } else {
+    final newVersion = _nextWipVersion(currentVersion).toString();
     output.addAll([
-      '## ${_incrementPatch(currentVersion)}-wip',
+      '## $newVersion',
       '',
       '- $message',
       '',
       ...lines,
     ]);
-  }
 
-  changelogFile.writeAsStringSync('${output.join('\n')}\n');
-
-  if (!isWip) {
-    final newVersion = '${_incrementPatch(currentVersion)}-wip';
     final changelogDir = path.dirname(changelogFile.path);
     final pubspecFile = File(path.join(changelogDir, 'pubspec.yaml'));
     if (pubspecFile.existsSync()) {
       updatePubspecVersion(pubspecFile, newVersion);
     }
   }
+
+  changelogFile.writeAsStringSync('${output.join('\n')}\n');
 }
 
 class ChangelogUpdaterCommand extends ReportCommand {
