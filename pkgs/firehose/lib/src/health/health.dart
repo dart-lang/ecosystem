@@ -29,6 +29,7 @@ const dependency_validatorHash = '52f142e104371eab25d56cafef127ee53b715d22';
 
 enum Check {
   publish('Publish', 'publish'),
+  roll('Package Roll', 'roll'),
   changelog('Changelog Entry', 'changelog'),
   breaking('Breaking changes', 'breaking'),
   leaking('API leaks', 'leaking'),
@@ -171,7 +172,92 @@ class Health {
         Check.leaking => leakingCheck,
         Check.unuseddependencies => unusedDependenciesCheck,
         Check.publish => publishCheck,
+        Check.roll => rollCheck,
       };
+
+  static bool isRollConfirmed(String body, String packageName) {
+    final confirmedPattern = RegExp(
+      r'\bCONFIRMED_PACKAGE_ROLL\s*=\s*true\b',
+      caseSensitive: false,
+    );
+    final rolledToPattern = RegExp(
+      r'\bROLLED_TO(?:_' + RegExp.escape(packageName) + r')?\s*=\s*\S+',
+      caseSensitive: false,
+    );
+    return confirmedPattern.hasMatch(body) || rolledToPattern.hasMatch(body);
+  }
+
+  Future<HealthCheckResult> rollCheck({Pub? pub}) async {
+    final filesInPR = await listFilesInPRorAll();
+    final packages = packagesContaining(filesInPR, ignore: ignored);
+    final body = await github.pullrequestBody();
+    final pubClient = pub ?? Pub();
+    final unconfirmedPackages = <(Package, String)>[];
+
+    Future<List<GitFile>?>? g3FilesFuture;
+    Future<List<GitFile>?> getG3Files() =>
+        g3FilesFuture ??= allowFailure<List<GitFile>?>(
+          github.listFilesSinceRef(directory, 'g3', ignored),
+          logError: (e) => log('$e'),
+        );
+
+    try {
+      for (final package in packages) {
+        final version = package.pubspec.version;
+        if (version == null || version.wip) continue;
+        final changelogVersion = package.changelog.latestVersion;
+        if (version.toString() != changelogVersion) continue;
+        if (await pubClient.hasPublishedVersion(
+            package.name, version.toString())) {
+          continue;
+        }
+        if (isRollConfirmed(body, package.name)) {
+          continue;
+        }
+        final g3Files = await getG3Files();
+        if (g3Files != null) {
+          final pubspecPath = path.join(package.directory.path, 'pubspec.yaml');
+          final hasUnsyncedG3Changes = g3Files.any(
+            (f) =>
+                f.status.isRelevant &&
+                f.isInPackage(package) &&
+                !path.equals(f.pathInRepository, pubspecPath) &&
+                !path.equals(f.pathInRepository, package.changelog.file.path) &&
+                !path.split(f.filename).contains('.github'),
+          );
+          if (hasUnsyncedG3Changes) {
+            unconfirmedPackages.add(
+              (package, 'Has changes not yet synced to `g3` branch'),
+            );
+          }
+        } else {
+          unconfirmedPackages.add((package, 'Missing roll confirmation'));
+        }
+      }
+    } finally {
+      if (pub == null) {
+        pubClient.close();
+      }
+    }
+
+    if (unconfirmedPackages.isEmpty) {
+      return HealthCheckResult(Check.roll, Severity.success, null);
+    }
+
+    final markdownResult = '''
+| Package | Version | Status |
+| :--- | ---: | :--- |
+${unconfirmedPackages.map((e) => '| package:${e.$1.name} | ${e.$1.version} | ${e.$2} |').join('\n')}
+
+Packages developed under `dart-lang` should be [rolled to google3 and the Dart SDK](https://github.com/dart-lang/sdk/blob/main/docs/External-Package-Maintenance.md#publishing-a-package) before publishing. Add `CONFIRMED_PACKAGE_ROLL=true` or `ROLLED_TO=<sha>` to the PR description once rolled.
+''';
+
+    return HealthCheckResult(
+      Check.roll,
+      Severity.warning,
+      markdownResult,
+    );
+  }
 
   Future<HealthCheckResult> publishCheck() async {
     final firehose = Firehose(
