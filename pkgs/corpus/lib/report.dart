@@ -4,11 +4,13 @@
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import 'api.dart';
 import 'pub.dart';
 import 'utils.dart';
 
-abstract class ReportTarget {
+sealed class ReportTarget {
   final String name;
   final String version;
 
@@ -67,7 +69,9 @@ class Report {
   File generateReport(List<ApiUsage> usages, {bool showSrcReferences = false}) {
     var usage = ApiUsage.combine(usages);
 
-    var file = File('reports/${reportTarget.type}_${reportTarget.name}.md');
+    var file = File(
+      path.join('reports', '${reportTarget.type}_${reportTarget.name}.md'),
+    );
     file.parent.createSync();
     var buf = StringBuffer();
 
@@ -75,22 +79,18 @@ class Report {
     buf.writeln();
     buf.writeln('## General info');
     buf.writeln();
-    if (reportTarget is DartLibraryTarget) {
-      buf.writeln(
-        'https://api.dart.dev/dart-${reportTarget.name}/'
-        'dart-${reportTarget.name}-library.html',
-      );
-    } else if (reportTarget is PackageTarget) {
-      buf.writeln((reportTarget as PackageTarget).description);
-      buf.writeln();
-      buf.writeln('- pub page: https://pub.dev/packages/${reportTarget.name}');
-      buf.writeln(
-        '- docs: https://pub.dev/documentation/${reportTarget.name}/latest/',
-      );
-      buf.writeln(
-        '- dependent packages: '
-        'https://pub.dev/packages?q=dependency%3A${reportTarget.name}&sort=top',
-      );
+    switch (reportTarget) {
+      case DartLibraryTarget(:final name):
+        buf.writeln('https://api.dart.dev/dart-$name/dart-$name-library.html');
+      case PackageTarget(:final name, :final description):
+        buf.writeln(description);
+        buf.writeln();
+        buf.writeln('- pub page: https://pub.dev/packages/$name');
+        buf.writeln('- docs: https://pub.dev/documentation/$name/latest/');
+        buf.writeln(
+          '- dependent packages: '
+          'https://pub.dev/packages?q=dependency%3A$name&sort=top',
+        );
     }
     buf.writeln();
     buf.writeln(
