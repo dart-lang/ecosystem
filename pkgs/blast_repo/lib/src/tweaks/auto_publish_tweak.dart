@@ -39,7 +39,7 @@ class AutoPublishTweak extends RepoTweak {
       ) as yaml.YamlMap?;
       if (pubspec != null &&
           pubspec['publish_to'] != 'none' &&
-          pubspec['workspace'] == null) {
+          pubspec['version'] != null) {
         final useFlutter = _usesFlutter(pubspec);
         final content = singlePackagePublishContents
             .replaceAll('{org}', org)
@@ -97,8 +97,7 @@ List<_PackageInfo> _findPublishablePackages(Directory root) {
           yaml.loadYaml(pubspecFile.readAsStringSync()) as yaml.YamlMap?;
       if (map != null &&
           map['publish_to'] != 'none' &&
-          map['version'] != null &&
-          map['workspace'] == null) {
+          map['version'] != null) {
         final name = map['name'] as String;
         final relDir = p.posix.joinAll(
           p.split(p.relative(dir.path, from: root.path)),
