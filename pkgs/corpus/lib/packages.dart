@@ -77,7 +77,7 @@ class PackageManager {
 
     var result = await runProcess('tar', [
       '-xf',
-      '../../archives/${path.basename(archiveFile.path)}',
+      path.join('..', '..', 'archives', path.basename(archiveFile.path)),
     ], workingDirectory: localPackage.directory.path);
     if (result.exitCode != 0) {
       print(result.stdout);
