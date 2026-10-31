@@ -1,8 +1,10 @@
 ## 0.13.2-wip
 
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
-- Remove obsolete `validate()` and `publish()` methods from `Firehose` and
-  delete the `firehose` CLI executable (`bin/firehose.dart`).
+- Deprecate `Firehose.validate()`, `Firehose.publish()`, the `firehose` CLI
+  executable (`bin/firehose.dart`), and `.github/workflows/publish.yaml` in
+  favor of the `publish` health check and `dart-lang/setup-dart`'s
+  `publish.yml` workflow.
 - Print the links to create GitHub releases at the end of the `publish.yaml`
   validation log so they are available when the PR comment can't be written.
 - Group the `publish.yaml` log output into collapsible sections for package
