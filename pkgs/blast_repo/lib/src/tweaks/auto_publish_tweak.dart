@@ -27,35 +27,72 @@ class AutoPublishTweak extends ExactFileTweak {
   @override
   String expectedContent(Directory checkout, String repoSlug) {
     final org = repoSlug.split('/').first;
-    final branch = gitDefaultBranch(checkout) ?? 'main';
-    final glob = singlePackageRepo(checkout)
-        ? "'v[0-9]+.[0-9]+.[0-9]+'"
-        : "'[A-z]+-v[0-9]+.[0-9]+.[0-9]+'";
+    final template = singlePackageRepo(checkout)
+        ? singlePackagePublishContents
+        : monoRepoPublishContents;
 
-    // Substitute for the github org, default branch, and glob pattern values.
-    return publishContents
-        .replaceAll('{org}', org)
-        .replaceAll('{branch}', branch)
-        .replaceAll('{glob}', glob);
+    // Substitute for the github org value.
+    return template.replaceAll('{org}', org);
   }
 }
 
-const publishContents = r'''
+const singlePackagePublishContents = r'''
 # A CI configuration to auto-publish pub packages.
 
 name: Publish
 
 on:
-  pull_request:
-    branches: [ {branch} ]
   push:
-    tags: [ {glob} ]
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 
 jobs:
   publish:
     if: ${{ github.repository_owner == '{org}' }}
-    uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
     permissions:
       id-token: write # Required for authentication using OIDC
-      pull-requests: write # Required for writing the pull request note
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a5bff6576dfc51b47eb77d4b7084bba6a4daf8d2 # main
+    with:
+      use-flutter: false
+''';
+
+const monoRepoPublishContents = r'''
+# A CI configuration to auto-publish pub packages.
+#
+# Pushing a tag PACKAGE-vVERSION publishes the package in pkgs/PACKAGE.
+# Publish checks on pull requests run in the Health workflow.
+
+name: Publish
+
+on:
+  push:
+    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+*' ]
+
+jobs:
+  package:
+    if: ${{ github.repository_owner == '{org}' }}
+    permissions: {}
+    runs-on: ubuntu-latest
+    outputs:
+      directory: ${{ steps.directory.outputs.directory }}
+    steps:
+      - id: directory
+        name: Find the package directory from the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          package="${TAG%%-v*}"
+          if [[ ! "$package" =~ ^[a-z0-9_]+$ ]]; then
+            echo "No package directory in tag $TAG."
+            exit 1
+          fi
+          echo "directory=pkgs/$package" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: package
+    permissions:
+      id-token: write # Required for authentication using OIDC
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a5bff6576dfc51b47eb77d4b7084bba6a4daf8d2 # main
+    with:
+      working-directory: ${{ needs.package.outputs.directory }}
+      use-flutter: false
 ''';

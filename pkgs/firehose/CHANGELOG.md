@@ -31,6 +31,7 @@
   packages.
 - Remove 3rd-party Coveralls action and `upload_coverage` input from health workflows.
 - Add `--tag-prefix` option to `firehose` and `tag-prefix` input to `publish.yaml` to allow configuring the release tag prefix (defaults to `'v'`).
+- Add `--tag_prefix` option to `firehose:health` and `tag_prefix` input to `health.yaml` for the `publish` health check, and log release links at the end of the `publish` health check output.
 - Run `pub get` before `dart format` in `groundskeeper`.
 - Add `groundskeeper` executable to format and fix packages.
 - Add parameter to `locatePackages` to allow locating all packages with `publish_to: none`.

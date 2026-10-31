@@ -11,8 +11,7 @@ jobs:
   publish:
     permissions:
       id-token: write
-      attestations: write
-      contents: read
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a2a85876fe519099fd3f528670216b240f975906
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@a5bff6576dfc51b47eb77d4b7084bba6a4daf8d2
     with:
       working-directory: pkgs/firehose
+      use-flutter: false

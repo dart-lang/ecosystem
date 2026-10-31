@@ -45,7 +45,40 @@ void main() {
     await d.dir('foo', [
       d.dir('.github', [
         d.dir('workflows', [
-          d.file('publish.yaml', contains('[A-z]+-v')),
+          d.file(
+            'publish.yaml',
+            allOf(
+              contains('[A-z]+-v'),
+              contains('dart-lang/setup-dart/.github/workflows/publish.yml@'),
+              contains('working-directory:'),
+              isNot(contains('pull_request:')),
+            ),
+          ),
+        ]),
+      ])
+    ]).validate();
+  });
+
+  test('detects single-package repo', () async {
+    await d.dir('foo', [
+      d.file('pubspec.yaml', 'name: foo\n'),
+    ]).create();
+
+    var results = await tweak.fix(dir, 'my_org/my_repo');
+    expect(results.fixes, isNotEmpty);
+
+    await d.dir('foo', [
+      d.dir('.github', [
+        d.dir('workflows', [
+          d.file(
+            'publish.yaml',
+            allOf(
+              contains("'v[0-9]+.[0-9]+.[0-9]+*'"),
+              contains('dart-lang/setup-dart/.github/workflows/publish.yml@'),
+              isNot(contains('working-directory:')),
+              isNot(contains('pull_request:')),
+            ),
+          ),
         ]),
       ])
     ]).validate();

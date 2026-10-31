@@ -66,6 +66,7 @@ class Health {
     required this.healthYamlNames,
     String? licenseTestString,
     String? license,
+    this.tagPrefix = 'v',
   })  : ignoredPackages = toGlobs(ignoredPackages),
         flutterPackageGlobs = toGlobs(flutterPackages),
         ignoredFor =
@@ -113,6 +114,7 @@ class Health {
   final Logger log;
   final Set<String> healthYamlNames;
   final LicenseOptions licenseOptions;
+  final String tagPrefix;
 
   late final String dartExecutable;
   late final String? flutterExecutable;
@@ -178,8 +180,11 @@ class Health {
       directory,
       flutterPackageGlobs.isNotEmpty,
       ignored,
+      tagPrefix: tagPrefix,
     );
     final results = await firehose.verify(github);
+    log('');
+    log(results.describeForLog());
     final markdownResult = results.visibleResults.isEmpty
         ? '''
 ${results.describeAsMarkdown()}

@@ -136,6 +136,70 @@ Future<void> main() async {
       ':warning:',
     );
   });
+
+  test('Publish check respects custom tagPrefix', () async {
+    final singlePkgDir = Directory.systemTemp.createTempSync();
+    addTearDown(() => singlePkgDir.deleteSync(recursive: true));
+    File(p.join(singlePkgDir.path, 'pubspec.yaml')).writeAsStringSync('''
+name: single_pkg
+description: A test package.
+version: 99.0.0
+repository: https://github.com/test_owner/test_repo
+environment:
+  sdk: ^3.0.0
+''');
+    File(p.join(singlePkgDir.path, 'CHANGELOG.md')).writeAsStringSync('''
+## 99.0.0
+
+- Initial release.
+''');
+    File(p.join(singlePkgDir.path, 'LICENSE'))
+        .writeAsStringSync('BSD 3-Clause License');
+
+    final commentPath = p.join(singlePkgDir.path, 'comment_publish.md');
+    final logs = <String>[];
+    await FakeHealth(
+      singlePkgDir,
+      Check.publish,
+      [],
+      [],
+      false,
+      [],
+      const {},
+      [],
+      LocalGithubApi(
+        prLabels: ['publish-ignore-warnings'],
+        files: [
+          GitFile('pubspec.yaml', FileStatus.modified, singlePkgDir),
+        ],
+      ),
+      [],
+      comment: commentPath,
+      tagPrefix: '',
+      log: logs.add,
+    ).healthCheck();
+
+    final comment = File(commentPath).readAsStringSync();
+    expect(comment, contains('[`99.0.0`]'));
+    expect(comment, contains('tag=99.0.0'));
+    expect(comment, isNot(contains('tag=v99.0.0')));
+    expect(
+      logs.join('\n'),
+      allOf(
+        contains('Packages ready to publish:'),
+        contains('releases/new?tag=99.0.0'),
+      ),
+    );
+  });
+
+  test('bin/health.dart CLI accepts --tag_prefix', () async {
+    final result = await Process.run(
+      Platform.resolvedExecutable,
+      ['bin/health.dart', '--help'],
+    );
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('--tag_prefix'));
+  });
 }
 
 Future<void> checkGolden(
@@ -189,6 +253,7 @@ class FakeHealth extends Health {
     super.flutterPackages, {
     super.base,
     super.comment,
+    super.tagPrefix,
     super.log,
   }) : super(healthYamlNames: {'my_health.yaml'});
 
