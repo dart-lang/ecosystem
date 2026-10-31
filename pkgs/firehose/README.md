@@ -49,8 +49,8 @@ For PRs, the `publish` check in `health.yaml`:
 ### Integrating publishing into a repo
 
 1. Enable PR validation via `.github/workflows/health.yaml` and `.github/workflows/post_summaries.yaml` (see [PR Health](#pr-health) below; `publish` is enabled in `checks` by default).
-2. From the pub.dev admin page of your package, enable automated publishing from GitHub Actions pointing to `.github/workflows/publish.yaml`.
-3. Copy the appropriate `.github/workflows/publish.yaml` below into your repo (pinning `@v1` to a commit SHA if required by your org's security policy, and setting `use-flutter: true` if your package requires the Flutter SDK):
+2. From the pub.dev admin page of your package, enable automated publishing from GitHub Actions.
+3. Add a tag-triggered publishing workflow into `.github/workflows/` (pinning `@v1` to a commit SHA if required by your org's security policy, and setting `use-flutter: true` if your package requires the Flutter SDK):
 
 #### Single-package repo (`.github/workflows/publish.yaml`)
 
@@ -73,47 +73,26 @@ jobs:
       use-flutter: false
 ```
 
-#### Mono-repo (`.github/workflows/publish.yaml`)
+#### Mono-repo (`.github/workflows/publish_<package>.yaml`, one workflow per package)
 
 ```yaml
-# A CI configuration to auto-publish pub packages.
-#
-# Pushing a tag PACKAGE-vVERSION publishes the package in pkgs/PACKAGE.
-# Publish checks on pull requests run in the Health workflow.
+# A CI configuration to publish package:foo to pub.dev.
 
-name: Publish
+name: Publish package:foo
 
 on:
   push:
-    tags: [ '[a-z0-9_]+-v[0-9]+.[0-9]+.[0-9]+*' ]
+    tags:
+      - 'foo-v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  package:
-    if: ${{ github.repository_owner == 'dart-lang' }}
-    permissions: {}
-    runs-on: ubuntu-latest
-    outputs:
-      directory: ${{ steps.directory.outputs.directory }}
-    steps:
-      - id: directory
-        name: Find the package directory from the tag
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          package="${TAG%%-v*}"
-          if [[ ! "$package" =~ ^[a-z0-9_]+$ ]]; then
-            echo "No package directory in tag $TAG."
-            exit 1
-          fi
-          echo "directory=pkgs/$package" >> "$GITHUB_OUTPUT"
-
   publish:
-    needs: package
+    if: ${{ github.repository_owner == 'dart-lang' }}
     permissions:
       id-token: write
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
-      working-directory: ${{ needs.package.outputs.directory }}
+      working-directory: pkgs/foo
       use-flutter: false
 ```
 
