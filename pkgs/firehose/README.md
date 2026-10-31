@@ -50,7 +50,7 @@ For PRs, the `publish` check in `health.yaml`:
 
 1. Enable PR validation via `.github/workflows/health.yaml` and `.github/workflows/post_summaries.yaml` (see [PR Health](#pr-health) below; `publish` is enabled in `checks` by default).
 2. From the pub.dev admin page of your package, enable automated publishing from GitHub Actions.
-3. Add a tag-triggered publishing workflow into `.github/workflows/` (pinning `@v1` to a commit SHA if required by your org's security policy, and setting `use-flutter: true` if your package requires the Flutter SDK):
+3. Add a tag-triggered publishing workflow into `.github/workflows/` (replacing `'dart-lang'` in `github.repository_owner` with your GitHub org or username, pinning `@main` to a commit SHA such as `@a5bff6576dfc51b47eb77d4b7084bba6a4daf8d2` if required by your org's security policy, and setting `use-flutter: true` if your package requires the Flutter SDK):
 
 #### Single-package repo (`.github/workflows/publish.yaml`)
 
@@ -65,10 +65,10 @@ on:
 
 jobs:
   publish:
-    if: ${{ github.repository_owner == 'dart-lang' }}
+    if: ${{ github.repository_owner == 'dart-lang' }} # Replace 'dart-lang' with your GitHub org or username
     permissions:
       id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@main
     with:
       use-flutter: false
 ```
@@ -87,10 +87,10 @@ on:
 
 jobs:
   publish:
-    if: ${{ github.repository_owner == 'dart-lang' }}
+    if: ${{ github.repository_owner == 'dart-lang' }} # Replace 'dart-lang' with your GitHub org or username
     permissions:
       id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@main
     with:
       working-directory: pkgs/foo
       use-flutter: false
