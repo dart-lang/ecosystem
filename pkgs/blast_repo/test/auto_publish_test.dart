@@ -48,7 +48,7 @@ void main() {
           d.file(
             'publish.yaml',
             allOf(
-              contains('[A-z]+-v'),
+              contains('[a-z0-9_]+-v'),
               contains('dart-lang/setup-dart/.github/workflows/publish.yml@'),
               contains('working-directory:'),
               isNot(contains('pull_request:')),

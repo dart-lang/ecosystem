@@ -65,7 +65,7 @@ name: Publish
 
 on:
   push:
-    tags: [ '[A-z]+-v[0-9]+.[0-9]+.[0-9]+*' ]
+    tags: [ '[a-z0-9_]+-v[0-9]+.[0-9]+.[0-9]+*' ]
 
 jobs:
   package:
