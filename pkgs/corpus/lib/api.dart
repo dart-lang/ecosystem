@@ -296,7 +296,7 @@ class ApiUseCollector extends RecursiveAstVisitor implements SurveyorVisitor {
 }
 
 /// A referring entity - either a package or a library.
-abstract class Entity {
+sealed class Entity {
   String toJson();
 
   static Entity fromJson(String json) {
