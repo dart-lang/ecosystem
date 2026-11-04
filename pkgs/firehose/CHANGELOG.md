@@ -1,5 +1,6 @@
 ## 0.13.2-wip
 
+- Resolve `dartExecutable` in `Health` via `package:cli_util` (`^0.6.0`) instead of shelling out to `which -a dart`.
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
 - Deprecate `Firehose.validate()`, `Firehose.publish()`, the `firehose` CLI
   executable (`bin/firehose.dart`), and `.github/workflows/publish.yaml` in
