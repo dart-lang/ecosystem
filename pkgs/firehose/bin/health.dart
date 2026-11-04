@@ -13,6 +13,12 @@ import 'package:firehose/src/local_github_api.dart';
 void main(List<String> arguments) async {
   final checkTypes = Check.values.map((c) => c.displayName);
   final argParser = ArgParser()
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Print tool help.',
+    )
     ..addMultiOption(
       'check',
       allowed: checkTypes,
@@ -65,6 +71,12 @@ void main(List<String> arguments) async {
       'license_test_string',
       help:
           'A file containing this string will be considered having a license.',
+    )
+    ..addOption(
+      'tag_prefix',
+      defaultsTo: 'v',
+      help: 'The tag prefix to expect and generate for release git tags '
+          '(e.g. "v" or "").',
     );
 
   for (final check in Check.values) {
@@ -75,6 +87,10 @@ void main(List<String> arguments) async {
     );
   }
   final parsedArgs = argParser.parse(arguments);
+  if (parsedArgs.flag('help')) {
+    print(argParser.usage);
+    return;
+  }
   final checkStrings = parsedArgs.multiOption('check');
   final checks = checkStrings.map(
       (checkStr) => Check.values.firstWhere((c) => c.displayName == checkStr));
@@ -100,6 +116,7 @@ void main(List<String> arguments) async {
   final license = nullIfEmpty(parsedArgs.option('license'));
   final licenseTestString =
       nullIfEmpty(parsedArgs.option('license_test_string'));
+  final tagPrefix = parsedArgs.option('tag_prefix')!;
 
   if (warnOn.toSet().intersection(failOn.toSet()).isNotEmpty) {
     throw ArgumentError('The checks for which warnings are displayed and the '
@@ -136,6 +153,7 @@ void main(List<String> arguments) async {
       comment: isLocal ? parsedArgs.option('comment') : null,
       license: license,
       licenseTestString: licenseTestString,
+      tagPrefix: tagPrefix,
     ).healthCheck();
   }
 }

@@ -1,6 +1,18 @@
 ## 0.13.2-wip
 
 - Resolve `dartExecutable` in `Health` via `package:cli_util` (`^0.6.0`) instead of shelling out to `which -a dart`.
+- Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
+- Deprecate `Firehose.validate()`, `Firehose.publish()`, the `firehose` CLI
+  executable (`bin/firehose.dart`), and `.github/workflows/publish.yaml` in
+  favor of the `publish` health check and `dart-lang/setup-dart`'s
+  `publish.yml` workflow.
+- Print the links to create GitHub releases at the end of the `publish.yaml`
+  validation log so they are available when the PR comment can't be written.
+- Group the `publish.yaml` log output into collapsible sections for package
+  discovery, each package's validation, and the PR comment.
+- Search the file system for packages at most once per `Repository`. This
+  stops the validation log from repeating `Found package at ...` lines for
+  every package.
 - Fail `Firehose.verify` when a PR modifies files in a package whose `pubspec.yaml`
   version is already published on `pub.dev` without bumping to `-wip`.
 - Verify that `CHANGELOG.md` updates in PRs modify the top version section,
@@ -12,8 +24,8 @@
 - Document Zizmor compatibility and ignore syntax for `post_summaries.yaml`.
 - Update `post_summaries.yaml` to resolve PR numbers for fork workflow runs via
   commit SHA, and verify comment authorship when checking `commentId`.
-- Update `dependency_validator` pinned commit hash to 5.0.6 (`7582a808960d2170800bfbd7a83526619ce300ce`),
-  enabling support for newer Dart syntax (up to analyzer 13).
+- Update `dependency_validator` pinned commit hash to `52f142e104371eab25d56cafef127ee53b715d22`,
+  enabling support for newer Dart syntax and analyzer 14 (e.g. `{@example}` doc directives).
 - Update existing publishing PR comments with accurate status when packages are
   no longer ready to publish (e.g. when updated to `-wip`).
 - Add `delete` command to `firehose:comment` executable.
@@ -22,6 +34,7 @@
   packages.
 - Remove 3rd-party Coveralls action and `upload_coverage` input from health workflows.
 - Add `--tag-prefix` option to `firehose` and `tag-prefix` input to `publish.yaml` to allow configuring the release tag prefix (defaults to `'v'`).
+- Add `--tag_prefix` option to `firehose:health` and `tag_prefix` input to `health.yaml` for the `publish` health check, and log release links at the end of the `publish` health check output.
 - Run `pub get` before `dart format` in `groundskeeper`.
 - Add `groundskeeper` executable to format and fix packages.
 - Add parameter to `locatePackages` to allow locating all packages with `publish_to: none`.

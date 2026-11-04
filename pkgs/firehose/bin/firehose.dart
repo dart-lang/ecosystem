@@ -57,8 +57,12 @@ void main(List<String> arguments) async {
     );
 
     if (validate) {
+      // Retained temporarily for unmigrated publish.yaml callers (#478).
+      // ignore: deprecated_member_use_from_same_package
       await firehose.validate();
     } else if (publish) {
+      // Retained temporarily for unmigrated publish.yaml callers (#478).
+      // ignore: deprecated_member_use_from_same_package
       await firehose.publish();
     }
   } on ArgParserException catch (e) {

@@ -22,13 +22,33 @@ class Repository {
   /// Returns true if this repository hosts only a single package, and that
   /// package lives at the top level of the repo.
   bool get isSinglePackageRepo {
-    final packages = locatePackages();
+    final packages = _publishablePackages;
     if (packages.length != 1) {
       return false;
     }
 
     final dir = packages.single.directory;
     return dir.absolute.path == baseDirectory.absolute.path;
+  }
+
+  /// The packages in this repository which do not have `publish_to: none`.
+  ///
+  /// The file system is searched at most once per [Repository].
+  late final List<Package> _publishablePackages =
+      _gatherPackages(includeUnpublished: false);
+
+  /// All the packages in this repository, including those with
+  /// `publish_to: none`.
+  ///
+  /// The file system is searched at most once per [Repository].
+  late final List<Package> _allPackages =
+      _gatherPackages(includeUnpublished: true);
+
+  List<Package> _gatherPackages({required bool includeUnpublished}) {
+    final packages = <Package>[];
+    _recurseAndGather(baseDirectory, packages, includeUnpublished);
+    packages.sort((a, b) => a.name.compareTo(b.name));
+    return List.unmodifiable(packages);
   }
 
   /// Returns all the potentially publishable packages for the current
@@ -41,13 +61,17 @@ class Repository {
   /// `publish_to: none` key.
   ///
   /// Once we find a package, we don't look for packages in sub-directories.
+  ///
+  /// The file system is only searched the first time this is called (once for
+  /// each value of [includeUnpublished]). Later calls reuse those results.
   List<Package> locatePackages({
     List<Glob>? only,
     List<Glob>? ignore,
     bool includeUnpublished = false,
   }) {
-    final packages = <Package>[];
-    _recurseAndGather(baseDirectory, packages, includeUnpublished);
+    final packages = [
+      ...(includeUnpublished ? _allPackages : _publishablePackages),
+    ];
     if (ignore != null) {
       packages.removeWhere((package) => ignore.any((glob) => glob.matches(
           path.relative(package.directory.path, from: baseDirectory.path))));
@@ -56,7 +80,6 @@ class Repository {
       packages.removeWhere((package) => only.none((glob) => glob.matches(
           path.relative(package.directory.path, from: baseDirectory.path))));
     }
-    packages.sort((a, b) => a.name.compareTo(b.name));
     return packages;
   }
 

@@ -61,18 +61,18 @@ on:
         required: false
         type: string
       checks:
-        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
-        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        description: What to check for in the PR health check - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        default: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
         type: string
         required: false
       fail_on:
-        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
+        description: Which checks should lead to failure - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
         default: "changelog,do-not-submit"
         type: string
         required: false
       warn_on:
-        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"
-        default: "license,coverage,breaking,leaking,unused-dependencies"
+        description: Which checks should not fail, but only warn - any subset of "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+        default: "license,coverage,breaking,leaking,unused-dependencies,publish"
         type: string
         required: false
       local_debug:
@@ -125,6 +125,16 @@ on:
         default: ''
         required: false
         type: string
+      ignore_publish:
+        description: A glob describing which packages to ignore for the publish check.
+        default: ''
+        required: false
+        type: string
+      tag_prefix:
+        description: The prefix to expect and generate for release git tags (e.g. 'v' or '').
+        default: 'v'
+        required: false
+        type: string
       ignore_packages:
         description: A glob describing which packages to ignore for all checks.
         default: ''
@@ -165,7 +175,7 @@ jobs:
     # we only run this when the PR is in the current repo.
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       - name: Install firehose (internal)
         if: github.repository == 'dart-lang/ecosystem'
         env:
@@ -174,7 +184,9 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
       - name: Find Comment
         id: fc
         env:
@@ -207,6 +219,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: changelog
+      order: '02'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -224,6 +237,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: license
+      order: '06'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -243,6 +257,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: coverage
+      order: '08'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       coverage_web: ${{ inputs.coverage_web }}
@@ -262,6 +277,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: breaking
+      order: '03'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -279,6 +295,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: do-not-submit
+      order: '07'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -296,6 +313,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: leaking
+      order: '04'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -313,6 +331,7 @@ jobs:
     with:
       sdk: ${{ inputs.sdk }}
       check: unused-dependencies
+      order: '05'
       fail_on: ${{ inputs.fail_on }}
       warn_on: ${{ inputs.warn_on }}
       local_debug: ${{ inputs.local_debug }}
@@ -321,8 +340,27 @@ jobs:
       checkout_submodules: ${{ inputs.checkout_submodules }}
       health_yaml_name: ${{ inputs.health_yaml_name }}
 
+  publish:
+    if: ${{ contains(inputs.checks, 'publish') }}
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/health_base.yaml
+    with:
+      sdk: ${{ inputs.sdk }}
+      check: publish
+      order: '01'
+      fail_on: ${{ inputs.fail_on }}
+      warn_on: ${{ inputs.warn_on }}
+      local_debug: ${{ inputs.local_debug }}
+      flutter_packages: ${{ inputs.flutter_packages }}
+      ignore_publish: ${{ inputs.ignore_publish }}
+      tag_prefix: ${{ inputs.tag_prefix }}
+      ignore_packages: ${{ inputs.ignore_packages }}
+      checkout_submodules: ${{ inputs.checkout_submodules }}
+      health_yaml_name: ${{ inputs.health_yaml_name }}
+
   comment:
-    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies]
+    needs: [changelog, license, coverage, breaking, do-not-submit, leaking, unused-dependencies, publish]
     if: always()
     # These permissions are required for us to create comments on PRs.
     permissions:
@@ -331,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
       - name: Install firehose (internal)
         if: github.repository == 'dart-lang/ecosystem'
         env:
@@ -340,9 +378,11 @@ jobs:
         run: dart pub global activate --source git "$GIT_URL" --git-path pkgs/firehose/ --git-ref "$GIT_REF"
       - name: Install firehose (external)
         if: github.repository != 'dart-lang/ecosystem'
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
       - name: Download All Artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           path: single-comments
 
@@ -361,10 +401,12 @@ jobs:
         env:
           ISSUE_NUMBER: ${{ github.event.number }}
         run: |
-         mkdir output
-         echo $'## PR Health\n\n' >> output/comment.md
-         find single-comments -name '*.md' -exec cat {} + >> output/comment.md
-         echo "$ISSUE_NUMBER" > output/issueNumber
+          mkdir -p output
+          echo $'## PR Health\n\n' >> output/comment.md
+          for file in $(find single-comments -name '*.md' | sort); do
+            cat "$file" >> output/comment.md
+          done
+          echo "$ISSUE_NUMBER" > output/issueNumber
 
       - name: Write comment id to file
         if: ${{ steps.fc.outputs.comment-id != 0 }} 
@@ -373,7 +415,7 @@ jobs:
           STEPS_FC_OUTPUTS_COMMENT_ID: ${{ steps.fc.outputs.comment-id }}
  
       - name: Upload folder with number and markdown
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: output
           path: output/

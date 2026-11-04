@@ -3,11 +3,11 @@
 
 # package:firehose
 
-`package:firehose` is a collection of tools and GitHub Actions workflows designed to automate package publishing and check PR health in Dart and Flutter repositories.
+`package:firehose` is a collection of tools and GitHub Actions workflows designed to check PR health and validate package publishing readiness in Dart and Flutter repositories.
 
-The package provides two primary workflows:
-1. **[Publishing (`publish`)](#publishing)**: Validates and automates publishing packages to pub.dev.
-2. **[PR Health (`health`)](#pr-health)**: Runs health and quality checks on pull requests.
+The package works with two primary workflows:
+1. **[Publishing](#publishing)**: Validates package publishing readiness on pull requests (via the `publish` check in `health.yaml`) and automates publishing to pub.dev on git tags via [`dart-lang/setup-dart`'s `publish.yml`](https://github.com/dart-lang/setup-dart/blob/main/.github/workflows/publish.yml).
+2. **[PR Health (`health`)](#pr-health)**: Runs health, quality, and publish-readiness checks on pull requests.
 
 ---
 
@@ -15,63 +15,44 @@ The package provides two primary workflows:
 
 ### What's this?
 
-This is a tool and GitHub Actions workflow (`publish.yaml`) to automate publishing of pub packages from GitHub Actions.
+Publishing automation splits responsibilities across two workflows:
+- **Pull request validation**: Runs via the `publish` check in `dart-lang/ecosystem/.github/workflows/health.yaml` (included in `checks` by default).
+- **Tag-triggered publishing**: Runs via `dart-lang/setup-dart/.github/workflows/publish.yml` when a release tag is pushed.
 
 ### Conventions and setup
 
-When run from a PR, this tool will validate the package pubspecs and
-changelogs and indicate whether the criteria for publishing has been met.
-Generally, each PR should add a new entry to the changelog, rev the pubspec
-version, and the changelog version and pubspec version should agree.
+When run from a PR (via the `publish` check in `health.yaml`), `firehose` validates package pubspecs and changelogs and indicates whether the criteria for publishing have been met. Generally, each PR should add a new entry to the changelog, rev the pubspec version, and ensure the changelog version and pubspec version agree.
 
-When run in response to a git tag event (a tag with a pattern like `v1.2.3` or
-`name_v1.2.3` for monorepos), this tool will publish the indicated package.
+When a git tag matching the repo's release tag pattern (`v1.2.3` for single-package repos, or `name-v1.2.3` for monorepos) is pushed, `dart-lang/setup-dart/.github/workflows/publish.yml` validates the tag and publishes the package to pub.dev using [automated publishing](https://dart.dev/tools/pub/automated-publishing).
 
-### Pre-release versions
+### Pre-release and WIP versions
 
-Pre-release versions (aka, `'1.2.3-dev'`) are handled specially; this tool will
-validate the package but will not auto-publish it. This can be used to
-accumulate several changes and later publish them as a group.
+Work-in-progress versions with a `-wip` pre-release suffix (e.g., `1.2.3-wip`) are validated on PRs without offering a release tag link. This can be used to accumulate several changes and later publish them as a group by removing the `-wip` suffix.
 
 ### Disabling auto-publishing
 
-In order to disable package validation and auto-publishing, add the
-`publish_to: none` key to your pubspec.
+In order to omit a package from publish validation and auto-publishing, add `publish_to: none` to its `pubspec.yaml`.
 
-### PR branch actions
+### PR branch actions (`health.yaml` `publish` check)
 
-For PRs, this tool:
+For PRs, the `publish` check in `health.yaml`:
 
 - determines repo packages
-- validates that the changelog version equals the pubspec version
+- validates that the changelog version equals the pubspec version (and that modified packages do not reuse an already-published version)
 - performs a `dart pub publish --dry-run`
-
-### Git tag actions
-
-In response to a git tag event, this tool:
-
-- validates the tag is well-formed
-- determines the indicated package
-- attempts to publish that package (`dart pub publish --force`)
+- posts a summary table with post-merge GitHub release creation links (via `post_summaries.yaml`)
 
 ### Mono-repos
 
-This tool can work with either single package repos or with mono-repos (repos
-containing several packages). It will scan for and detect packages in a mono
-repo; to omit packages from validation and auto-publishing, add a
-`publish_to: none` key to its pubspec.
+`firehose` works with both single-package repos and mono-repos (repos containing several packages). For single-package repos, the default tag pattern is `v1.2.3` (configurable on PRs via `tag_prefix`). For mono-repos, tags are prefixed with the package name, e.g. `foo-v1.2.3`.
 
-For single package repos, the tag pattern should be `v1.2.3`. For mono-repos,
-the tag pattern must be prefixed with the package name, e.g. `foo-v1.2.3`.
+### Integrating publishing into a repo
 
-### Integrating this tool into a repo
+1. Enable PR validation via `.github/workflows/health.yaml` and `.github/workflows/post_summaries.yaml` (see [PR Health](#pr-health) below; `publish` is enabled in `checks` by default).
+2. From the pub.dev admin page of your package, enable automated publishing from GitHub Actions.
+3. Add a tag-triggered publishing workflow into `.github/workflows/` (replacing `'dart-lang'` in `github.repository_owner` with your GitHub org or username, pinning `@main` to a commit SHA such as `@a5bff6576dfc51b47eb77d4b7084bba6a4daf8d2` if required by your org's security policy, and setting `use-flutter: true` if your package requires the Flutter SDK):
 
-- copy the yaml below into a `.github/workflows/publish.yaml` file in your repo
-- update the target branch below if necessary (currently, `main`)
-- if publishing from a mono-repo, adjust the 'tags' line below to
-  `tags: [ '[0-9A-z]+-v[0-9]+.[0-9]+.[0-9]+' ]`
-- from the pub.dev admin page of your package, enable publishing from GitHub
-  Actions
+#### Single-package repo (`.github/workflows/publish.yaml`)
 
 ```yaml
 # A CI configuration to auto-publish pub packages.
@@ -79,60 +60,41 @@ the tag pattern must be prefixed with the package name, e.g. `foo-v1.2.3`.
 name: Publish
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize, reopened, labeled, unlabeled]
   push:
-    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+*' ]
 
 jobs:
   publish:
-    uses: dart-lang/ecosystem/.github/workflows/publish.yaml@main
+    if: ${{ github.repository_owner == 'dart-lang' }} # Replace 'dart-lang' with your GitHub org or username
     permissions:
       id-token: write
-      pull-requests: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@main
+    with:
+      use-flutter: false
 ```
 
-#### Enabling comments on forks
-
-- add the following to your `publish.yaml`:
-```yaml
-    with:
-       write-comments: false
-``` 
-- copy the yaml below into a `.github/workflows/post_summaries.yaml` file in your repo
+#### Mono-repo (`.github/workflows/publish_<package>.yaml`, one workflow per package)
 
 ```yaml
-# A CI configuration to write comments on PRs.
+# A CI configuration to publish package:foo to pub.dev.
 
-name: Comment on the pull request
+name: Publish package:foo
 
 on:
-  workflow_run:
-    workflows: 
-      - Publish
-    types:
-      - completed
+  push:
+    tags:
+      - 'foo-v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
-  upload:
-    uses: dart-lang/ecosystem/.github/workflows/post_summaries.yaml@main
+  publish:
+    if: ${{ github.repository_owner == 'dart-lang' }} # Replace 'dart-lang' with your GitHub org or username
     permissions:
-      pull-requests: write
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@main
+    with:
+      working-directory: pkgs/foo
+      use-flutter: false
 ```
-
-### Options
-
-The `publish` workflow supports the following input parameters under the `with` key:
-
-| Name | Type | Description | Default / Example |
-| ------------- | ------------- | ------------- | ------------- |
-| `sdk` | string | The channel, or a specific version from a channel, of the Dart SDK to install. | `"stable"` / `"beta"`, `"3.0.0"` |
-| `environment` | string | If specified, publishes will be performed from this GitHub environment, which can require additional approvals. | `""` / `"pub.dev"` |
-| `use-flutter` | boolean | Whether to setup Flutter in this workflow. Required if any packages in the repository depend on Flutter. | `false` / `true` |
-| `write-comments` | boolean | Whether to write validation comments on PRs. Set to `false` if enabling PR comments from forks via `post_summaries.yaml`. | `true` / `false` |
-| `checkout_submodules` | boolean | Whether to checkout git submodules. | `false` / `true` |
-| `ignore-packages` | string | A comma-separated list of package paths or glob patterns to ignore. | `""` / `"pkgs/helper_package,pkgs/non-published-package*"` |
 
 ### Workflow docs
 
@@ -151,13 +113,14 @@ This is a Github workflow to check PR health.
 
 When run from a PR, this tool will check a configurable subset of the following
 
-* The package versioning is correct and consistent, see [Publishing](#publishing) description above.
-* A changelog entry has been added.
-* All `.dart` files have a license header.
-* How the test coverage is affected by the PR.
-* The package versioning takes into account any breaking changes in the PR.
-* The PR contains `DO_NOT_SUBMIT` strings in the files or the description.
-* Any symbols are visible in the public API, but not exported.
+* Package publishing readiness and version consistency (`publish`), see [Publishing](#publishing) above.
+* A changelog entry has been added (`changelog`).
+* All `.dart` files have a license header (`license`).
+* How the test coverage is affected by the PR (`coverage`).
+* The package versioning takes into account any breaking changes in the PR (`breaking`).
+* The PR contains `DO_NOT_SUBMIT` strings in the files or the description (`do-not-submit`).
+* Any symbols are visible in the public API, but not exported (`leaking`).
+* Unused dependencies in `pubspec.yaml` (`unused-dependencies`).
 
 This tool can work with either single package repos or with mono-repos (repos
 containing several packages).
@@ -178,17 +141,19 @@ jobs:
     uses: dart-lang/ecosystem/.github/workflows/health.yaml@main
 #   with:
 #     sdk: beta
-#     checks: "version,changelog,license,coverage,breaking,do-not-submit,leaking"
-#     fail_on: "version,changelog,do-not-submit"
-#     warn_on: "license,coverage,breaking,leaking"
+#     checks: "changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"
+#     fail_on: "changelog,do-not-submit,publish"
+#     warn_on: "license,coverage,breaking,leaking,unused-dependencies"
 #     coverage_web: false
-#     use-flutter: true
+#     flutter_packages: "pkgs/my_flutter_pkg"
 #     ignore_license: "**.g.dart"
 #     ignore_coverage: "**.mock.dart,**.g.dart"
 #     ignore_breaking: "pkgs/helper_package/**"
+#     ignore_publish: "pkgs/helper_package/**"
 #     ignore_packages: "pkgs/helper_package2"
 #     checkout_submodules: false
 #     experiments: "native-assets"
+#     tag_prefix: "v"
     permissions:
       pull-requests: write
 ```
@@ -201,10 +166,9 @@ name: Comment on the pull request
 on:
   # Trigger this workflow after the Health workflow completes. This workflow will have permissions to
   # do things like create comments on the PR, even if the original workflow couldn't.
-  workflow_run:
-    workflows: 
+  workflow_run: # zizmor: ignore[dangerous-triggers]
+    workflows:
       - Health
-      # - Publish
     types:
       - completed
 
@@ -218,29 +182,32 @@ jobs:
 ### Checks
 | Check | Description |
 | :--- | :--- |
+| **`changelog`** | Verifies that modified packages update `CHANGELOG.md` and match the version in `pubspec.yaml`. |
 | **`license`** | Scans all `.dart` files in the PR to ensure they contain the required license header (e.g., the BSD 3-Clause header used by Dart ecosystem packages). |
 | **`coverage`** | Runs tests and calculates code coverage. It compares the coverage of the PR branch against the base branch to report whether coverage has increased, decreased, or stayed the same. |
 | **`breaking`** | Analyzes public API changes using `package:dart_apitool`. If breaking changes are detected (e.g., removing a class or changing a method signature), it ensures the version bump reflects a major/breaking change. |
 | **`do-not-submit`** | Scans the file contents and the PR description for the string `DO_NOT_SUBMIT`. This prevents developers from accidentally merging debug code, "TODO" shortcuts, or sensitive local configurations. |
 | **`leaking`** | Checks for "leaked" symbols—types or classes that are visible in your public API (e.g., used as a return type in a public method) but are not actually exported in your package's main library entry point. |
 | **`unused-dependencies`** | Analyzes the imports in your source code against the dependencies listed in `pubspec.yaml` to identify packages that are declared but never actually used, using `package:dependency_validator`. |
+| **`publish`** | Validates publishable packages on the PR (version/changelog consistency, unpublished version check, and `dart pub publish --dry-run`) and generates post-merge GitHub release links. |
 
 
 ### Options
 
 | Name | Type | Description | Example |
 | ------------- | ------------- | ------------- | ------------- |
-| `checks`  | List of strings  | What to check for in the PR health check | `"changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies"` |
-| `fail_on`  | List of strings  | Which checks should lead to failure | `"changelog,do-not-submit"` |
-| `warn_on`  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking"` |
+| `checks`  | List of strings  | What to check for in the PR health check | `"changelog,license,coverage,breaking,do-not-submit,leaking,unused-dependencies,publish"` |
+| `fail_on`  | List of strings  | Which checks should lead to failure | `"changelog,do-not-submit,publish"` |
+| `warn_on`  | List of strings  | Which checks should not fail, but only warn | `"license,coverage,breaking,leaking,unused-dependencies"` |
 | `coverage_web`  | boolean  | Whether to run `dart test -p chrome` for coverage | `false` |
 | `flutter_packages`  | List of strings  | List of packages depending on Flutter | `"pkgs/intl_flutter"` |
-| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, `donotsubmit`, or `unuseddependencies`. For the `breaking` and `unuseddependencies` checks, the glob should be all files of the package. | `"**.g.dart"` |
+| `ignore_*`  | List of globs | Files to ignore, where `*` can be `license`, `changelog`, `coverage`, `breaking`, `leaking`, `donotsubmit`, `unuseddependencies`, or `publish`. For the `breaking` and `unuseddependencies` checks, the glob should be all files of the package. | `"**.g.dart"` |
 | `ignore_packages`  | List of globs  | Which packages to ignore completely | `"pkgs/helper_package"` |
 | `checkout_submodules`  | boolean  | Whether to checkout submodules of git repositories | `false` |
 | `experiments`  | List of strings  | Which experiments should be enabled for Dart | `"native-assets"` |
 | `license`  | String  | The license string to insert if missing. %YEAR% will be replaced with the current year | `"// Copyright %YEAR% ..."` |
 | `license_test_string`  | String  | A file containing this string will be considered having a license. | `"// Copyright (c)"` |
+| `tag_prefix`  | String  | Prefix before the version in single-package release tags for the `publish` check (defaults to `"v"`). Set to `""` for bare version tags. | `"v"` |
 
 ### Workflow docs
 

@@ -1,3 +1,6 @@
+@TestOn('vm')
+library;
+
 // Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -94,7 +97,7 @@ version: 1.0.0
       updateChangelog(changelogFile: changelogFile, message: 'New WIP change');
 
       expect(changelogFile.readAsStringSync(), '''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - New WIP change
 
@@ -105,7 +108,7 @@ version: 1.0.0
 
       expect(pubspecFile.readAsStringSync(), '''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
 ''');
     });
 
@@ -116,7 +119,7 @@ version: 1.0.0-wip
       final pubspecFile = File('${tempDir.path}/pubspec.yaml');
 
       changelogFile.writeAsStringSync('''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - WIP change
 
@@ -126,14 +129,14 @@ version: 1.0.0-wip
 ''');
       pubspecFile.writeAsStringSync('''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
 ''');
 
       updateChangelog(
           changelogFile: changelogFile, message: 'Another WIP change');
 
       expect(changelogFile.readAsStringSync(), '''
-## 1.0.0-wip
+## 1.0.1-wip
 
 - WIP change
 - Another WIP change
@@ -145,7 +148,78 @@ version: 1.0.0-wip
 
       expect(pubspecFile.readAsStringSync(), '''
 name: my_package
-version: 1.0.0-wip
+version: 1.0.1-wip
+''');
+    });
+
+    test('strips build metadata when incrementing patch to WIP', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.2.3+build.4
+
+- Released version with build metadata
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.2.3+build.4
+''');
+
+      updateChangelog(changelogFile: changelogFile, message: 'Next change');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.2.4-wip
+
+- Next change
+
+## 1.2.3+build.4
+
+- Released version with build metadata
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.2.4-wip
+''');
+    });
+
+    test('appends -wip to a published pre-release and coalesces follow-ups',
+        () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml');
+
+      changelogFile.writeAsStringSync('''
+## 1.2.3-alpha.3
+
+- Published alpha
+''');
+      pubspecFile.writeAsStringSync('''
+name: my_package
+version: 1.2.3-alpha.3
+''');
+
+      updateChangelog(changelogFile: changelogFile, message: 'First fix');
+      updateChangelog(changelogFile: changelogFile, message: 'Second fix');
+
+      expect(changelogFile.readAsStringSync(), '''
+## 1.2.3-alpha.3-wip
+
+- First fix
+- Second fix
+
+## 1.2.3-alpha.3
+
+- Published alpha
+''');
+
+      expect(pubspecFile.readAsStringSync(), '''
+name: my_package
+version: 1.2.3-alpha.3-wip
 ''');
     });
   });

@@ -1,3 +1,8 @@
+# DEPRECATED: Use the `publish` check in `.github/workflows/health.yaml` for PR
+# validation and `dart-lang/setup-dart/.github/workflows/publish.yml` for
+# tag-triggered package publishing. Kept temporarily while downstream
+# repositories finish migrating (#478).
+#
 # A CI configuration to auto-publish pub packages.
 
 name: Publish
@@ -122,7 +127,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
@@ -139,7 +144,7 @@ jobs:
           channel: ${{ inputs.sdk }}
           cache: true
 
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -153,7 +158,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
@@ -224,7 +231,7 @@ jobs:
 
       - name: Upload folder with number and markdown
         if: ${{ !inputs.write-comments }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: output
           path: output/
@@ -241,7 +248,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: ${{ inputs.checkout_submodules }}
 
@@ -258,7 +265,7 @@ jobs:
           channel: ${{ inputs.sdk }}
           cache: true
 
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         if: ${{ !inputs.use-flutter }}
         with:
           sdk: ${{ inputs.sdk }}
@@ -272,7 +279,9 @@ jobs:
 
       - name: Install firehose (external)
         if: ${{ !inputs.local_debug && github.repository != 'dart-lang/ecosystem' }}
-        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/
+        env:
+          WORKFLOW_SHA: ${{ job.workflow_sha }}
+        run: dart pub global activate --source git https://github.com/dart-lang/ecosystem --git-path pkgs/firehose/ --git-ref "$WORKFLOW_SHA"
 
       - name: Install local firehose
         run: dart pub global activate --source path pkgs/firehose/
