@@ -9,6 +9,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:repo_manage/changelog_updater.dart';
+import 'package:repo_manage/src/common.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -221,6 +222,183 @@ version: 1.2.3-alpha.3
 name: my_package
 version: 1.2.3-alpha.3-wip
 ''');
+    });
+  });
+
+  group('updateChangelog (replacePattern)', () {
+    final boringPattern = RegExp('^Update BoringSSL to ');
+
+    test('replaces a matching bullet in place in an active -wip section', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md')
+        ..writeAsStringSync('''
+## 0.4.3-wip
+
+- Fix certificate parsing.
+- Update BoringSSL to ed9209cf.
+
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+
+      updateChangelog(
+        changelogFile: changelogFile,
+        message: 'Update BoringSSL to '
+            '[0131ae9d](https://boringssl.googlesource.com/boringssl/+/0131ae9d).',
+        replacePattern: boringPattern,
+      );
+
+      expect(changelogFile.readAsStringSync(), '''
+## 0.4.3-wip
+
+- Fix certificate parsing.
+- Update BoringSSL to [0131ae9d](https://boringssl.googlesource.com/boringssl/+/0131ae9d).
+
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+    });
+
+    test('replaces wrapped multi-line bullets and coalesces duplicates', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md')
+        ..writeAsStringSync('''
+## 0.4.3-wip
+- Update BoringSSL to
+  [ed9209cf](https://boringssl.googlesource.com/boringssl/+/ed9209cf).
+- Update BoringSSL to 0131ae9d.
+
+## 0.4.2
+
+- Initial release.
+''');
+
+      updateChangelog(
+        changelogFile: changelogFile,
+        message: 'Update BoringSSL to '
+            '[aabbccdd](https://boringssl.googlesource.com/boringssl/+/aabbccdd).',
+        replacePattern: boringPattern,
+      );
+
+      expect(changelogFile.readAsStringSync(), '''
+## 0.4.3-wip
+- Update BoringSSL to [aabbccdd](https://boringssl.googlesource.com/boringssl/+/aabbccdd).
+
+## 0.4.2
+
+- Initial release.
+''');
+    });
+
+    test('appends to -wip when no existing bullet matches replacePattern', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md')
+        ..writeAsStringSync('''
+## 0.4.3-wip
+
+- Fix certificate parsing.
+
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+
+      updateChangelog(
+        changelogFile: changelogFile,
+        message:
+            'Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).',
+        replacePattern: boringPattern,
+      );
+
+      expect(changelogFile.readAsStringSync(), '''
+## 0.4.3-wip
+
+- Fix certificate parsing.
+- Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).
+
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+    });
+
+    test('creates new -wip section without touching released matches', () {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md')
+        ..writeAsStringSync('''
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+      final pubspecFile = File('${tempDir.path}/pubspec.yaml')
+        ..writeAsStringSync('''
+name: boring
+version: 0.4.2
+''');
+
+      updateChangelog(
+        changelogFile: changelogFile,
+        message:
+            'Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).',
+        replacePattern: boringPattern,
+      );
+
+      expect(changelogFile.readAsStringSync(), '''
+## 0.4.3-wip
+
+- Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).
+
+## 0.4.2
+
+- Update BoringSSL to 90c6b370.
+''');
+      expect(pubspecFile.readAsStringSync(), '''
+name: boring
+version: 0.4.3-wip
+''');
+    });
+  });
+
+  group('ChangelogUpdaterCommand CLI', () {
+    test('supports --replace-pattern and rejects invalid regexes', () async {
+      final tempDir = Directory.systemTemp.createTempSync();
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final changelogFile = File('${tempDir.path}/CHANGELOG.md')
+        ..writeAsStringSync('''
+## 0.4.3-wip
+- Update BoringSSL to ed9209cf.
+''');
+
+      final runner = ReportCommandRunner();
+      final exitCode = await runner.run([
+        'changelog',
+        '--changelog',
+        changelogFile.path,
+        '--replace-pattern',
+        '^Update BoringSSL to ',
+        'Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).',
+      ]);
+      expect(exitCode, 0);
+      expect(changelogFile.readAsStringSync(), '''
+## 0.4.3-wip
+- Update BoringSSL to [0131ae9d](https://example.com/0131ae9d).
+''');
+
+      final badExitCode = await runner.run([
+        'changelog',
+        '--changelog',
+        changelogFile.path,
+        '--replace-pattern',
+        '[unclosed',
+        'Update BoringSSL to 12345678.',
+      ]);
+      expect(badExitCode, 1);
     });
   });
 }
