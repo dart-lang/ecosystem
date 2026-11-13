@@ -1,5 +1,7 @@
 ## 0.13.2-wip
 
+- Generate descriptive PR titles, PR bodies, and commit messages in
+  `groundskeeper` from `dart format`, `dart analyze`, and `dart fix` output.
 - Resolve `dartExecutable` in `Health` via `package:cli_util` (`^0.6.0`) instead of shelling out to `which -a dart`.
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
 - Deprecate `Firehose.validate()`, `Firehose.publish()`, the `firehose` CLI

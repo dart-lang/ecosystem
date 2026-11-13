@@ -44,16 +44,6 @@ on:
         required: false
         type: string
         default: 'auto-tidy'
-      title:
-        description: 'PR title'
-        required: false
-        type: string
-        default: 'Tidy: Automated dart format and fix'
-      body:
-        description: 'PR body'
-        required: false
-        type: string
-        default: 'This is an automated PR to apply `dart format` and `dart fix --apply`.'
 
 jobs:
   tidy:
@@ -100,6 +90,7 @@ jobs:
         run: dart pub get
 
       - name: Run Tidy Script
+        id: tidy
         working-directory: ${{ inputs.directory }}
         env:
           RUN_FORMAT: ${{ inputs.run-format }}
@@ -109,7 +100,8 @@ jobs:
           dart $GITHUB_WORKSPACE/.github/ecosystem-helper/pkgs/firehose/bin/groundskeeper.dart \
             --format="$RUN_FORMAT" \
             --fix="$RUN_FIX" \
-            --use-flutter="$USE_FLUTTER"
+            --use-flutter="$USE_FLUTTER" \
+            --github-output="$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: check_changes
@@ -141,8 +133,8 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           committer: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
           author: dart-ecosystem-bot <dart-ecosystem-bot@google.com>
-          commit-message: ${{ inputs.title }}
+          commit-message: ${{ steps.tidy.outputs.commit-message }}
           branch: ${{ inputs.branch }}
-          title: ${{ inputs.title }}
-          body: ${{ inputs.body }}
+          title: ${{ steps.tidy.outputs.title }}
+          body: ${{ steps.tidy.outputs.body }}
           delete-branch: true
