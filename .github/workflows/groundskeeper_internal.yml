@@ -25,5 +25,4 @@ jobs:
     with:
       directory: pkgs/${{ matrix.package }}
       branch: auto-tidy-${{ matrix.package }}
-      title: 'Tidy: package:${{ matrix.package }}'
     secrets: inherit
