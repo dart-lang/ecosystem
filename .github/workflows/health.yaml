@@ -386,7 +386,9 @@ jobs:
         with:
           path: single-comments
 
-      - run: ls -R single-comments
+      # A check skipped by its label uploads no artifact. With no artifacts at all,
+      # download-artifact creates no directory, so create it before listing it.
+      - run: mkdir -p single-comments && ls -R single-comments
 
       - name: Find Comment
         id: fc
