@@ -30,18 +30,15 @@ Future<void> main(List<String> arguments) async {
   );
   if (package != null) {
     print('Found $package to serve as a canary.');
-    final version = '${package.name}:${json.encode({
-          'git': {
-            'url': gitUri,
-            'ref': branch,
-            'path': p.relative(
-              package.directory.path,
-              from: Directory.current.path,
-            )
-          },
+    final version =
+        '${package.name}:${json.encode({
+          'git': {'url': gitUri, 'ref': branch, 'path': p.relative(package.directory.path, from: Directory.current.path)},
         })}';
-    final mineAirQuality =
-        await Canary(package.name, version, repositoriesFile).intoTheMine();
+    final mineAirQuality = await Canary(
+      package.name,
+      version,
+      repositoriesFile,
+    ).intoTheMine();
     final comment = createComment(mineAirQuality);
     await writeComment(comment);
     print(mineAirQuality);
@@ -50,6 +47,12 @@ Future<void> main(List<String> arguments) async {
 }
 
 enum Level { solve, analyze, test }
+
+/// Returns [:true:] when the pass ratio across [outcomes] meets [threshold].
+bool meetsPassThreshold(List<bool> outcomes, double threshold) {
+  final passCount = outcomes.where((v) => v == true).length;
+  return (passCount / outcomes.length) >= threshold;
+}
 
 /// A mapping of a package to application test results.
 ///
@@ -83,10 +86,9 @@ class ShaftAirQuality {
   bool get success => failure == null;
 
   Level? get failure => Level.values.firstWhereOrNull(
-        (level) =>
-            before[level]?.breathable == true &&
-            after[level]?.breathable == false,
-      );
+    (level) =>
+        before[level]?.breathable == true && after[level]?.breathable == false,
+  );
 
   String toRow(Application application) => '''
 | ${application.name} | ${Level.values.map((l) => '${before[l]?.breathable.toEmoji ?? '-'}/${after[l]?.breathable.toEmoji ?? '-'}').join(' | ')} |''';
@@ -129,17 +131,16 @@ class Application {
 
   static Future<Iterable<Application>> listFromFile(String path) async {
     final s = await File(path).readAsString();
-    return (jsonDecode(s) as Map)
-        .entries
+    return (jsonDecode(s) as Map).entries
         .where((e) => e.key != r'$schema')
         .map((e) => MapEntry(e.key as String, e.value as Map))
         .map((e) {
-      return Application(
-        url: e.key,
-        name: (e.value['name'] as String?) ?? p.basename(e.key),
-        level: Level.values.firstWhere((l) => l.name == e.value['level']),
-      );
-    });
+          return Application(
+            url: e.key,
+            name: (e.value['name'] as String?) ?? p.basename(e.key),
+            level: Level.values.firstWhere((l) => l.name == e.value['level']),
+          );
+        });
   }
 
   @override
@@ -168,11 +169,14 @@ class Canary {
     for (var application in await Application.listFromFile(applicationFile)) {
       final path = await cloneRepo(application.url, tempDir);
       print('Cloned $application into $path');
-      final depsListResult =
-          (await runFlutter(['pub', 'deps', '--json'], path)).stdout;
-      final depsJson =
-          jsonDecode(depsListResult.substring(depsListResult.indexOf('{')))
-              as Map<String, dynamic>;
+      final depsListResult = (await runFlutter([
+        'pub',
+        'deps',
+        '--json',
+      ], path)).stdout;
+      final depsJson = jsonDecode(
+        depsListResult.substring(depsListResult.indexOf('{')),
+      ) as Map<String, dynamic>;
       final depsPackages = depsJson['packages'] as List;
       print(depsPackages);
       if (depsPackages.any((p) => (p as Map)['name'] == canaryPackage)) {
@@ -275,7 +279,8 @@ Future<void> writeComment(String content) async {
 }
 
 String createComment(MineAirQuality mine) {
-  final contents = '''
+  final contents =
+      '''
 ## Ecosystem testing
 
 | Package | Solve | Analyze | Test |
@@ -287,9 +292,9 @@ ${mine.shaftAirQualities.entries.map((shaft) => shaft.value.toRow(shaft.key)).jo
 <strong>Details per app</strong>
 </summary>
 ${mine.shaftAirQualities.entries.map((entry) {
-    final application = entry.key;
-    final shaft = entry.value;
-    return '''
+        final application = entry.key;
+        final shaft = entry.value;
+        return '''
 <details>
 <summary>
 <strong>${application.name}</strong> ${shaft.success ? checkEmoji : crossEmoji}
@@ -341,7 +346,7 @@ ${shaft.after[level]?.stderr}
 </details>
 
 ''';
-  }).join('\n')}
+      }).join('\n')}
 
 </details>
   
