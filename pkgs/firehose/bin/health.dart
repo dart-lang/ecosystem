@@ -11,7 +11,7 @@ import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
 
 void main(List<String> arguments) async {
-  final checkTypes = Check.values.map((c) => c.displayName);
+  final checkTypes = Check.values.map((c) => c.displayName).toSet();
   final argParser = ArgParser()
     ..addFlag(
       'help',
@@ -168,7 +168,7 @@ extension on ArgResults {
   /// [allowed].
   ///
   /// The workflow passes an empty input as an empty value, which means none.
-  List<String> listOfAllowed(String key, Iterable<String> allowed) {
+  List<String> listOfAllowed(String key, Set<String> allowed) {
     final values = listNonEmpty(key);
     for (final value in values) {
       if (!allowed.contains(value)) {
