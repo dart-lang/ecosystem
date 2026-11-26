@@ -217,6 +217,36 @@ environment:
     expect(result.exitCode, 0);
     expect(result.stdout, contains('--tag_prefix'));
   });
+
+  test('bin/health.dart CLI accepts empty check lists', () async {
+    final result = await Process.run(
+      Platform.resolvedExecutable,
+      [
+        'bin/health.dart',
+        '--check',
+        '',
+        '--warn_on',
+        '',
+        '--fail_on',
+        '',
+        '--help'
+      ],
+    );
+    expect(result.exitCode, 0, reason: '${result.stderr}');
+    expect(result.stdout, contains('--warn_on'));
+  });
+
+  test('bin/health.dart CLI rejects an unknown check', () async {
+    final result = await Process.run(
+      Platform.resolvedExecutable,
+      ['bin/health.dart', '--warn_on', 'license,typo', '--help'],
+    );
+    expect(result.exitCode, isNot(0));
+    expect(
+      result.stderr,
+      contains('"typo" is not an allowed value for option "--warn_on".'),
+    );
+  });
 }
 
 Future<void> checkGolden(
