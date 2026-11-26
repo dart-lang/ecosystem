@@ -1,5 +1,9 @@
 ## 0.13.2-wip
 
+- Accept an empty `check`, `warn_on` or `fail_on` list in `bin/health.dart`,
+  which `health.yaml` passes for an empty input such as `warn_on: ""`,
+  instead of failing with `"" is not an allowed value`
+  ([#303](https://github.com/dart-lang/ecosystem/issues/303)).
 - Resolve `dartExecutable` in `Health` via `package:cli_util` (`^0.6.0`) instead of shelling out to `which -a dart`.
 - Add `publish` health check to report package publishing readiness and release links in `health.yaml`.
 - Deprecate `Firehose.validate()`, `Firehose.publish()`, the `firehose` CLI

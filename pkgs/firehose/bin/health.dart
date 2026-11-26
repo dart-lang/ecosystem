@@ -11,7 +11,7 @@ import 'package:firehose/src/health/health.dart';
 import 'package:firehose/src/local_github_api.dart';
 
 void main(List<String> arguments) async {
-  final checkTypes = Check.values.map((c) => c.displayName);
+  final checkTypes = Check.values.map((c) => c.displayName).toSet();
   final argParser = ArgParser()
     ..addFlag(
       'help',
@@ -21,8 +21,7 @@ void main(List<String> arguments) async {
     )
     ..addMultiOption(
       'check',
-      allowed: checkTypes,
-      help: 'Check PR health.',
+      help: 'Check PR health. One or more of: ${checkTypes.join(', ')}.',
     )
     ..addMultiOption(
       'ignore_packages',
@@ -31,13 +30,13 @@ void main(List<String> arguments) async {
     )
     ..addMultiOption(
       'warn_on',
-      allowed: checkTypes,
-      help: 'Which checks to display warnings on',
+      help: 'Which checks to display warnings on. '
+          'One or more of: ${checkTypes.join(', ')}.',
     )
     ..addMultiOption(
       'fail_on',
-      allowed: checkTypes,
-      help: 'Which checks should lead to workflow failure',
+      help: 'Which checks should lead to workflow failure. '
+          'One or more of: ${checkTypes.join(', ')}.',
     )
     ..addMultiOption(
       'experiments',
@@ -87,15 +86,15 @@ void main(List<String> arguments) async {
     );
   }
   final parsedArgs = argParser.parse(arguments);
+  final checkStrings = parsedArgs.listOfAllowed('check', checkTypes);
+  final warnOn = parsedArgs.listOfAllowed('warn_on', checkTypes);
+  final failOn = parsedArgs.listOfAllowed('fail_on', checkTypes);
   if (parsedArgs.flag('help')) {
     print(argParser.usage);
     return;
   }
-  final checkStrings = parsedArgs.multiOption('check');
   final checks = checkStrings.map(
       (checkStr) => Check.values.firstWhere((c) => c.displayName == checkStr));
-  final warnOn = parsedArgs.multiOption('warn_on');
-  final failOn = parsedArgs.multiOption('fail_on');
   final flutterPackages = parsedArgs.listNonEmpty('flutter_packages');
   final ignorePackages = parsedArgs.listNonEmpty('ignore_packages');
   final ignoredFor = Map.fromEntries(Check.values
@@ -164,6 +163,21 @@ String? nullIfEmpty(String? value) =>
 extension on ArgResults {
   List<String> listNonEmpty(String key) =>
       (this[key] as List<String>).where((e) => e.isNotEmpty).toList();
+
+  /// The non-empty values of the multi-option [key], which must all be in
+  /// [allowed].
+  ///
+  /// The workflow passes an empty input as an empty value, which means none.
+  List<String> listOfAllowed(String key, Set<String> allowed) {
+    final values = listNonEmpty(key);
+    for (final value in values) {
+      if (!allowed.contains(value)) {
+        throw FormatException(
+            '"$value" is not an allowed value for option "--$key".');
+      }
+    }
+    return values;
+  }
 }
 
 FileStatus _mapGitCodeToStatus(String char) => switch (char) {
